@@ -129,6 +129,106 @@
       "ip": "2400:cb00::1",
       "expect": false,
       "why": "ordinary public v6"
+    },
+    {
+      "ip": "fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+      "expect": true,
+      "why": "last address inside fc00::/7; pins the /7 mask width"
+    },
+    {
+      "ip": "fe00::",
+      "expect": false,
+      "why": "first address past fc00::/7; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "2001:db8:ffff:ffff:ffff:ffff:ffff:ffff",
+      "expect": true,
+      "why": "last address inside 2001:db8::/32; pins the /32 mask width"
+    },
+    {
+      "ip": "2001:db9::",
+      "expect": false,
+      "why": "first address past 2001:db8::/32; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "2002:a9fe:ffff:ffff:ffff:ffff:ffff:ffff",
+      "expect": true,
+      "why": "last address inside 2002:a9fe::/32; pins the /32 mask width"
+    },
+    {
+      "ip": "2002:a9ff::",
+      "expect": false,
+      "why": "first address past 2002:a9fe::/32; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "2001:0:c000:2ff:ffff:ffff:ffff:ffff",
+      "expect": true,
+      "why": "last address inside 2001:0:c000:200::/56; pins the /56 mask width"
+    },
+    {
+      "ip": "2001:0:c000:300::",
+      "expect": false,
+      "why": "first address past 2001:0:c000:200::/56; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "100::ffff:ffff:ffff:ffff",
+      "expect": true,
+      "why": "last address inside 100::/64; pins the /64 mask width"
+    },
+    {
+      "ip": "100:0:0:1::",
+      "expect": false,
+      "why": "first address past 100::/64; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "10.255.255.255",
+      "expect": true,
+      "why": "last address inside 10.0.0.0/8; pins the /8 mask width"
+    },
+    {
+      "ip": "11.0.0.0",
+      "expect": false,
+      "why": "first address past 10.0.0.0/8; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "100.127.255.255",
+      "expect": true,
+      "why": "last address inside 100.64.0.0/10; pins the /10 mask width"
+    },
+    {
+      "ip": "100.128.0.0",
+      "expect": false,
+      "why": "first address past 100.64.0.0/10; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "172.31.255.255",
+      "expect": true,
+      "why": "last address inside 172.16.0.0/12; pins the /12 mask width"
+    },
+    {
+      "ip": "172.32.0.0",
+      "expect": false,
+      "why": "first address past 172.16.0.0/12; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "198.19.255.255",
+      "expect": true,
+      "why": "last address inside 198.18.0.0/15; pins the /15 mask width"
+    },
+    {
+      "ip": "198.20.0.0",
+      "expect": false,
+      "why": "first address past 198.18.0.0/15; a mask one bit too wide claims it"
+    },
+    {
+      "ip": "192.0.2.255",
+      "expect": true,
+      "why": "last address inside 192.0.2.0/24; pins the /24 mask width"
+    },
+    {
+      "ip": "192.0.3.0",
+      "expect": false,
+      "why": "first address past 192.0.2.0/24; a mask one bit too wide claims it"
     }
   ],
   "bogonResponse": {
