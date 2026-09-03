@@ -367,6 +367,55 @@
           "last_seen": "2026-08-30"
         }
       }
+    },
+    {
+      "name": "max-nothing-found",
+      "why": "A served all-negative Max answer. This is the only case that pins EVERY tier-gated flag as present-and-false, so a per-field slip that maps on truthiness rather than presence cannot hide behind the members other cases happen to set true.",
+      "status": 200,
+      "body": {
+        "ip": "8.8.4.4",
+        "is_vpn": false,
+        "is_hosting": false,
+        "is_relay": false,
+        "is_tor": false,
+        "is_cdn": false,
+        "is_resproxy": false,
+        "is_dcproxy": false,
+        "is_mobproxy": false,
+        "vpn": {},
+        "hosting": {},
+        "relay": {},
+        "tor": {},
+        "cdn": {},
+        "resproxy": {},
+        "dcproxy": {},
+        "mobproxy": {}
+      },
+      "expect": {
+        "ip": "8.8.4.4",
+        "isBogon": false,
+        "present": {
+          "is_vpn": false,
+          "is_hosting": false,
+          "is_relay": false,
+          "is_tor": false,
+          "is_cdn": false,
+          "is_resproxy": false,
+          "is_dcproxy": false,
+          "is_mobproxy": false
+        },
+        "absent": [],
+        "emptyPresent": [
+          "vpn",
+          "hosting",
+          "relay",
+          "tor",
+          "cdn",
+          "resproxy",
+          "dcproxy",
+          "mobproxy"
+        ]
+      }
     }
   ],
   "errors": [
