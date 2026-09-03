@@ -1,0 +1,10 @@
+# Keep the installed package to the library itself. Composer fetches a GitHub
+# archive, and GitHub honors export-ignore when it builds one.
+/.github export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/phpunit.xml.dist export-ignore
+/scripts export-ignore
+/spec export-ignore
+/testdata export-ignore
+/tests export-ignore

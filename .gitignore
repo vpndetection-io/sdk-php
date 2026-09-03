@@ -1,0 +1,15 @@
+/vendor/
+/composer.lock
+
+# Scratch directory scripts/generate.sh unpacks the generator's output into.
+/.gen/
+
+# PHPUnit local overrides and caches.
+/phpunit.xml
+/.phpunit.cache/
+/.phpunit.result.cache
+
+# IDE and OS noise.
+/.idea/
+/.vscode/
+.DS_Store

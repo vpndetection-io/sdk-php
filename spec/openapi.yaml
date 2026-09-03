@@ -1,0 +1,768 @@
+openapi: 3.0.3
+info:
+  title: VPNDetection API
+  description: |
+    The VPNDetection API: classify any IP address, and download the datasets
+    behind the answers.
+
+    See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io
+    for the official client libraries.
+  contact:
+    name: VPNDetection Support
+    email: support@vpndetection.io
+    url: https://vpndetection.io
+  termsOfService: https://vpndetection.io/terms
+  version: 2026.09.03
+servers:
+  - url: https://api.vpndetection.io
+    description: Production
+  - url: https://api-staging.vpndetection.io
+    description: Staging
+tags:
+  - name: Lookup
+    description: Classify an IP address.
+    x-displayName: Lookup
+  - name: Database
+    description: List and download the licensed datasets.
+    x-displayName: Database
+paths:
+  /{ip}:
+    get:
+      operationId: lookupIp
+      tags:
+        - Lookup
+      summary: Classify one IP address
+      description: |
+        Answers what is known about a single IPv4 or IPv6 address. Which fields
+        come back is decided by the plan behind the presented key; with no key
+        the answer is `ip` and `is_vpn`.
+      parameters:
+        - in: path
+          name: ip
+          required: true
+          schema:
+            type: string
+          description: The IPv4 or IPv6 address to classify.
+          examples:
+            ipv4:
+              value: 1.1.1.1
+            ipv6:
+              value: 2606:4700:4700::1111
+      responses:
+        '200':
+          description: |
+            The classification. Present fields are those your plan includes; see
+            the tier table in the API description.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupResponse'
+              examples:
+                free:
+                  summary: No API key, or a key on the free plan
+                  value:
+                    ip: 1.1.1.1
+                    is_vpn: false
+                max:
+                  summary: A key on the max plan, address found in the VPN dataset
+                  value:
+                    ip: 45.83.91.1
+                    is_vpn: true
+                    is_hosting: true
+                    is_relay: false
+                    is_tor: false
+                    is_cdn: false
+                    is_resproxy: false
+                    is_dcproxy: false
+                    is_mobproxy: false
+                    vpn:
+                      provider: mullvad
+                      last_seen: '2026-09-02'
+                      confidence: high
+                      method: openvpn_cert
+                    hosting:
+                      provider: M247
+                      confidence: high
+                      last_seen: '2026-09-02'
+                    relay: {}
+                    tor: {}
+                    cdn: {}
+                    resproxy: {}
+                    dcproxy: {}
+                    mobproxy: {}
+                bogon:
+                  summary: A private address on the max plan, answered without a lookup
+                  value:
+                    ip: 192.168.1.1
+                    is_vpn: false
+                    is_hosting: false
+                    is_relay: false
+                    is_tor: false
+                    is_cdn: false
+                    is_resproxy: false
+                    is_dcproxy: false
+                    is_mobproxy: false
+                    vpn: {}
+                    hosting: {}
+                    relay: {}
+                    tor: {}
+                    cdn: {}
+                    resproxy: {}
+                    dcproxy: {}
+                    mobproxy: {}
+        '400':
+          description: The path segment is not a valid IP address.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: not a valid IP address
+        '401':
+          description: The presented API key is unknown, revoked, or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              examples:
+                invalid:
+                  value:
+                    error: invalid API key
+                revoked:
+                  value:
+                    error: API key revoked
+                expired:
+                  value:
+                    error: API key expired
+        '403':
+          description: |
+            The key restricts which source addresses may use it, and this
+            request did not come from one of them.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: source address not allowed for this API key
+        '429':
+          description: |
+            Either a transient rate limit or a spent allowance. `Retry-After` is
+            present for the former and absent for the latter, and is the only
+            way to tell them apart.
+          headers:
+            Retry-After:
+              description: |
+                Seconds to wait before retrying. Present ONLY when the rejection
+                is a transient rate limit; its absence means an allowance is
+                spent and retrying will not help.
+              required: false
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              examples:
+                rateLimited:
+                  summary: Transient, sent with Retry-After
+                  value:
+                    error: rate limit exceeded
+                keylessDailyLimit:
+                  summary: Keyless daily cap spent, no Retry-After
+                  value:
+                    error: daily limit for unauthenticated requests exceeded; use an API key
+                quotaExceeded:
+                  summary: Plan allowance spent, no Retry-After
+                  value:
+                    error: request allowance exceeded; raise or remove your overage limit
+        '500':
+          description: The VPN dataset could not be consulted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: lookup failed
+      security:
+        - {}
+        - bearerAuth: []
+        - apiKeyHeader: []
+        - apiKeyQuery: []
+  /api/v1/database/list:
+    get:
+      operationId: listDatabases
+      tags:
+        - Database
+      summary: The datasets your organization is licensed to download
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datasets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LicensedDataset'
+                required:
+                  - datasets
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+        - apiKeyHeader: []
+        - apiKeyQuery: []
+  /api/v1/database/download:
+    get:
+      operationId: downloadDatabase
+      tags:
+        - Database
+      summary: Redirect to a time-limited download URL for one dataset
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Dataset id, e.g. vpn_ip_extended_v1
+        - in: query
+          name: format
+          required: true
+          schema:
+            type: string
+            enum:
+              - csvgz
+              - mmdb
+          description: |
+            Not every dataset is built in every format. The `_provider`
+            catalogues are keyed by provider id rather than by IP range, so no
+            MMDB exists for them.
+      responses:
+        '302':
+          description: Follow the Location header to object storage
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: The dataset is not built in the requested format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Your organization holds no license for this dataset, or its term has ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No such dataset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Licensed, but today's copy has not been published yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - bearerAuth: []
+        - apiKeyHeader: []
+        - apiKeyQuery: []
+  /api/v1/database/metadata:
+    get:
+      operationId: databaseMetadata
+      tags:
+        - Database
+      summary: What is inside one dataset - schema, samples, row count, sizes
+      description: |
+        Poll this to decide whether today's build is worth fetching: it carries
+        `updated` and `entries` without downloading anything.
+
+        No `format` parameter - one document describes every format the dataset
+        is built in.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetMetadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/NotLicensed'
+        '404':
+          $ref: '#/components/responses/UnknownDataset'
+        '503':
+          $ref: '#/components/responses/NotAvailable'
+      security:
+        - bearerAuth: []
+        - apiKeyHeader: []
+        - apiKeyQuery: []
+  /api/v1/database/checksum:
+    get:
+      operationId: databaseChecksum
+      tags:
+        - Database
+      summary: Checksums for one published file, to verify a download
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: format
+          required: true
+          schema:
+            type: string
+            enum:
+              - csvgz
+              - mmdb
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  format:
+                    type: string
+                  checksums:
+                    type: object
+                    properties:
+                      md5:
+                        type: string
+                      sha1:
+                        type: string
+                      sha256:
+                        type: string
+                      sha512:
+                        type: string
+                required:
+                  - id
+                  - format
+                  - checksums
+        '400':
+          description: The dataset is not built in the requested format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/NotLicensed'
+        '404':
+          $ref: '#/components/responses/UnknownDataset'
+        '503':
+          $ref: '#/components/responses/NotAvailable'
+      security:
+        - bearerAuth: []
+        - apiKeyHeader: []
+        - apiKeyQuery: []
+  /api/v1/database/downloads:
+    get:
+      operationId: listDownloads
+      tags:
+        - Database
+      summary: Your organization's recent download attempts, newest first
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloads:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Download'
+                required:
+                  - downloads
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+        - apiKeyHeader: []
+        - apiKeyQuery: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: '`Authorization: Bearer <key>`.'
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: '`X-Api-Key: <key>`.'
+    apiKeyQuery:
+      type: apiKey
+      in: query
+      name: apikey
+      description: '`?apikey=<key>`. Convenient in a browser; prefer a header elsewhere.'
+  schemas:
+    LookupResponse:
+      type: object
+      description: |
+        The union of every plan's answer. Only `ip` and `is_vpn` are guaranteed;
+        each remaining field is present when your plan includes it, and absent
+        otherwise. A client that must work across plans should treat an absent
+        flag as unknown rather than as `false`.
+      required:
+        - ip
+        - is_vpn
+      properties:
+        ip:
+          type: string
+          description: The address that was looked up, normalized.
+          example: 1.1.1.1
+        is_vpn:
+          type: boolean
+          description: |
+            Whether the address is VPN infrastructure. Keys off presence in the
+            VPN dataset, so an unattributed range with no provider is still
+            `true`.
+        is_hosting:
+          type: boolean
+          description: Whether the address belongs to a hosting or cloud provider. Starter and above.
+        is_relay:
+          type: boolean
+          description: Whether the address is a privacy relay egress. Starter and above.
+        is_tor:
+          type: boolean
+          description: Whether the address is a Tor node. Starter and above.
+        is_cdn:
+          type: boolean
+          description: Whether the address belongs to a CDN. Starter and above.
+        is_resproxy:
+          type: boolean
+          description: Whether the address was seen in a residential proxy pool. Max only.
+        is_dcproxy:
+          type: boolean
+          description: Whether the address was seen in a datacenter proxy pool. Max only.
+        is_mobproxy:
+          type: boolean
+          description: Whether the address was seen in a mobile proxy pool. Max only.
+        vpn:
+          allOf:
+            - $ref: '#/components/schemas/VpnDetail'
+          description: |
+            Detail for `is_vpn`. Empty when `is_vpn` is false. Starter and above.
+        hosting:
+          allOf:
+            - $ref: '#/components/schemas/ClassDetail'
+          description: Detail for `is_hosting`. Empty when false. Scale and above.
+        relay:
+          allOf:
+            - $ref: '#/components/schemas/ClassDetail'
+          description: Detail for `is_relay`. Empty when false. Scale and above.
+        tor:
+          allOf:
+            - $ref: '#/components/schemas/ClassDetail'
+          description: |
+            Detail for `is_tor`. Empty when false. Scale and above. The tor
+            dataset carries no provider, so `provider` is always an empty string.
+        cdn:
+          allOf:
+            - $ref: '#/components/schemas/ClassDetail'
+          description: Detail for `is_cdn`. Empty when false. Scale and above.
+        resproxy:
+          allOf:
+            - $ref: '#/components/schemas/ProxyDetail'
+          description: Detail for `is_resproxy`. Empty when false. Max only.
+        dcproxy:
+          allOf:
+            - $ref: '#/components/schemas/ProxyDetail'
+          description: Detail for `is_dcproxy`. Empty when false. Max only.
+        mobproxy:
+          allOf:
+            - $ref: '#/components/schemas/ProxyDetail'
+          description: Detail for `is_mobproxy`. Empty when false. Max only.
+    VpnDetail:
+      type: object
+      description: |
+        What is known about the VPN attribution. Every key is present when the
+        object is populated, empty values included; the object is `{}` when
+        `is_vpn` is false. `confidence` and `method` are max only, so on a lower
+        plan they are absent from a populated object rather than empty.
+      properties:
+        provider:
+          type: string
+          description: The VPN provider, or an empty string for an unattributed range.
+          example: mullvad
+        last_seen:
+          type: string
+          format: date
+          description: The most recent date this address was observed as VPN infrastructure.
+          example: '2026-09-02'
+        confidence:
+          type: string
+          description: How strongly the attribution is supported. Max only.
+          example: high
+        method:
+          type: string
+          description: How the address was attributed to the provider. Max only.
+          example: openvpn_cert
+    ClassDetail:
+      type: object
+      description: |
+        The shared detail shape for the hosting, relay, tor and cdn datasets.
+        Every key is present when the object is populated; the object is `{}`
+        when its flag is false.
+      properties:
+        provider:
+          type: string
+          description: The provider, or an empty string where the dataset has none.
+          example: M247
+        confidence:
+          type: string
+          description: How strongly the classification is supported.
+          example: high
+        last_seen:
+          type: string
+          format: date
+          description: The most recent date this address was observed in this dataset.
+          example: '2026-09-02'
+    ProxyDetail:
+      type: object
+      description: |
+        The shared detail shape for the residential, datacenter and mobile proxy
+        families, measured over a rolling 90 day window. Every key is present
+        when the object is populated; the object is `{}` when its flag is false.
+      properties:
+        provider:
+          type: string
+          description: The proxy network, or an empty string where unattributed.
+          example: brightdata
+        first_seen:
+          type: string
+          format: date
+          description: The earliest date within the window this address was seen in the pool.
+          example: '2026-06-14'
+        last_seen:
+          type: string
+          format: date
+          description: The most recent date within the window this address was seen in the pool.
+          example: '2026-09-02'
+        hits:
+          type: integer
+          description: How many times the address was observed in the pool during the window.
+          example: 42
+        hits_days_pct:
+          type: integer
+          description: |
+            The share of days in the window on which the address was seen, as a
+            percentage. A high value means a stable pool member rather than a
+            one-off sighting.
+          example: 63
+        providers_num:
+          type: integer
+          description: How many distinct proxy networks this address was seen in.
+          example: 2
+    LookupError:
+      type: object
+      description: Every non-2xx response carries this shape.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: A human-readable explanation of the failure.
+          example: not a valid IP address
+    Error:
+      type: object
+      properties:
+        rc:
+          type: string
+      required:
+        - rc
+    DatasetFormatSize:
+      type: object
+      properties:
+        format:
+          type: string
+          enum:
+            - csvgz
+            - mmdb
+        bytes:
+          type: integer
+          nullable: true
+          description: Size of the published file, or null when it has not been published yet
+      required:
+        - format
+        - bytes
+    LicensedDataset:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        summary:
+          type: string
+        retired:
+          type: boolean
+          description: Licensed but no longer published. Talk to us.
+        redistribution:
+          type: string
+          enum:
+            - evaluation
+            - internal
+            - redistribute
+          description: What your license permits you to do with the data
+        starts:
+          type: string
+          format: date-time
+        expires:
+          type: string
+          format: date-time
+          nullable: true
+        in_term:
+          type: boolean
+          description: False when the license has lapsed; downloads are refused
+        formats:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatasetFormatSize'
+      required:
+        - id
+        - name
+        - redistribution
+        - in_term
+        - formats
+    Download:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+        format:
+          type: string
+        outcome:
+          type: string
+          enum:
+            - ok
+            - unauthorized
+            - denied
+            - expired
+            - unknown
+            - unavailable
+        bytes:
+          type: integer
+          nullable: true
+        created:
+          type: string
+          format: date-time
+      required:
+        - dataset_id
+        - format
+        - outcome
+        - created
+    DatasetMetadataColumn:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+      required:
+        - name
+        - type
+    DatasetMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+        update_freq:
+          type: string
+          description: How often a new build is published
+        updated:
+          type: string
+          format: date
+        entries:
+          type: integer
+          description: Row count in the current build
+        schema:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/DatasetMetadataColumn'
+          description: Columns, keyed by format
+        sample:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+          description: A few real rows, keyed by format
+        size:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Bytes per format
+      required:
+        - id
+        - updated
+        - entries
+        - schema
+  responses:
+    Unauthorized:
+      description: Missing or invalid key, or the key lacks the db.download scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotLicensed:
+      description: Your organization holds no license for this dataset, or its term has ended
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnknownDataset:
+      description: No such dataset
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotAvailable:
+      description: Licensed, but today's copy has not been published yet
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+x-tagGroups:
+  - name: VPNDetection IP API
+    tags:
+      - Lookup
+  - name: VPNDetection Database API
+    tags:
+      - Database

@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor the library targets, through the newest release. The matrix is
+        # wide because the PHPUnit major that supports 8.1 is not the one that
+        # supports 8.5, so each leg resolves a different test toolchain.
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json
+          coverage: none
+      # No lockfile is committed, because a library must resolve against the PHP
+      # its consumer is on rather than against one pinned set.
+      - uses: ramsey/composer-install@v4
+      - run: vendor/bin/phpunit
