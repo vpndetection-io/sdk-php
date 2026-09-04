@@ -45,16 +45,6 @@ $result->isHosting;         // true
 $result->hosting->provider; // 'M247'
 ```
 
-A field your plan does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no". Use `??` when you only care whether the address is flagged:
-
-```php
-if ($result->isHosting ?? false) {
-    // ...
-}
-```
-
-The same distinction applies to the detail objects. An object that is present but `isEmpty()` means the flag above it is false; a `null` one means your plan does not include it at all.
-
 ### Batch lookup
 
 You can do batch lookups with a list, which parallelizes requests for you efficiently:
@@ -166,6 +156,15 @@ $bytes = $client->database->downloadBytes('cdn_ip_v1', 'csvgz');
 ```
 
 `downloadBytes` holds the whole file in memory, and the catalog runs from `cdn_ip_v1` at 10 KB to `resproxy_ip_90d_v1` at 1.79 GB, so use `download` for anything you have not measured: past your `memory_limit` this is a fatal error, not merely a slow one.
+
+### Absent is not false
+
+A field your plan does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
+
+```php
+$result->isHosting ?? false;   // when you only want the flag
+$result->isHosting === null;   // not in your plan
+```
 
 ## Other Libraries
 
