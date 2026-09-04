@@ -65,7 +65,9 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
         'entries' => 'int',
         'schema' => 'array<string,\VPNDetection\Internal\Model\DatasetMetadataColumn[]>',
         'sample' => 'array<string,object[]>',
-        'size' => 'array<string,int>'
+        'size' => 'array<string,int>',
+        'sample_size' => 'array<string,int>',
+        'sample_entries' => 'int'
     ];
 
     /**
@@ -80,7 +82,9 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
         'entries' => null,
         'schema' => null,
         'sample' => null,
-        'size' => null
+        'size' => null,
+        'sample_size' => null,
+        'sample_entries' => null
     ];
 
     /**
@@ -95,7 +99,9 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
         'entries' => false,
         'schema' => false,
         'sample' => false,
-        'size' => false
+        'size' => false,
+        'sample_size' => false,
+        'sample_entries' => false
     ];
 
     /**
@@ -180,7 +186,9 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
         'entries' => 'entries',
         'schema' => 'schema',
         'sample' => 'sample',
-        'size' => 'size'
+        'size' => 'size',
+        'sample_size' => 'sample_size',
+        'sample_entries' => 'sample_entries'
     ];
 
     /**
@@ -195,7 +203,9 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
         'entries' => 'setEntries',
         'schema' => 'setSchema',
         'sample' => 'setSample',
-        'size' => 'setSize'
+        'size' => 'setSize',
+        'sample_size' => 'setSampleSize',
+        'sample_entries' => 'setSampleEntries'
     ];
 
     /**
@@ -210,7 +220,9 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
         'entries' => 'getEntries',
         'schema' => 'getSchema',
         'sample' => 'getSample',
-        'size' => 'getSize'
+        'size' => 'getSize',
+        'sample_size' => 'getSampleSize',
+        'sample_entries' => 'getSampleEntries'
     ];
 
     /**
@@ -267,6 +279,8 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
         $this->setIfExists('schema', $data ?? [], null);
         $this->setIfExists('sample', $data ?? [], null);
         $this->setIfExists('size', $data ?? [], null);
+        $this->setIfExists('sample_size', $data ?? [], null);
+        $this->setIfExists('sample_entries', $data ?? [], null);
     }
 
     /**
@@ -503,6 +517,60 @@ class DatasetMetadata implements ModelInterface, ArrayAccess, JsonSerializable
             throw new InvalidArgumentException('non-nullable size cannot be null');
         }
         $this->container['size'] = $size;
+
+        return $this;
+    }
+
+    /**
+     * Gets sample_size
+     *
+     * @return array<string,int>|null
+     */
+    public function getSampleSize(): ?array
+    {
+        return $this->container['sample_size'];
+    }
+
+    /**
+     * Sets sample_size
+     *
+     * @param array<string,int>|null $sample_size Bytes per format of the evaluation sample, where one is published
+     *
+     * @return $this
+     */
+    public function setSampleSize(?array $sample_size): static
+    {
+        if (is_null($sample_size)) {
+            throw new InvalidArgumentException('non-nullable sample_size cannot be null');
+        }
+        $this->container['sample_size'] = $sample_size;
+
+        return $this;
+    }
+
+    /**
+     * Gets sample_entries
+     *
+     * @return int|null
+     */
+    public function getSampleEntries(): ?int
+    {
+        return $this->container['sample_entries'];
+    }
+
+    /**
+     * Sets sample_entries
+     *
+     * @param int|null $sample_entries Row count in the evaluation sample
+     *
+     * @return $this
+     */
+    public function setSampleEntries(?int $sample_entries): static
+    {
+        if (is_null($sample_entries)) {
+            throw new InvalidArgumentException('non-nullable sample_entries cannot be null');
+        }
+        $this->container['sample_entries'] = $sample_entries;
 
         return $this;
     }

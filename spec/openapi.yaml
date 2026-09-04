@@ -63,6 +63,33 @@ paths:
                   value:
                     ip: 1.1.1.1
                     is_vpn: false
+                starter:
+                  summary: A key on the starter plan
+                  value:
+                    ip: 1.1.1.1
+                    is_vpn: false
+                    is_hosting: true
+                    is_relay: false
+                    is_tor: false
+                    is_cdn: false
+                    vpn: {}
+                scale:
+                  summary: A key on the scale plan, which adds the classification detail objects
+                  value:
+                    ip: 1.1.1.1
+                    is_vpn: false
+                    is_hosting: true
+                    is_relay: false
+                    is_tor: false
+                    is_cdn: false
+                    vpn: {}
+                    hosting:
+                      provider: cloudflare
+                      confidence: high
+                      last_seen: '2026-09-02'
+                    relay: {}
+                    tor: {}
+                    cdn: {}
                 max:
                   summary: A key on the max plan, address found in the VPN dataset
                   value:
@@ -706,6 +733,9 @@ components:
         - formats
     Download:
       type: object
+      description: |
+        One download ATTEMPT, refusals included - a denial is what answers "it
+        stopped working", so they are listed rather than dropped.
       properties:
         dataset_id:
           type: string
@@ -720,8 +750,29 @@ components:
             - expired
             - unknown
             - unavailable
+        sample:
+          type: boolean
+          description: The evaluation sample rather than the database itself.
         bytes:
           type: integer
+          nullable: true
+          description: |
+            Object size at redirect time, NOT bytes delivered: the transfer is a
+            presigned redirect straight to object storage, so we never observe it.
+        http_status:
+          type: integer
+          nullable: true
+        apikey_id:
+          type: string
+          nullable: true
+          description: |
+            The key that made the request. Null when the org acted through the
+            console rather than through a key.
+        client_ip:
+          type: string
+          nullable: true
+        user_agent:
+          type: string
           nullable: true
         created:
           type: string
@@ -730,6 +781,12 @@ components:
         - dataset_id
         - format
         - outcome
+        - sample
+        - bytes
+        - http_status
+        - apikey_id
+        - client_ip
+        - user_agent
         - created
     DatasetMetadataColumn:
       type: object
@@ -776,6 +833,14 @@ components:
           additionalProperties:
             type: integer
           description: Bytes per format
+        sample_size:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Bytes per format of the evaluation sample, where one is published
+        sample_entries:
+          type: integer
+          description: Row count in the evaluation sample
       required:
         - id
         - updated

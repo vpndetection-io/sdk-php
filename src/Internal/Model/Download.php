@@ -37,6 +37,7 @@ use VPNDetection\Internal\ObjectSerializer;
 /**
  * Download Class Doc Comment
  *
+ * @description One download ATTEMPT, refusals included - a denial is what answers \&quot;it stopped working\&quot;, so they are listed rather than dropped.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
@@ -62,7 +63,12 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
         'dataset_id' => 'string',
         'format' => 'string',
         'outcome' => 'string',
+        'sample' => 'bool',
         'bytes' => 'int',
+        'http_status' => 'int',
+        'apikey_id' => 'string',
+        'client_ip' => 'string',
+        'user_agent' => 'string',
         'created' => '\DateTime'
     ];
 
@@ -75,7 +81,12 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
         'dataset_id' => null,
         'format' => null,
         'outcome' => null,
+        'sample' => null,
         'bytes' => null,
+        'http_status' => null,
+        'apikey_id' => null,
+        'client_ip' => null,
+        'user_agent' => null,
         'created' => 'date-time'
     ];
 
@@ -88,7 +99,12 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
         'dataset_id' => false,
         'format' => false,
         'outcome' => false,
+        'sample' => false,
         'bytes' => true,
+        'http_status' => true,
+        'apikey_id' => true,
+        'client_ip' => true,
+        'user_agent' => true,
         'created' => false
     ];
 
@@ -171,7 +187,12 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
         'dataset_id' => 'dataset_id',
         'format' => 'format',
         'outcome' => 'outcome',
+        'sample' => 'sample',
         'bytes' => 'bytes',
+        'http_status' => 'http_status',
+        'apikey_id' => 'apikey_id',
+        'client_ip' => 'client_ip',
+        'user_agent' => 'user_agent',
         'created' => 'created'
     ];
 
@@ -184,7 +205,12 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
         'dataset_id' => 'setDatasetId',
         'format' => 'setFormat',
         'outcome' => 'setOutcome',
+        'sample' => 'setSample',
         'bytes' => 'setBytes',
+        'http_status' => 'setHttpStatus',
+        'apikey_id' => 'setApikeyId',
+        'client_ip' => 'setClientIp',
+        'user_agent' => 'setUserAgent',
         'created' => 'setCreated'
     ];
 
@@ -197,7 +223,12 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
         'dataset_id' => 'getDatasetId',
         'format' => 'getFormat',
         'outcome' => 'getOutcome',
+        'sample' => 'getSample',
         'bytes' => 'getBytes',
+        'http_status' => 'getHttpStatus',
+        'apikey_id' => 'getApikeyId',
+        'client_ip' => 'getClientIp',
+        'user_agent' => 'getUserAgent',
         'created' => 'getCreated'
     ];
 
@@ -274,7 +305,12 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
         $this->setIfExists('dataset_id', $data ?? [], null);
         $this->setIfExists('format', $data ?? [], null);
         $this->setIfExists('outcome', $data ?? [], null);
+        $this->setIfExists('sample', $data ?? [], null);
         $this->setIfExists('bytes', $data ?? [], null);
+        $this->setIfExists('http_status', $data ?? [], null);
+        $this->setIfExists('apikey_id', $data ?? [], null);
+        $this->setIfExists('client_ip', $data ?? [], null);
+        $this->setIfExists('user_agent', $data ?? [], null);
         $this->setIfExists('created', $data ?? [], null);
     }
 
@@ -321,6 +357,24 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
             );
         }
 
+        if ($this->container['sample'] === null) {
+            $invalidProperties[] = "'sample' can't be null";
+        }
+        if ($this->container['bytes'] === null && !$this->isNullableSetToNull('bytes')) {
+            $invalidProperties[] = "'bytes' is required";
+        }
+        if ($this->container['http_status'] === null && !$this->isNullableSetToNull('http_status')) {
+            $invalidProperties[] = "'http_status' is required";
+        }
+        if ($this->container['apikey_id'] === null && !$this->isNullableSetToNull('apikey_id')) {
+            $invalidProperties[] = "'apikey_id' is required";
+        }
+        if ($this->container['client_ip'] === null && !$this->isNullableSetToNull('client_ip')) {
+            $invalidProperties[] = "'client_ip' is required";
+        }
+        if ($this->container['user_agent'] === null && !$this->isNullableSetToNull('user_agent')) {
+            $invalidProperties[] = "'user_agent' is required";
+        }
         if ($this->container['created'] === null) {
             $invalidProperties[] = "'created' can't be null";
         }
@@ -428,6 +482,33 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
     }
 
     /**
+     * Gets sample
+     *
+     * @return bool
+     */
+    public function getSample(): bool
+    {
+        return $this->container['sample'];
+    }
+
+    /**
+     * Sets sample
+     *
+     * @param bool $sample The evaluation sample rather than the database itself.
+     *
+     * @return $this
+     */
+    public function setSample(bool $sample): static
+    {
+        if (is_null($sample)) {
+            throw new InvalidArgumentException('non-nullable sample cannot be null');
+        }
+        $this->container['sample'] = $sample;
+
+        return $this;
+    }
+
+    /**
      * Gets bytes
      *
      * @return int|null
@@ -440,7 +521,7 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets bytes
      *
-     * @param int|null $bytes bytes
+     * @param int|null $bytes Object size at redirect time, NOT bytes delivered: the transfer is a presigned redirect straight to object storage, so we never observe it.
      *
      * @return $this
      */
@@ -457,6 +538,142 @@ class Download implements ModelInterface, ArrayAccess, JsonSerializable
             }
         }
         $this->container['bytes'] = $bytes;
+
+        return $this;
+    }
+
+    /**
+     * Gets http_status
+     *
+     * @return int|null
+     */
+    public function getHttpStatus(): ?int
+    {
+        return $this->container['http_status'];
+    }
+
+    /**
+     * Sets http_status
+     *
+     * @param int|null $http_status http_status
+     *
+     * @return $this
+     */
+    public function setHttpStatus(?int $http_status): static
+    {
+        if (is_null($http_status)) {
+            array_push($this->openAPINullablesSetToNull, 'http_status');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('http_status', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['http_status'] = $http_status;
+
+        return $this;
+    }
+
+    /**
+     * Gets apikey_id
+     *
+     * @return string|null
+     */
+    public function getApikeyId(): ?string
+    {
+        return $this->container['apikey_id'];
+    }
+
+    /**
+     * Sets apikey_id
+     *
+     * @param string|null $apikey_id The key that made the request. Null when the org acted through the console rather than through a key.
+     *
+     * @return $this
+     */
+    public function setApikeyId(?string $apikey_id): static
+    {
+        if (is_null($apikey_id)) {
+            array_push($this->openAPINullablesSetToNull, 'apikey_id');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('apikey_id', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['apikey_id'] = $apikey_id;
+
+        return $this;
+    }
+
+    /**
+     * Gets client_ip
+     *
+     * @return string|null
+     */
+    public function getClientIp(): ?string
+    {
+        return $this->container['client_ip'];
+    }
+
+    /**
+     * Sets client_ip
+     *
+     * @param string|null $client_ip client_ip
+     *
+     * @return $this
+     */
+    public function setClientIp(?string $client_ip): static
+    {
+        if (is_null($client_ip)) {
+            array_push($this->openAPINullablesSetToNull, 'client_ip');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('client_ip', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['client_ip'] = $client_ip;
+
+        return $this;
+    }
+
+    /**
+     * Gets user_agent
+     *
+     * @return string|null
+     */
+    public function getUserAgent(): ?string
+    {
+        return $this->container['user_agent'];
+    }
+
+    /**
+     * Sets user_agent
+     *
+     * @param string|null $user_agent user_agent
+     *
+     * @return $this
+     */
+    public function setUserAgent(?string $user_agent): static
+    {
+        if (is_null($user_agent)) {
+            array_push($this->openAPINullablesSetToNull, 'user_agent');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('user_agent', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['user_agent'] = $user_agent;
 
         return $this;
     }
