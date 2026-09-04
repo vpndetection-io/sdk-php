@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.03
+  version: 2026.09.04
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -620,42 +620,89 @@ components:
         - bytes
     LicensedDataset:
       type: object
+      description: |
+        One dataset FAMILY your organization is licensed for. A license covers
+        the family, while a download names a specific version, so the ids you
+        pass to the download and checksum endpoints come from `versions`.
       properties:
-        id:
+        base:
           type: string
+          description: The dataset family, e.g. `vpn_ip`. What the license is held against.
+          example: vpn_ip
         name:
           type: string
+          example: VPN IP
         summary:
           type: string
-        retired:
-          type: boolean
-          description: Licensed but no longer published. Talk to us.
         redistribution:
           type: string
           enum:
             - evaluation
             - internal
             - redistribute
-          description: What your license permits you to do with the data
+          description: What your license permits you to do with the data.
         starts:
           type: string
           format: date-time
+          nullable: true
         expires:
           type: string
           format: date-time
           nullable: true
+          description: Null when the license does not expire.
         in_term:
           type: boolean
-          description: False when the license has lapsed; downloads are refused
+          description: False when the license has lapsed; downloads are refused.
+        standing:
+          type: string
+          enum:
+            - expired
+            - licensed
+            - unlicensed
+          description: |
+            `licensed` is a live grant, `expired` one whose term has ended, and
+            `unlicensed` a dataset published but never bought.
+        versions:
+          type: array
+          description: |
+            Every published version of this family. The `id` here is what the
+            download and checksum endpoints take.
+          items:
+            $ref: '#/components/schemas/LicensedVersion'
+      required:
+        - base
+        - name
+        - redistribution
+        - in_term
+        - standing
+        - versions
+    LicensedVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The versioned dataset id, e.g. `vpn_ip_v1`. Pass this to download.
+          example: vpn_ip_v1
+        version:
+          type: integer
+          example: 1
+        summary:
+          type: string
         formats:
           type: array
           items:
             $ref: '#/components/schemas/DatasetFormatSize'
+        sampleFormats:
+          type: array
+          description: The formats an evaluation sample is published in, if any.
+          items:
+            type: string
+            enum:
+              - csvgz
+              - mmdb
       required:
         - id
-        - name
-        - redistribution
-        - in_term
+        - version
         - formats
     Download:
       type: object

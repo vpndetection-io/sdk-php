@@ -262,13 +262,21 @@ final class ClientTest extends TestCase
                 'format' => 'mmdb',
                 'checksums' => ['md5' => 'm', 'sha1' => 's1', 'sha256' => 's256', 'sha512' => 's512'],
             ]),
+            // A license is held against the FAMILY, and the ids a download takes
+            // hang off `versions`. Reading an id from the top level is how this
+            // endpoint came to answer objects whose every typed field was null.
             '/api/v1/database/list' => Stub::ok([
                 'datasets' => [[
-                    'id' => 'vpn_ip_extended_v1',
-                    'name' => 'VPN IP Extended',
+                    'base' => 'vpn_ip',
+                    'name' => 'VPN IP',
                     'redistribution' => 'internal',
                     'in_term' => true,
-                    'formats' => [['format' => 'mmdb', 'bytes' => 1234]],
+                    'standing' => 'licensed',
+                    'versions' => [[
+                        'id' => 'vpn_ip_extended_v1',
+                        'version' => 1,
+                        'formats' => [['format' => 'mmdb', 'bytes' => 1234]],
+                    ]],
                 ]],
             ]),
             '/api/v1/database/downloads' => Stub::ok([
@@ -295,8 +303,10 @@ final class ClientTest extends TestCase
 
         $datasets = $client->database->list();
         self::assertCount(1, $datasets);
-        self::assertSame('vpn_ip_extended_v1', $datasets[0]->id);
-        self::assertSame(1234, $datasets[0]->formats[0]->bytes);
+        self::assertSame('vpn_ip', $datasets[0]->base);
+        self::assertSame('licensed', $datasets[0]->standing);
+        self::assertSame('vpn_ip_extended_v1', $datasets[0]->versions[0]->id);
+        self::assertSame(1234, $datasets[0]->versions[0]->formats[0]->bytes);
 
         $downloads = $client->database->downloads();
         self::assertSame('ok', $downloads[0]->outcome);

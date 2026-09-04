@@ -1,6 +1,6 @@
 <?php
 /**
- * DownloadList
+ * LicensedVersion
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * DownloadList Class Doc Comment
+ * LicensedVersion Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
+class LicensedVersion implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'DownloadList';
+    protected static string $openAPIModelName = 'LicensedVersion';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,11 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'downloads' => '\VPNDetection\Internal\Model\Download[]'
+        'id' => 'string',
+        'version' => 'int',
+        'summary' => 'string',
+        'formats' => '\VPNDetection\Internal\Model\DatasetFormatSize[]',
+        'sample_formats' => 'string[]'
     ];
 
     /**
@@ -68,7 +72,11 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'downloads' => null
+        'id' => null,
+        'version' => null,
+        'summary' => null,
+        'formats' => null,
+        'sample_formats' => null
     ];
 
     /**
@@ -77,7 +85,11 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'downloads' => false
+        'id' => false,
+        'version' => false,
+        'summary' => false,
+        'formats' => false,
+        'sample_formats' => false
     ];
 
     /**
@@ -156,7 +168,11 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'downloads' => 'downloads'
+        'id' => 'id',
+        'version' => 'version',
+        'summary' => 'summary',
+        'formats' => 'formats',
+        'sample_formats' => 'sampleFormats'
     ];
 
     /**
@@ -165,7 +181,11 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'downloads' => 'setDownloads'
+        'id' => 'setId',
+        'version' => 'setVersion',
+        'summary' => 'setSummary',
+        'formats' => 'setFormats',
+        'sample_formats' => 'setSampleFormats'
     ];
 
     /**
@@ -174,7 +194,11 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'downloads' => 'getDownloads'
+        'id' => 'getId',
+        'version' => 'getVersion',
+        'summary' => 'getSummary',
+        'formats' => 'getFormats',
+        'sample_formats' => 'getSampleFormats'
     ];
 
     /**
@@ -209,6 +233,21 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
         return self::$openAPIModelName;
     }
 
+    public const SAMPLE_FORMATS_CSVGZ = 'csvgz';
+    public const SAMPLE_FORMATS_MMDB = 'mmdb';
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public static function getSampleFormatsAllowableValues()
+    {
+        return [
+            self::SAMPLE_FORMATS_CSVGZ,
+            self::SAMPLE_FORMATS_MMDB,
+        ];
+    }
 
     /**
      * Associative array for storing property values
@@ -224,7 +263,11 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('downloads', $data ?? [], null);
+        $this->setIfExists('id', $data ?? [], null);
+        $this->setIfExists('version', $data ?? [], null);
+        $this->setIfExists('summary', $data ?? [], null);
+        $this->setIfExists('formats', $data ?? [], null);
+        $this->setIfExists('sample_formats', $data ?? [], null);
     }
 
     /**
@@ -252,8 +295,14 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['downloads'] === null) {
-            $invalidProperties[] = "'downloads' can't be null";
+        if ($this->container['id'] === null) {
+            $invalidProperties[] = "'id' can't be null";
+        }
+        if ($this->container['version'] === null) {
+            $invalidProperties[] = "'version' can't be null";
+        }
+        if ($this->container['formats'] === null) {
+            $invalidProperties[] = "'formats' can't be null";
         }
         return $invalidProperties;
     }
@@ -268,28 +317,145 @@ class DownloadList implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets downloads
+     * Gets id
      *
-     * @return \VPNDetection\Internal\Model\Download[]
+     * @return string
      */
-    public function getDownloads(): array
+    public function getId(): string
     {
-        return $this->container['downloads'];
+        return $this->container['id'];
     }
 
     /**
-     * Sets downloads
+     * Sets id
      *
-     * @param \VPNDetection\Internal\Model\Download[] $downloads downloads
+     * @param string $id The versioned dataset id, e.g. `vpn_ip_v1`. Pass this to download.
      *
      * @return $this
      */
-    public function setDownloads(array $downloads): static
+    public function setId(string $id): static
     {
-        if (is_null($downloads)) {
-            throw new InvalidArgumentException('non-nullable downloads cannot be null');
+        if (is_null($id)) {
+            throw new InvalidArgumentException('non-nullable id cannot be null');
         }
-        $this->container['downloads'] = $downloads;
+        $this->container['id'] = $id;
+
+        return $this;
+    }
+
+    /**
+     * Gets version
+     *
+     * @return int
+     */
+    public function getVersion(): int
+    {
+        return $this->container['version'];
+    }
+
+    /**
+     * Sets version
+     *
+     * @param int $version version
+     *
+     * @return $this
+     */
+    public function setVersion(int $version): static
+    {
+        if (is_null($version)) {
+            throw new InvalidArgumentException('non-nullable version cannot be null');
+        }
+        $this->container['version'] = $version;
+
+        return $this;
+    }
+
+    /**
+     * Gets summary
+     *
+     * @return string|null
+     */
+    public function getSummary(): ?string
+    {
+        return $this->container['summary'];
+    }
+
+    /**
+     * Sets summary
+     *
+     * @param string|null $summary summary
+     *
+     * @return $this
+     */
+    public function setSummary(?string $summary): static
+    {
+        if (is_null($summary)) {
+            throw new InvalidArgumentException('non-nullable summary cannot be null');
+        }
+        $this->container['summary'] = $summary;
+
+        return $this;
+    }
+
+    /**
+     * Gets formats
+     *
+     * @return \VPNDetection\Internal\Model\DatasetFormatSize[]
+     */
+    public function getFormats(): array
+    {
+        return $this->container['formats'];
+    }
+
+    /**
+     * Sets formats
+     *
+     * @param \VPNDetection\Internal\Model\DatasetFormatSize[] $formats formats
+     *
+     * @return $this
+     */
+    public function setFormats(array $formats): static
+    {
+        if (is_null($formats)) {
+            throw new InvalidArgumentException('non-nullable formats cannot be null');
+        }
+        $this->container['formats'] = $formats;
+
+        return $this;
+    }
+
+    /**
+     * Gets sample_formats
+     *
+     * @return string[]|null
+     */
+    public function getSampleFormats(): ?array
+    {
+        return $this->container['sample_formats'];
+    }
+
+    /**
+     * Sets sample_formats
+     *
+     * @param string[]|null $sample_formats The formats an evaluation sample is published in, if any.
+     *
+     * @return $this
+     */
+    public function setSampleFormats(?array $sample_formats): static
+    {
+        if (is_null($sample_formats)) {
+            throw new InvalidArgumentException('non-nullable sample_formats cannot be null');
+        }
+        $allowedValues = self::getSampleFormatsAllowableValues();
+        if (array_diff($sample_formats, $allowedValues)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    "Invalid value for 'sample_formats', must be one of '%s'",
+                    implode("', '", $allowedValues)
+                )
+            );
+        }
+        $this->container['sample_formats'] = $sample_formats;
 
         return $this;
     }
