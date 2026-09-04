@@ -149,14 +149,23 @@ Note that `rate_limited` and `quota_exceeded` both arrive as HTTP 429 and are no
 
 ### Database downloads
 
-If your key carries the `db.download` scope, the licensed datasets are available through `$client->database`:
+If your key carries the `db.download` scope, the licensed datasets are available through `$client->database`. `download` fetches one to a path, streaming it straight to disk so that nothing bigger than a chunk is ever held in memory:
 
 ```php
 $datasets = $client->database->list();
-$url = $client->database->downloadUrl('vpn_ip_extended_v1', 'mmdb');
+
+$written = $client->database->download('vpn_ip_extended_v1', 'mmdb', '/srv/data/vpn_ip_extended_v1.mmdb');
+echo "{$written} bytes";
 ```
 
-`downloadUrl` returns a time-limited link rather than the bytes, so you choose how to transfer a file that can run to gigabytes.
+Or take the time-limited link and run the transfer yourself, or take a small dataset as bytes:
+
+```php
+$url = $client->database->downloadUrl('vpn_ip_extended_v1', 'mmdb');
+$bytes = $client->database->downloadBytes('cdn_ip_v1', 'csvgz');
+```
+
+`downloadBytes` holds the whole file in memory, and the catalog runs from `cdn_ip_v1` at 10 KB to `resproxy_ip_90d_v1` at 1.79 GB, so use `download` for anything you have not measured: past your `memory_limit` this is a fatal error, not merely a slow one.
 
 ## Other Libraries
 

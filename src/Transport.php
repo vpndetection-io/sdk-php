@@ -44,6 +44,32 @@ final class Transport
         return $this->attempt($request, $retries ?? $this->defaultRetries, 0, 0);
     }
 
+    /**
+     * A GET whose body is read lazily, for the object storage link the download
+     * endpoint hands out.
+     *
+     * Only the headers are awaited, so a retry here cannot duplicate bytes a
+     * caller's destination already holds. Redirects are followed, unlike every
+     * other request this client makes: this one IS the far side of a redirect,
+     * and the guard exists to stop the API's own 302 pulling a dataset into
+     * memory. `$errorMessage` stands in for the response body on a failure,
+     * which is what keeps an unbounded error page unread.
+     */
+    public function sendStreaming(
+        RequestInterface $request,
+        string $errorMessage,
+        ?int $retries = null,
+    ): ResponseInterface {
+        return $this->attempt(
+            $request,
+            $retries ?? $this->defaultRetries,
+            0,
+            0,
+            [RequestOptions::STREAM => true, RequestOptions::ALLOW_REDIRECTS => true],
+            $errorMessage,
+        )->wait();
+    }
+
     /** @return array<string, mixed> */
     public static function toArray(string $body, ?int $status = null): array
     {
@@ -77,8 +103,15 @@ final class Transport
         return $model;
     }
 
-    private function attempt(RequestInterface $request, int $left, int $attempt, int $delayMs): PromiseInterface
-    {
+    /** @param array<string, mixed> $extraOptions */
+    private function attempt(
+        RequestInterface $request,
+        int $left,
+        int $attempt,
+        int $delayMs,
+        array $extraOptions = [],
+        ?string $errorMessage = null,
+    ): PromiseInterface {
         $options = [
             // Errors are classified here rather than thrown by Guzzle, so the
             // retry decision and the exception both come from one place.
@@ -87,6 +120,7 @@ final class Transport
             // would pull a multi-gigabyte dataset into memory. Nothing this
             // client calls is meant to redirect.
             RequestOptions::ALLOW_REDIRECTS => false,
+            ...$extraOptions,
         ];
         if ($delayMs > 0) {
             // Guzzle's curl handler SCHEDULES a delayed transfer rather than
@@ -95,22 +129,32 @@ final class Transport
         }
 
         return $this->http->sendAsync($request, $options)->then(
-            function (ResponseInterface $response) use ($request, $left, $attempt): mixed {
+            function (ResponseInterface $response) use (
+                $request, $left, $attempt, $extraOptions, $errorMessage,
+            ): mixed {
                 if ($response->getStatusCode() < 400) {
                     return $response;
                 }
-                $error = Errors::fromResponse($response);
+                $error = Errors::fromResponse($response, $errorMessage);
                 if ($left <= 0 || !$error->isRetryable()) {
                     throw $error;
                 }
-                return $this->attempt($request, $left - 1, $attempt + 1, self::delayFor($error, $attempt));
+                return $this->attempt(
+                    $request, $left - 1, $attempt + 1, self::delayFor($error, $attempt),
+                    $extraOptions, $errorMessage,
+                );
             },
-            function (mixed $reason) use ($request, $left, $attempt): PromiseInterface {
+            function (mixed $reason) use (
+                $request, $left, $attempt, $extraOptions, $errorMessage,
+            ): PromiseInterface {
                 $error = Errors::coerce($reason);
                 if ($left <= 0 || !$error->isRetryable()) {
                     throw $error;
                 }
-                return $this->attempt($request, $left - 1, $attempt + 1, self::backoffMs($attempt));
+                return $this->attempt(
+                    $request, $left - 1, $attempt + 1, self::backoffMs($attempt),
+                    $extraOptions, $errorMessage,
+                );
             },
         );
     }

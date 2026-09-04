@@ -15,11 +15,21 @@ use Throwable;
  */
 final class Errors
 {
-    public static function fromResponse(ResponseInterface $response): VPNDetectionException
-    {
+    /**
+     * @param string|null $context Replaces the body as the source of the message, for a response
+     *                             whose body must NOT be read: nothing bounds the size of an object
+     *                             storage error page, and the status is what separates a lapsed
+     *                             link from a refused one.
+     */
+    public static function fromResponse(
+        ResponseInterface $response,
+        ?string $context = null,
+    ): VPNDetectionException {
         $status = $response->getStatusCode();
-        $message = self::messageOf((string) $response->getBody())
-            ?? sprintf('request failed with status %d', $status);
+        $message = $context !== null
+            ? sprintf('%s (status %d)', $context, $status)
+            : self::messageOf((string) $response->getBody())
+                ?? sprintf('request failed with status %d', $status);
         $retryAfter = self::parseRetryAfter($response->getHeaderLine('Retry-After'));
 
         if ($status === 429) {
