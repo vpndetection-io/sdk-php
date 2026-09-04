@@ -1,0 +1,40 @@
+name: Integration
+
+# Exercises the package as PUBLISHED on Packagist, against staging. CI covers
+# this working tree; nothing there would notice a `.gitattributes` that exports
+# no `src`, an autoload map a consumer cannot resolve, or a tag that never
+# landed.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+  schedule:
+    # Off the hour on purpose: scheduled runs bunched at :00 are queued behind
+    # everyone else's and can be dropped entirely under load.
+    - cron: '23 6 * * *'
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: json
+          coverage: none
+      # No dependency cache: the point is the install a stranger gets. The script
+      # skips with a reason when nothing is published yet; a tier whose key is
+      # missing skips from inside the suite.
+      #
+      # One org per plan tier, because the tier comes from the ORG rather than
+      # from the key. A secret that does not exist interpolates to an empty
+      # string here, which the suite treats as absent.
+      - run: php scripts/run.php
+        working-directory: integration
+        env:
+          VPNDETECTION_STAGING_KEY_FREE: ${{ secrets.VPNDETECTION_STAGING_KEY_FREE }}
+          VPNDETECTION_STAGING_KEY_STARTER: ${{ secrets.VPNDETECTION_STAGING_KEY_STARTER }}
+          VPNDETECTION_STAGING_KEY_SCALE: ${{ secrets.VPNDETECTION_STAGING_KEY_SCALE }}
+          VPNDETECTION_STAGING_KEY_MAX: ${{ secrets.VPNDETECTION_STAGING_KEY_MAX }}

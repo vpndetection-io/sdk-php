@@ -1,0 +1,7 @@
+/vendor/
+
+# Resolved fresh on every run, so the daily one keeps testing whatever is newest
+# on Packagist.
+/composer.lock
+
+/.phpunit.cache/
