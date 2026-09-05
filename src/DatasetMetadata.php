@@ -56,10 +56,27 @@ final class DatasetMetadata
             updated: Dates::required($w->getUpdated()),
             entries: $w->getEntries(),
             schema: $schema,
-            // Rows and byte counts are free-form by construction: the spec types
-            // them as maps of arbitrary objects, so they arrive already decoded.
-            sample: $w->getSample() ?? [],
+            // Byte counts are free-form by construction: the spec types them as a
+            // map of arbitrary values, so they arrive already decoded.
+            sample: self::rows($w->getSample() ?? []),
             size: $w->getSize() ?? [],
         );
+    }
+
+    /**
+     * A sample row has no schema to generate against, so it arrives as the
+     * `stdClass` the JSON decoder produced - while this property documents
+     * arrays, and every other property on this object hands out arrays. A
+     * caller following the docblock wrote `$row['country']` and got a fatal.
+     */
+    private static function rows(mixed $value): mixed
+    {
+        if (is_object($value)) {
+            $value = get_object_vars($value);
+        }
+        if (!is_array($value)) {
+            return $value;
+        }
+        return array_map(self::rows(...), $value);
     }
 }

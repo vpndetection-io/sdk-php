@@ -293,6 +293,7 @@ final class ClientTest extends TestCase
                 'updated' => '2026-09-02',
                 'entries' => 42,
                 'schema' => ['mmdb' => [['name' => 'ip', 'type' => 'string']]],
+                'sample' => ['mmdb' => [['ip' => '1.1.1.1', 'is_vpn' => false]]],
             ]),
         ]);
         $client = new Client(new Options(apiKey: 'k', httpClient: $stub->client));
@@ -315,6 +316,10 @@ final class ClientTest extends TestCase
         $metadata = $client->database->metadata('vpn_ip_extended_v1');
         self::assertSame(42, $metadata->entries);
         self::assertSame('ip', $metadata->schema['mmdb'][0]->name);
+        // A sample row has no schema to generate against, so it arrives as
+        // stdClass while this property documents arrays. A caller following the
+        // docblock wrote $row['ip'] and got a fatal.
+        self::assertSame([['ip' => '1.1.1.1', 'is_vpn' => false]], $metadata->sample['mmdb']);
     }
 
     public function testDownloadUrlReturnsTheLinkWithoutFollowingIt(): void
