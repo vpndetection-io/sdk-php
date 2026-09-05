@@ -21,7 +21,7 @@ final class LicensedDataset
         public readonly string $base,
         public readonly string $name,
         public readonly ?string $summary,
-        /** What your license permits: `evaluation`, `internal` or `redistribute`. */
+        /** What your license permits: `evaluation`, `standard` or `redistribute`. */
         public readonly string $license_type,
         public readonly ?DateTimeImmutable $starts,
         /** Null when the license does not expire. */
