@@ -269,7 +269,7 @@ final class ClientTest extends TestCase
                 'datasets' => [[
                     'base' => 'vpn_ip',
                     'name' => 'VPN IP',
-                    'redistribution' => 'internal',
+                    'license_type' => 'standard',
                     'in_term' => true,
                     'standing' => 'licensed',
                     'versions' => [[

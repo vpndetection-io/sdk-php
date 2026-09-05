@@ -22,7 +22,7 @@ final class LicensedDataset
         public readonly string $name,
         public readonly ?string $summary,
         /** What your license permits: `evaluation`, `internal` or `redistribute`. */
-        public readonly string $redistribution,
+        public readonly string $license_type,
         public readonly ?DateTimeImmutable $starts,
         /** Null when the license does not expire. */
         public readonly ?DateTimeImmutable $expires,
@@ -46,7 +46,7 @@ final class LicensedDataset
             base: $w->getBase(),
             name: $w->getName(),
             summary: $w->getSummary(),
-            redistribution: $w->getRedistribution(),
+            license_type: $w->getLicenseType(),
             starts: Dates::immutable($w->getStarts()),
             expires: Dates::immutable($w->getExpires()),
             inTerm: $w->getInTerm(),

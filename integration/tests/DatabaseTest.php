@@ -23,7 +23,7 @@ use VPNDetection\VPNDetectionException;
  */
 final class DatabaseTest extends TestCase
 {
-    // The max organization licenses `cdn_ip` for redistribution, and at ~10 KB it
+    // The max organization licenses `cdn_ip` for license_type, and at ~10 KB it
     // is the only dataset small enough to move in CI.
     private const DATASET_ID = 'cdn_ip_v1';
     private const FORMAT = 'csvgz';
@@ -82,7 +82,7 @@ final class DatabaseTest extends TestCase
             self::assertNotSame('', $dataset->name);
             self::assertContains($dataset->standing, ['expired', 'licensed', 'unlicensed'],
                 "{$dataset->base} carries an undocumented standing");
-            self::assertContains($dataset->redistribution, ['evaluation', 'internal', 'redistribute'],
+            self::assertContains($dataset->license_type, ['evaluation', 'standard', 'redistribute'],
                 "{$dataset->base} carries an undocumented right");
             self::assertNotEmpty($dataset->versions, "{$dataset->base} carries no versions");
             foreach ($dataset->versions as $version) {

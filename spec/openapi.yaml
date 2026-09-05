@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.04
+  version: 2026.09.05
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -31,7 +31,7 @@ paths:
       operationId: lookupIp
       tags:
         - Lookup
-      summary: Classify one IP address
+      summary: Lookup
       description: |
         Answers what is known about a single IPv4 or IPv6 address. Which fields
         come back is decided by the plan behind the presented key; with no key
@@ -212,15 +212,18 @@ paths:
                 error: lookup failed
       security:
         - {}
-        - bearerAuth: []
-        - apiKeyHeader: []
         - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
   /api/v1/database/list:
     get:
       operationId: listDatabases
       tags:
         - Database
-      summary: The datasets your organization is licensed to download
+      summary: List
+      description: >
+        Every dataset this organization holds a licence for, with the term and the license_type
+        right beside each one.
       responses:
         '200':
           description: OK
@@ -238,15 +241,19 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       security:
-        - bearerAuth: []
-        - apiKeyHeader: []
         - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
   /api/v1/database/download:
     get:
       operationId: downloadDatabase
       tags:
         - Database
-      summary: Redirect to a time-limited download URL for one dataset
+      summary: Download
+      description: >
+        Answers `302` with a time-limited URL pointing straight at object storage. Follow the
+        redirect; the link authorizes the START of a transfer, so one already running is not
+        interrupted when it lapses.
       parameters:
         - in: query
           name: id
@@ -300,15 +307,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - bearerAuth: []
-        - apiKeyHeader: []
         - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
   /api/v1/database/metadata:
     get:
       operationId: databaseMetadata
       tags:
         - Database
-      summary: What is inside one dataset - schema, samples, row count, sizes
+      summary: Metadata
       description: |
         Poll this to decide whether today's build is worth fetching: it carries
         `updated` and `entries` without downloading anything.
@@ -337,15 +344,17 @@ paths:
         '503':
           $ref: '#/components/responses/NotAvailable'
       security:
-        - bearerAuth: []
-        - apiKeyHeader: []
         - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
   /api/v1/database/checksum:
     get:
       operationId: databaseChecksum
       tags:
         - Database
-      summary: Checksums for one published file, to verify a download
+      summary: Checksums
+      description: |
+        Checksums for one published file, so a download can be verified after it lands.
       parameters:
         - in: query
           name: id
@@ -402,15 +411,18 @@ paths:
         '503':
           $ref: '#/components/responses/NotAvailable'
       security:
-        - bearerAuth: []
-        - apiKeyHeader: []
         - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
   /api/v1/database/downloads:
     get:
       operationId: listDownloads
       tags:
         - Database
-      summary: Your organization's recent download attempts, newest first
+      summary: History
+      description: >
+        Recent download attempts for this organization, newest first. Refusals are listed too, so a
+        failed transfer can be accounted for.
       parameters:
         - in: query
           name: limit
@@ -435,9 +447,9 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       security:
-        - bearerAuth: []
-        - apiKeyHeader: []
         - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
 components:
   securitySchemes:
     bearerAuth:
@@ -661,11 +673,11 @@ components:
           example: VPN IP
         summary:
           type: string
-        redistribution:
+        license_type:
           type: string
           enum:
             - evaluation
-            - internal
+            - standard
             - redistribute
           description: What your license permits you to do with the data.
         starts:
@@ -699,7 +711,7 @@ components:
       required:
         - base
         - name
-        - redistribution
+        - license_type
         - in_term
         - standing
         - versions
