@@ -3,6 +3,12 @@ name: CI
 on:
   push:
     branches: [main]
+    # A tag IS the release here: there is no release workflow to gate, and the
+    # package is resolvable the moment the tag lands. Running CI on it cannot
+    # block a bad release, but it turns one into a red run and an email rather
+    # than silence - which is how a package that did not compile sat published
+    # for three days.
+    tags: ['v*']
   pull_request:
 
 jobs:
