@@ -74,7 +74,9 @@ paths:
                     is_cdn: false
                     vpn: {}
                 scale:
-                  summary: A key on the scale plan, which adds the classification detail objects
+                  summary: >-
+                    A key on the scale plan, which adds the classification detail objects and the
+                    proxy FLAGS - the proxy detail stays on max
                   value:
                     ip: 1.1.1.1
                     is_vpn: false
@@ -82,6 +84,9 @@ paths:
                     is_relay: false
                     is_tor: false
                     is_cdn: false
+                    is_resproxy: false
+                    is_dcproxy: false
+                    is_mobproxy: false
                     vpn: {}
                     hosting:
                       provider: cloudflare
@@ -502,13 +507,13 @@ components:
           description: Whether the address belongs to a CDN. Starter and above.
         is_resproxy:
           type: boolean
-          description: Whether the address was seen in a residential proxy pool. Max only.
+          description: Whether the address was seen in a residential proxy pool. Scale and above.
         is_dcproxy:
           type: boolean
-          description: Whether the address was seen in a datacenter proxy pool. Max only.
+          description: Whether the address was seen in a datacenter proxy pool. Scale and above.
         is_mobproxy:
           type: boolean
-          description: Whether the address was seen in a mobile proxy pool. Max only.
+          description: Whether the address was seen in a mobile proxy pool. Scale and above.
         vpn:
           allOf:
             - $ref: '#/components/schemas/VpnDetail'
