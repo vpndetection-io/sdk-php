@@ -728,7 +728,12 @@ components:
       required:
         - base
         - name
+        - summary
         - license_type
+        - starts
+        - expires
+        - renews_at
+        - notice_due_at
         - in_term
         - standing
         - versions
