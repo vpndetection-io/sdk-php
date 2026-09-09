@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.05
+  version: 2026.09.09
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -688,7 +688,24 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Null when the license does not expire.
+          description: >-
+            A hard stop. Null when the license has no end date, which is the normal case for a
+            rolling agreement, and when there is no license. A rolling license reports its turnover
+            date in renews_at instead.
+        renews_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            When a rolling license next renews. Null when the license has no defined term, when
+            expires sets a hard stop instead, and when there is no license.
+        notice_due_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            The last day notice of non-renewal can be given for the term ending at renews_at. Null
+            whenever renews_at is, and when the agreement records no notice period.
         in_term:
           type: boolean
           description: False when the license has lapsed; downloads are refused.
