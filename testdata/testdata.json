@@ -398,10 +398,10 @@
           "provider": "mullvad",
           "last_seen": "2026-09-02",
           "confidence": "high",
-          "method": "openvpn_cert"
+          "method": "scan"
         },
         "hosting": {
-          "provider": "M247",
+          "provider": "m247",
           "confidence": "high",
           "last_seen": "2026-09-02"
         },
@@ -432,7 +432,7 @@
           "provider": "mullvad",
           "last_seen": "2026-09-02",
           "confidence": "high",
-          "method": "openvpn_cert"
+          "method": "scan"
         },
         "dcproxy": {
           "provider": "brightdata",

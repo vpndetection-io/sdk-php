@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.09
+  version: 2026.09.10
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -98,7 +98,7 @@ paths:
                 max:
                   summary: A key on the max plan, address found in the VPN dataset
                   value:
-                    ip: 45.83.91.1
+                    ip: 146.70.22.220
                     is_vpn: true
                     is_hosting: true
                     is_relay: false
@@ -111,9 +111,9 @@ paths:
                       provider: mullvad
                       last_seen: '2026-09-02'
                       confidence: high
-                      method: openvpn_cert
+                      method: scan
                     hosting:
-                      provider: M247
+                      provider: m247
                       confidence: high
                       last_seen: '2026-09-02'
                     relay: {}
@@ -572,8 +572,17 @@ components:
           example: high
         method:
           type: string
-          description: How the address was attributed to the provider. Max only.
-          example: openvpn_cert
+          description: |
+            The class of evidence the attribution rests on, one of four values.
+            Max only.
+
+            `scan` - we spoke the VPN protocol to the address ourselves and got a
+            valid server response. `scrape` - the operator published the address
+            through its own API, client or configuration. `registry` - public
+            registration or naming records attribute it to the operator.
+            `infer` - the address was extrapolated from confirmed neighbours in
+            the same block.
+          example: scan
     ClassDetail:
       type: object
       description: |
@@ -584,7 +593,7 @@ components:
         provider:
           type: string
           description: The provider, or an empty string where the dataset has none.
-          example: M247
+          example: m247
         confidence:
           type: string
           description: How strongly the classification is supported.
