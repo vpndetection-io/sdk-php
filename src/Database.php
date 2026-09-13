@@ -49,7 +49,7 @@ final class Database
             base: $w->getBase(),
             name: $w->getName(),
             summary: $w->getSummary(),
-            licenseType: $w->getLicenseType()?->value,
+            licenseType: $w->getLicenseType(),
             starts: Dates::immutable($w->getStarts()),
             expires: Dates::immutable($w->getExpires()),
             inTerm: $w->getInTerm(),

@@ -31,7 +31,7 @@ namespace VPNDetection\Internal\Model;
 /**
  * Standing Class Doc Comment
  *
- * @description Where your license for a database family stands today.
+ * @description Where your license for a database family stands today. &#x60;licensed&#x60; is a live grant, &#x60;expired&#x60; one whose term has ended, and &#x60;unlicensed&#x60; a database published but never bought.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech

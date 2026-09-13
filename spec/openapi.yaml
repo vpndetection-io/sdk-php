@@ -25,6 +25,9 @@ tags:
   - name: Database
     description: List and download the licensed databases.
     x-displayName: Database
+  - name: Account
+    description: Your key, your plan, your usage.
+    x-displayName: Account
 paths:
   /{ip}:
     get:
@@ -220,15 +223,105 @@ paths:
         - apiKeyQuery: []
         - apiKeyHeader: []
         - bearerAuth: []
+  /myip:
+    get:
+      operationId: lookupMyIp
+      tags:
+        - Lookup
+      summary: Lookup your own address
+      description: |
+        Answers what is known about the address this request came from, which is
+        the same answer `GET /{ip}` gives for that address: the plan behind the
+        presented key decides which fields come back, and the request counts
+        against the same allowance.
+
+        The address is the one our edge observed, so a request through a proxy
+        or a VPN reports the exit it left through rather than the machine that
+        made it. That is usually the point of asking.
+      responses:
+        '200':
+          description: |
+            The classification of your own address. Present fields are those
+            your plan includes; see the tier table in the API description.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupResponse'
+              examples:
+                free:
+                  summary: No API key, or a key on the free plan
+                  value:
+                    ip: 45.83.91.1
+                    is_vpn: true
+        '401':
+          description: The presented API key is unknown, revoked, or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              examples:
+                invalid:
+                  value:
+                    error: invalid API key
+                revoked:
+                  value:
+                    error: API key revoked
+                expired:
+                  value:
+                    error: API key expired
+        '403':
+          description: |
+            The key restricts which source addresses may use it, and this
+            request did not come from one of them.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: source address not allowed for this API key
+        '429':
+          description: |
+            Either the request rate was too high, or an allowance is spent.
+            The two are told apart by the message, not the status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              examples:
+                rateLimited:
+                  value:
+                    error: rate limit exceeded
+                keylessDaily:
+                  value:
+                    error: daily limit for unauthenticated requests exceeded; use an API key
+                quotaExceeded:
+                  value:
+                    error: request allowance exceeded; raise or remove your overage limit
+        '500':
+          description: The VPN dataset could not be consulted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: lookup failed
+      security:
+        - {}
+        - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
   /api/v1/database/list:
     get:
       operationId: listDatabases
       tags:
         - Database
       summary: List
-      description: >
-        Every database this organization holds a licence for, with the term and the license_type
-        right beside each one.
+      description: |
+        Every database this organization may SEE, with where its licence stands.
+        Not just the ones you hold: a customer with one grant should be able to
+        tell what else is published without asking. `standing` is the
+        difference - `licensed`, `expired`, or `unlicensed` for one never
+        bought.
       responses:
         '200':
           description: OK
@@ -440,6 +533,103 @@ paths:
         - apiKeyQuery: []
         - apiKeyHeader: []
         - bearerAuth: []
+  /api/v1/account/me:
+    get:
+      operationId: accountMe
+      tags:
+        - Account
+      summary: Your key, plan and usage
+      description: |
+        Answers what the presented key is, what plan is behind it, and what has
+        been spent against that plan's allowance in the current window.
+      responses:
+        '200':
+          description: The key's entitlements and consumption.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountMe'
+              examples:
+                paid:
+                  summary: A key on a paid plan, uncapped
+                  value:
+                    org_id: 85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61
+                    apikey:
+                      id: 0ab424cc-7619-4dad-b027-afacdc2cedb0
+                      expires: null
+                      allowed_cidrs: []
+                    plan:
+                      key: max
+                      tier: max
+                    usage:
+                      requests: 580
+                      quota: 5000000
+                      hard_limit: null
+                      window_start: '2026-09-04T07:00:00Z'
+                      window_end: '2026-10-04T07:00:00Z'
+                free:
+                  summary: >-
+                    A key on the free plan. There is no subscription, so the window is the calendar
+                    month, and the allowance is a hard stop rather than a billable overage.
+                  value:
+                    org_id: f32191d0-ef02-450e-a505-eb5814c35cab
+                    apikey:
+                      id: 10c2b437-3aa2-4a63-bd17-8e7c8c7f0def
+                      expires: null
+                      allowed_cidrs: []
+                    plan:
+                      key: free
+                      tier: free
+                    usage:
+                      requests: 545
+                      quota: 50000
+                      hard_limit: 50000
+                      window_start: '2026-09-01T00:00:00Z'
+                      window_end: '2026-10-01T00:00:00Z'
+        '401':
+          description: No key was presented, or it is unknown, revoked or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountError'
+              examples:
+                missing:
+                  value:
+                    error: an API key is required
+                invalid:
+                  value:
+                    error: invalid API key
+                revoked:
+                  value:
+                    error: API key revoked
+                expired:
+                  value:
+                    error: API key expired
+        '403':
+          description: |
+            The key restricts which source addresses may use it, and this
+            request did not come from one of them.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountError'
+              example:
+                error: source address not allowed for this API key
+        '503':
+          description: |
+            The usage counters could not be read. Reported rather than guessed
+            at: the whole answer is the number, and a confident zero would read
+            as "you have used nothing".
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountError'
+              example:
+                error: usage is temporarily unavailable
+      security:
+        - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
 components:
   securitySchemes:
     bearerAuth:
@@ -641,16 +831,12 @@ components:
           type: string
       required:
         - rc
-    LicenseType:
-      type: string
-      description: What a license permits you to do with the data.
-      enum:
-        - evaluation
-        - standard
-        - redistribute
     Standing:
       type: string
-      description: Where your license for a database family stands today.
+      description: |
+        Where your license for a database family stands today. `licensed` is a
+        live grant, `expired` one whose term has ended, and `unlicensed` a
+        database published but never bought.
       enum:
         - expired
         - licensed
@@ -690,9 +876,17 @@ components:
         summary:
           type: string
         license_type:
-          allOf:
-            - $ref: '#/components/schemas/LicenseType'
-          description: What your license permits you to do with the data.
+          type: string
+          nullable: true
+          enum:
+            - evaluation
+            - standard
+            - redistribute
+            - null
+          description: |
+            What a license permits you to do with the data. Null for a family
+            you hold no license for, which is every one with standing
+            `unlicensed`.
         starts:
           type: string
           format: date-time
@@ -723,11 +917,7 @@ components:
           type: boolean
           description: False when the license has lapsed; downloads are refused.
         standing:
-          allOf:
-            - $ref: '#/components/schemas/Standing'
-          description: |
-            `licensed` is a live grant, `expired` one whose term has ended, and
-            `unlicensed` a database published but never bought.
+          $ref: '#/components/schemas/Standing'
         versions:
           type: array
           description: |
@@ -904,6 +1094,112 @@ components:
         - updated
         - entries
         - schema
+    AccountMe:
+      type: object
+      required:
+        - org_id
+        - apikey
+        - plan
+        - usage
+      properties:
+        org_id:
+          type: string
+          format: uuid
+          description: The organization the key belongs to.
+        apikey:
+          $ref: '#/components/schemas/AccountApikey'
+        plan:
+          $ref: '#/components/schemas/AccountPlan'
+        usage:
+          $ref: '#/components/schemas/AccountUsage'
+    AccountApikey:
+      type: object
+      description: |
+        The credential itself. The key is never echoed - only its id, which is
+        what the console shows and what you can act on.
+      required:
+        - id
+        - expires
+        - allowed_cidrs
+      properties:
+        id:
+          type: string
+          format: uuid
+        expires:
+          type: string
+          format: date-time
+          nullable: true
+          description: Null for a key with no end date, which is the normal case.
+        allowed_cidrs:
+          type: array
+          items:
+            type: string
+          description: |
+            The source addresses this key may be used from. EMPTY means
+            unrestricted, never "deny all".
+    AccountPlan:
+      type: object
+      required:
+        - key
+        - tier
+      properties:
+        key:
+          type: string
+          description: The plan the organization is on.
+          example: max
+        tier:
+          type: string
+          enum:
+            - free
+            - starter
+            - scale
+            - max
+          description: |
+            The field tier, which decides how much of a lookup answer comes
+            back. What each tier includes is documented on the lookup endpoint
+            rather than repeated here, so there is one place it can be wrong.
+    AccountUsage:
+      type: object
+      required:
+        - requests
+        - quota
+        - hard_limit
+        - window_start
+        - window_end
+      properties:
+        requests:
+          type: integer
+          format: int64
+          description: |
+            Requests counted in the current window. The same number the lookup
+            API gates on, and it can lag by a few seconds.
+        quota:
+          type: integer
+          format: int64
+          description: What the plan includes. Zero on a plan that includes none.
+        hard_limit:
+          type: integer
+          format: int64
+          nullable: true
+          description: |
+            Where we stop serving. NULL means never, which is the normal state
+            of an uncapped paid plan and is not the same as zero. Above the
+            quota and below this, requests are served and billed as overage.
+        window_start:
+          type: string
+          format: date-time
+          description: When the current allowance period began.
+        window_end:
+          type: string
+          format: date-time
+          description: When the allowance next resets.
+    AccountError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
   responses:
     Unauthorized:
       description: Missing or invalid key, or the key lacks the db.download scope
@@ -936,3 +1232,6 @@ x-tagGroups:
   - name: VPNDetection Database API
     tags:
       - Database
+  - name: VPNDetection Account API
+    tags:
+      - Account

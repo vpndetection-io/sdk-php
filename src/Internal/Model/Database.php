@@ -63,7 +63,7 @@ class Database implements ModelInterface, ArrayAccess, JsonSerializable
         'base' => 'string',
         'name' => 'string',
         'summary' => 'string',
-        'license_type' => '\VPNDetection\Internal\Model\LicenseType',
+        'license_type' => 'string',
         'starts' => '\DateTime',
         'expires' => '\DateTime',
         'renews_at' => '\DateTime',
@@ -101,7 +101,7 @@ class Database implements ModelInterface, ArrayAccess, JsonSerializable
         'base' => false,
         'name' => false,
         'summary' => false,
-        'license_type' => false,
+        'license_type' => true,
         'starts' => true,
         'expires' => true,
         'renews_at' => true,
@@ -270,6 +270,23 @@ class Database implements ModelInterface, ArrayAccess, JsonSerializable
         return self::$openAPIModelName;
     }
 
+    public const LICENSE_TYPE_EVALUATION = 'evaluation';
+    public const LICENSE_TYPE_STANDARD = 'standard';
+    public const LICENSE_TYPE_REDISTRIBUTE = 'redistribute';
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public static function getLicenseTypeAllowableValues()
+    {
+        return [
+            self::LICENSE_TYPE_EVALUATION,
+            self::LICENSE_TYPE_STANDARD,
+            self::LICENSE_TYPE_REDISTRIBUTE,
+        ];
+    }
 
     /**
      * Associative array for storing property values
@@ -332,9 +349,18 @@ class Database implements ModelInterface, ArrayAccess, JsonSerializable
         if ($this->container['summary'] === null) {
             $invalidProperties[] = "'summary' can't be null";
         }
-        if ($this->container['license_type'] === null) {
-            $invalidProperties[] = "'license_type' can't be null";
+        if ($this->container['license_type'] === null && !$this->isNullableSetToNull('license_type')) {
+            $invalidProperties[] = "'license_type' is required";
         }
+        $allowedValues = self::getLicenseTypeAllowableValues();
+        if (!is_null($this->container['license_type']) && !in_array($this->container['license_type'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'license_type', must be one of '%s'",
+                $this->container['license_type'],
+                implode("', '", $allowedValues)
+            );
+        }
+
         if ($this->container['starts'] === null && !$this->isNullableSetToNull('starts')) {
             $invalidProperties[] = "'starts' is required";
         }
@@ -452,9 +478,9 @@ class Database implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Gets license_type
      *
-     * @return \VPNDetection\Internal\Model\LicenseType
+     * @return string|null
      */
-    public function getLicenseType(): \VPNDetection\Internal\Model\LicenseType
+    public function getLicenseType(): ?string
     {
         return $this->container['license_type'];
     }
@@ -462,14 +488,31 @@ class Database implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets license_type
      *
-     * @param \VPNDetection\Internal\Model\LicenseType $license_type What your license permits you to do with the data.
+     * @param string|null $license_type What a license permits you to do with the data. Null for a family you hold no license for, which is every one with standing `unlicensed`.
      *
      * @return $this
      */
-    public function setLicenseType(\VPNDetection\Internal\Model\LicenseType $license_type): static
+    public function setLicenseType(?string $license_type): static
     {
         if (is_null($license_type)) {
-            throw new InvalidArgumentException('non-nullable license_type cannot be null');
+            array_push($this->openAPINullablesSetToNull, 'license_type');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('license_type', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $allowedValues = self::getLicenseTypeAllowableValues();
+        if (!is_null($license_type) && !in_array($license_type, $allowedValues, true)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    "Invalid value '%s' for 'license_type', must be one of '%s'",
+                    $license_type,
+                    implode("', '", $allowedValues)
+                )
+            );
         }
         $this->container['license_type'] = $license_type;
 
@@ -652,7 +695,7 @@ class Database implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets standing
      *
-     * @param \VPNDetection\Internal\Model\Standing $standing `licensed` is a live grant, `expired` one whose term has ended, and `unlicensed` a database published but never bought.
+     * @param \VPNDetection\Internal\Model\Standing $standing standing
      *
      * @return $this
      */
