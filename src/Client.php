@@ -12,9 +12,11 @@ use GuzzleHttp\Promise\PromiseInterface;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use Psr\Http\Message\ResponseInterface;
+use VPNDetection\Internal\Api\AccountApi as WireAccountApi;
 use VPNDetection\Internal\Api\DatabaseApi as WireDatabaseApi;
 use VPNDetection\Internal\Api\LookupApi;
 use VPNDetection\Internal\Configuration;
+use VPNDetection\Internal\Model\AccountMe;
 use VPNDetection\Internal\Model\LookupResponse;
 
 /**
@@ -28,6 +30,7 @@ final class Client
     public const DEFAULT_BASE_URL = 'https://api.vpndetection.io';
 
     private readonly LookupApi $lookupApi;
+    private readonly WireAccountApi $accountApi;
     private readonly Transport $transport;
     private readonly ?Cache $cache;
     private readonly int $concurrency;
@@ -46,6 +49,7 @@ final class Client
 
         $http = $options->httpClient ?? new GuzzleClient();
         $this->lookupApi = new LookupApi($http, $config);
+        $this->accountApi = new WireAccountApi($http, $config);
         $this->transport = new Transport($http, $options->retries, $options->timeout);
         $this->cache = $options->cache
             ? new Cache($options->cacheMaxSize, $options->cacheTtlSeconds)
@@ -81,6 +85,72 @@ final class Client
     {
         self::assertOptions($options, ['retries']);
         return $this->lookupAsync($ip, $options)->wait();
+    }
+
+    /**
+     * Classify the address this client is calling from.
+     *
+     * The same answer `lookup` would give for that address, at the same cost
+     * against your allowance. The address is the one our edge observed, so a
+     * call made through a proxy or a VPN reports the exit it left through -
+     * usually the point of asking.
+     *
+     * Deliberately NOT cached. The cache is keyed by address, and which address
+     * this is IS the question: a machine that moves between networks would
+     * otherwise be told where it used to be.
+     *
+     * @param array{retries?: int} $options Per-call overrides.
+     * @throws VPNDetectionException
+     */
+    public function myIp(array $options = []): Result
+    {
+        self::assertOptions($options, ['retries']);
+        $request = $this->lookupApi->lookupMyIpRequest();
+        return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
+            function (ResponseInterface $response): Result {
+                $body = (string) $response->getBody();
+                $status = $response->getStatusCode();
+                return Result::fromWire(
+                    Transport::toModel($body, LookupResponse::class, $status),
+                    Transport::toArray($body, $status),
+                );
+            },
+        )->wait();
+    }
+
+    /**
+     * What this client's key is entitled to, and how much of it has been used.
+     *
+     * Named for what it answers rather than `me`, which sits one letter from
+     * `myIp` and means something quite different: one is which address you are
+     * calling FROM, the other is which account you are calling AS.
+     *
+     * Unlike a lookup there is no useful unauthenticated answer, so a client
+     * built without an API key gets an unauthorized error rather than a partial
+     * one.
+     *
+     * Usage counts against the ALLOWANCE WINDOW - the anniversary of the
+     * subscription, not the calendar month and not the billing period - and it
+     * is the same number a lookup is gated on. It can lag by a few seconds,
+     * because requests are counted in memory and flushed in aggregate.
+     *
+     * Deliberately NOT cached: the whole point is what has been spent, and a
+     * cached answer is a wrong one within seconds of the next request.
+     *
+     * @param array{retries?: int} $options Per-call overrides.
+     * @throws VPNDetectionException
+     */
+    public function myAccount(array $options = []): Account
+    {
+        self::assertOptions($options, ['retries']);
+        $request = $this->accountApi->accountMeRequest();
+        return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
+            function (ResponseInterface $response): Account {
+                $body = (string) $response->getBody();
+                $status = $response->getStatusCode();
+                return Account::fromWire(Transport::toModel($body, AccountMe::class, $status));
+            },
+        )->wait();
     }
 
     /**

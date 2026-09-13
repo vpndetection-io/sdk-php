@@ -409,4 +409,83 @@ final class ClientTest extends TestCase
         }
         return new Stub(Stub::lookups($routes));
     }
+    private const ACCOUNT_BODY = [
+        'org_id' => '85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61',
+        'apikey' => [
+            'id' => '0ab424cc-7619-4dad-b027-afacdc2cedb0',
+            'expires' => null,
+            'allowed_cidrs' => [],
+        ],
+        'plan' => ['key' => 'max', 'tier' => 'max'],
+        'usage' => [
+            'requests' => 580,
+            'quota' => 5000000,
+            'hard_limit' => null,
+            'window_start' => '2026-09-04T07:00:00Z',
+            'window_end' => '2026-10-04T07:00:00Z',
+        ],
+    ];
+
+    public function testMyIpClassifiesTheCallingAddress(): void
+    {
+        $stub = new Stub(['/myip' => Stub::ok(['ip' => '45.83.91.1', 'is_vpn' => true])]);
+        $client = new Client(new Options(httpClient: $stub->client));
+
+        $result = $client->myIp();
+
+        self::assertSame('45.83.91.1', $result->ip);
+        self::assertTrue($result->isVpn);
+    }
+
+    public function testMyIpIsNotCached(): void
+    {
+        // The cache is keyed by address, and which address this is IS the question.
+        $stub = new Stub(['/myip' => Stub::ok(['ip' => '45.83.91.1', 'is_vpn' => true])]);
+        $client = new Client(new Options(httpClient: $stub->client));
+
+        $client->myIp();
+        $client->myIp();
+
+        self::assertCount(2, $stub->calls);
+    }
+
+    public function testMyAccountReportsThePlanAndTheUsage(): void
+    {
+        $stub = new Stub(['/api/v1/account/me' => Stub::ok(self::ACCOUNT_BODY)]);
+        $client = new Client(new Options(httpClient: $stub->client));
+
+        $account = $client->myAccount();
+
+        self::assertSame('max', $account->plan->key);
+        self::assertSame('max', $account->plan->tier);
+        self::assertSame(580, $account->usage->requests);
+        self::assertSame(5000000, $account->usage->quota);
+        // Null means NEVER stop, which is not the same as a limit of zero.
+        self::assertNull($account->usage->hardLimit);
+        self::assertSame([], $account->apikey->allowedCidrs);
+    }
+
+    public function testMyAccountIsNotCached(): void
+    {
+        // The whole point is what has been spent.
+        $stub = new Stub(['/api/v1/account/me' => Stub::ok(self::ACCOUNT_BODY)]);
+        $client = new Client(new Options(httpClient: $stub->client));
+
+        $client->myAccount();
+        $client->myAccount();
+
+        self::assertCount(2, $stub->calls);
+    }
+
+    public function testMyAccountSurfacesAnUnauthorizedKey(): void
+    {
+        $stub = new Stub([
+            '/api/v1/account/me' => ['status' => 401, 'body' => ['error' => 'invalid API key']],
+        ]);
+        $client = new Client(new Options(retries: 0, httpClient: $stub->client));
+
+        $this->expectException(VPNDetectionException::class);
+        $client->myAccount();
+    }
+
 }
