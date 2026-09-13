@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
-use VPNDetection\Internal\Model\DatasetMetadataColumn as WireDatasetMetadataColumn;
+use VPNDetection\Internal\Model\DatabaseMetadataColumn as WireDatabaseMetadataColumn;
 
 /** One column of a dataset, in one format. */
-final class DatasetMetadataColumn
+final class DatabaseMetadataColumn
 {
     public function __construct(
         public readonly string $name,
@@ -17,7 +17,7 @@ final class DatasetMetadataColumn
     }
 
     /** @internal */
-    public static function fromWire(WireDatasetMetadataColumn $w): self
+    public static function fromWire(WireDatabaseMetadataColumn $w): self
     {
         return new self(name: $w->getName(), type: $w->getType(), description: $w->getDescription());
     }

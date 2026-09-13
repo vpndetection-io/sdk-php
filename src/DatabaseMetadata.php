@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace VPNDetection;
 
 use DateTimeImmutable;
-use VPNDetection\Internal\Model\DatasetMetadata as WireDatasetMetadata;
+use VPNDetection\Internal\Model\DatabaseMetadata as WireDatabaseMetadata;
 
 /**
  * What is inside one dataset.
@@ -13,7 +13,7 @@ use VPNDetection\Internal\Model\DatasetMetadata as WireDatasetMetadata;
  * Poll this to decide whether today's build is worth fetching: `updated` and
  * `entries` come back without downloading anything.
  */
-final class DatasetMetadata
+final class DatabaseMetadata
 {
     public function __construct(
         public readonly string $id,
@@ -25,7 +25,7 @@ final class DatasetMetadata
         /**
          * Columns, keyed by format.
          *
-         * @var array<string, list<DatasetMetadataColumn>>
+         * @var array<string, list<DatabaseMetadataColumn>>
          */
         public readonly array $schema,
         /**
@@ -44,11 +44,11 @@ final class DatasetMetadata
     }
 
     /** @internal */
-    public static function fromWire(WireDatasetMetadata $w): self
+    public static function fromWire(WireDatabaseMetadata $w): self
     {
         $schema = [];
         foreach ($w->getSchema() as $format => $columns) {
-            $schema[$format] = array_map(DatasetMetadataColumn::fromWire(...), $columns);
+            $schema[$format] = array_map(DatabaseMetadataColumn::fromWire(...), $columns);
         }
         return new self(
             id: $w->getId(),

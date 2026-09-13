@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
-use VPNDetection\Internal\Model\DatasetChecksums as WireDatasetChecksums;
+use VPNDetection\Internal\Model\DbChecksums as WireDatasetChecksums;
 
 /**
  * The digests published alongside one dataset file.
@@ -13,7 +13,7 @@ use VPNDetection\Internal\Model\DatasetChecksums as WireDatasetChecksums;
  * publishes is the API's choice, not ours, and a property is null when that
  * dataset does not publish it.
  */
-final class DatasetChecksums
+final class DbChecksums
 {
     public function __construct(
         public readonly ?string $md5 = null,

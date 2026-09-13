@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
-use VPNDetection\Internal\Model\DatasetFormatSize as WireDatasetFormatSize;
+use VPNDetection\Internal\Model\DatabaseFormatSize as WireDatabaseFormatSize;
 
 /** One published file of a dataset, and how big it is. */
-final class DatasetFormatSize
+final class DatabaseFormatSize
 {
     public function __construct(
         /** `csvgz` or `mmdb`. */
@@ -18,8 +18,8 @@ final class DatasetFormatSize
     }
 
     /** @internal */
-    public static function fromWire(WireDatasetFormatSize $w): self
+    public static function fromWire(WireDatabaseFormatSize $w): self
     {
-        return new self(format: $w->getFormat(), bytes: $w->getBytes());
+        return new self(format: $w->getFormat()->value, bytes: $w->getBytes());
     }
 }

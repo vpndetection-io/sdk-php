@@ -267,7 +267,7 @@ final class ClientTest extends TestCase
             // hang off `versions`. Reading an id from the top level is how this
             // endpoint came to answer objects whose every typed field was null.
             '/api/v1/database/list' => Stub::ok([
-                'datasets' => [[
+                'databases' => [[
                     'base' => 'vpn_ip',
                     'name' => 'VPN IP',
                     'summary' => 'IP ranges observed as VPN infrastructure.',
@@ -304,12 +304,15 @@ final class ClientTest extends TestCase
         self::assertSame('s256', $sums->sha256, 'the digest a caller wants must not be null');
         self::assertSame(['m', 's1', 's256', 's512'], [$sums->md5, $sums->sha1, $sums->sha256, $sums->sha512]);
 
-        $datasets = $client->database->list();
-        self::assertCount(1, $datasets);
-        self::assertSame('vpn_ip', $datasets[0]->base);
-        self::assertSame('licensed', $datasets[0]->standing);
-        self::assertSame('vpn_ip_extended_v1', $datasets[0]->versions[0]->id);
-        self::assertSame(1234, $datasets[0]->versions[0]->formats[0]->bytes);
+        $databases = $client->database->list();
+        self::assertCount(1, $databases);
+        self::assertSame('vpn_ip', $databases[0]->base);
+        self::assertSame('licensed', $databases[0]->standing);
+        // An unlicensed family carries no license_type at all. The wrapper used to
+        // declare this non-null, so any catalog containing one threw on decode.
+        self::assertSame('standard', $databases[0]->licenseType);
+        self::assertSame('vpn_ip_extended_v1', $databases[0]->versions[0]->id);
+        self::assertSame(1234, $databases[0]->versions[0]->formats[0]->bytes);
 
         $downloads = $client->database->downloads();
         self::assertSame('ok', $downloads[0]->outcome);

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: VPNDetection API
   description: |
-    The VPNDetection API: classify any IP address, and download the datasets
+    The VPNDetection API: classify any IP address, and download the databases
     behind the answers.
 
     See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io
@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.10
+  version: 2026.09.13
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -23,7 +23,7 @@ tags:
     description: Classify an IP address.
     x-displayName: Lookup
   - name: Database
-    description: List and download the licensed datasets.
+    description: List and download the licensed databases.
     x-displayName: Database
 paths:
   /{ip}:
@@ -227,7 +227,7 @@ paths:
         - Database
       summary: List
       description: >
-        Every dataset this organization holds a licence for, with the term and the license_type
+        Every database this organization holds a licence for, with the term and the license_type
         right beside each one.
       responses:
         '200':
@@ -237,12 +237,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  datasets:
+                  databases:
                     type: array
                     items:
-                      $ref: '#/components/schemas/LicensedDataset'
+                      $ref: '#/components/schemas/Database'
                 required:
-                  - datasets
+                  - databases
         '401':
           $ref: '#/components/responses/Unauthorized'
       security:
@@ -270,12 +270,9 @@ paths:
           name: format
           required: true
           schema:
-            type: string
-            enum:
-              - csvgz
-              - mmdb
+            $ref: '#/components/schemas/DatabaseFormat'
           description: |
-            Not every dataset is built in every format. The `_provider`
+            Not every database is built in every format. The `_provider`
             catalogues are keyed by provider id rather than by IP range, so no
             MMDB exists for them.
       responses:
@@ -286,7 +283,7 @@ paths:
               schema:
                 type: string
         '400':
-          description: The dataset is not built in the requested format
+          description: The database is not built in the requested format
           content:
             application/json:
               schema:
@@ -294,13 +291,13 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Your organization holds no license for this dataset, or its term has ended
+          description: Your organization holds no license for this database, or its term has ended
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: No such dataset
+          description: No such database
           content:
             application/json:
               schema:
@@ -325,7 +322,7 @@ paths:
         Poll this to decide whether today's build is worth fetching: it carries
         `updated` and `entries` without downloading anything.
 
-        No `format` parameter - one document describes every format the dataset
+        No `format` parameter - one document describes every format the database
         is built in.
       parameters:
         - in: query
@@ -339,7 +336,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DatasetMetadata'
+                $ref: '#/components/schemas/DatabaseMetadata'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -370,10 +367,7 @@ paths:
           name: format
           required: true
           schema:
-            type: string
-            enum:
-              - csvgz
-              - mmdb
+            $ref: '#/components/schemas/DatabaseFormat'
       responses:
         '200':
           description: OK
@@ -387,22 +381,13 @@ paths:
                   format:
                     type: string
                   checksums:
-                    type: object
-                    properties:
-                      md5:
-                        type: string
-                      sha1:
-                        type: string
-                      sha256:
-                        type: string
-                      sha512:
-                        type: string
+                    $ref: '#/components/schemas/DbChecksums'
                 required:
                   - id
                   - format
                   - checksums
         '400':
-          description: The dataset is not built in the requested format
+          description: The database is not built in the requested format
           content:
             application/json:
               schema:
@@ -656,14 +641,31 @@ components:
           type: string
       required:
         - rc
-    DatasetFormatSize:
+    LicenseType:
+      type: string
+      description: What a license permits you to do with the data.
+      enum:
+        - evaluation
+        - standard
+        - redistribute
+    Standing:
+      type: string
+      description: Where your license for a database family stands today.
+      enum:
+        - expired
+        - licensed
+        - unlicensed
+    DatabaseFormat:
+      type: string
+      description: A file format a database version is published in.
+      enum:
+        - csvgz
+        - mmdb
+    DatabaseFormatSize:
       type: object
       properties:
         format:
-          type: string
-          enum:
-            - csvgz
-            - mmdb
+          $ref: '#/components/schemas/DatabaseFormat'
         bytes:
           type: integer
           nullable: true
@@ -671,16 +673,16 @@ components:
       required:
         - format
         - bytes
-    LicensedDataset:
+    Database:
       type: object
       description: |
-        One dataset FAMILY your organization is licensed for. A license covers
+        One database FAMILY your organization is licensed for. A license covers
         the family, while a download names a specific version, so the ids you
         pass to the download and checksum endpoints come from `versions`.
       properties:
         base:
           type: string
-          description: The dataset family, e.g. `vpn_ip`. What the license is held against.
+          description: The database family, e.g. `vpn_ip`. What the license is held against.
           example: vpn_ip
         name:
           type: string
@@ -688,11 +690,8 @@ components:
         summary:
           type: string
         license_type:
-          type: string
-          enum:
-            - evaluation
-            - standard
-            - redistribute
+          allOf:
+            - $ref: '#/components/schemas/LicenseType'
           description: What your license permits you to do with the data.
         starts:
           type: string
@@ -724,21 +723,18 @@ components:
           type: boolean
           description: False when the license has lapsed; downloads are refused.
         standing:
-          type: string
-          enum:
-            - expired
-            - licensed
-            - unlicensed
+          allOf:
+            - $ref: '#/components/schemas/Standing'
           description: |
             `licensed` is a live grant, `expired` one whose term has ended, and
-            `unlicensed` a dataset published but never bought.
+            `unlicensed` a database published but never bought.
         versions:
           type: array
           description: |
             Every published version of this family. The `id` here is what the
             download and checksum endpoints take.
           items:
-            $ref: '#/components/schemas/LicensedVersion'
+            $ref: '#/components/schemas/DatabaseVersion'
       required:
         - base
         - name
@@ -751,12 +747,12 @@ components:
         - in_term
         - standing
         - versions
-    LicensedVersion:
+    DatabaseVersion:
       type: object
       properties:
         id:
           type: string
-          description: The versioned dataset id, e.g. `vpn_ip_v1`. Pass this to download.
+          description: The versioned database id, e.g. `vpn_ip_v1`. Pass this to download.
           example: vpn_ip_v1
         version:
           type: integer
@@ -766,15 +762,12 @@ components:
         formats:
           type: array
           items:
-            $ref: '#/components/schemas/DatasetFormatSize'
-        sampleFormats:
+            $ref: '#/components/schemas/DatabaseFormatSize'
+        sample_formats:
           type: array
           description: The formats an evaluation sample is published in, if any.
           items:
-            type: string
-            enum:
-              - csvgz
-              - mmdb
+            $ref: '#/components/schemas/DatabaseFormat'
       required:
         - id
         - version
@@ -836,7 +829,24 @@ components:
         - client_ip
         - user_agent
         - created
-    DatasetMetadataColumn:
+    DbChecksums:
+      type: object
+      description: The published digests for one database file.
+      properties:
+        md5:
+          type: string
+        sha1:
+          type: string
+        sha256:
+          type: string
+        sha512:
+          type: string
+      required:
+        - md5
+        - sha1
+        - sha256
+        - sha512
+    DatabaseMetadataColumn:
       type: object
       properties:
         name:
@@ -848,7 +858,7 @@ components:
       required:
         - name
         - type
-    DatasetMetadata:
+    DatabaseMetadata:
       type: object
       properties:
         id:
@@ -867,7 +877,7 @@ components:
           additionalProperties:
             type: array
             items:
-              $ref: '#/components/schemas/DatasetMetadataColumn'
+              $ref: '#/components/schemas/DatabaseMetadataColumn'
           description: Columns, keyed by format
         sample:
           type: object
@@ -902,13 +912,13 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
     NotLicensed:
-      description: Your organization holds no license for this dataset, or its term has ended
+      description: Your organization holds no license for this database, or its term has ended
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     UnknownDataset:
-      description: No such dataset
+      description: No such database
       content:
         application/json:
           schema:

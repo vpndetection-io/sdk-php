@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace VPNDetection;
 
 use DateTimeImmutable;
-use VPNDetection\Internal\Model\LicensedDataset as WireLicensedDataset;
+use VPNDetection\Internal\Model\Database as WireDatabase;
 
 /**
  * One dataset FAMILY your organization is licensed for.
@@ -14,15 +14,18 @@ use VPNDetection\Internal\Model\LicensedDataset as WireLicensedDataset;
  * the ids you pass to `download`, `downloadBytes`, `downloadUrl` and `checksums`
  * come from `versions` rather than from here.
  */
-final class LicensedDataset
+final class Database
 {
     public function __construct(
         /** The family, e.g. `vpn_ip`. What the license is held against. */
         public readonly string $base,
         public readonly string $name,
         public readonly ?string $summary,
-        /** What your license permits: `evaluation`, `standard` or `redistribute`. */
-        public readonly string $licenseType,
+        /**
+         * What your license permits: `evaluation`, `standard` or `redistribute`.
+         * Null for an `unlicensed` family, which you hold no license for at all.
+         */
+        public readonly ?string $licenseType,
         public readonly ?DateTimeImmutable $starts,
         /** Null when the license does not expire. */
         public readonly ?DateTimeImmutable $expires,
@@ -33,25 +36,25 @@ final class LicensedDataset
         /**
          * Every published version of this family, newest last.
          *
-         * @var list<LicensedVersion>
+         * @var list<DatabaseVersion>
          */
         public readonly array $versions,
     ) {
     }
 
     /** @internal */
-    public static function fromWire(WireLicensedDataset $w): self
+    public static function fromWire(WireDatabase $w): self
     {
         return new self(
             base: $w->getBase(),
             name: $w->getName(),
             summary: $w->getSummary(),
-            licenseType: $w->getLicenseType(),
+            licenseType: $w->getLicenseType()?->value,
             starts: Dates::immutable($w->getStarts()),
             expires: Dates::immutable($w->getExpires()),
             inTerm: $w->getInTerm(),
-            standing: $w->getStanding(),
-            versions: array_map(LicensedVersion::fromWire(...), $w->getVersions()),
+            standing: $w->getStanding()->value,
+            versions: array_map(DatabaseVersion::fromWire(...), $w->getVersions()),
         );
     }
 }

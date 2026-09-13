@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
+use VPNDetection\Internal\Model\DatabaseFormat as WireFormat;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
 use InvalidArgumentException;
@@ -11,9 +12,9 @@ use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 use Throwable;
 use VPNDetection\Internal\Api\DatabaseApi as WireDatabaseApi;
-use VPNDetection\Internal\Model\DatasetChecksumsResponse;
-use VPNDetection\Internal\Model\DatasetList;
-use VPNDetection\Internal\Model\DatasetMetadata as WireDatasetMetadata;
+use VPNDetection\Internal\Model\DatabaseChecksumsResponse;
+use VPNDetection\Internal\Model\DatabaseList;
+use VPNDetection\Internal\Model\DatabaseMetadata as WireDatabaseMetadata;
 use VPNDetection\Internal\Model\DownloadList;
 
 /**
@@ -34,20 +35,20 @@ final class DatabaseApi
     }
 
     /**
-     * @return list<LicensedDataset>
+     * @return list<Database>
      * @throws VPNDetectionException
      */
     public function list(): array
     {
-        $wire = $this->model($this->transport->send($this->api->listDatabasesRequest()), DatasetList::class);
-        return array_map(LicensedDataset::fromWire(...), $wire->getDatasets());
+        $wire = $this->model($this->transport->send($this->api->listDatabasesRequest()), DatabaseList::class);
+        return array_map(Database::fromWire(...), $wire->getDatabases());
     }
 
     /** @throws VPNDetectionException */
-    public function metadata(string $id): DatasetMetadata
+    public function metadata(string $id): DatabaseMetadata
     {
         $response = $this->transport->send($this->api->databaseMetadataRequest($id));
-        return DatasetMetadata::fromWire($this->model($response, WireDatasetMetadata::class));
+        return DatabaseMetadata::fromWire($this->model($response, WireDatabaseMetadata::class));
     }
 
     /**
@@ -56,15 +57,15 @@ final class DatabaseApi
      * @param string $format `csvgz` or `mmdb`.
      * @throws VPNDetectionException
      */
-    public function checksums(string $id, string $format): DatasetChecksums
+    public function checksums(string $id, string $format): DbChecksums
     {
-        $response = $this->transport->send($this->api->databaseChecksumRequest($id, $format));
+        $response = $this->transport->send($this->api->databaseChecksumRequest($id, WireFormat::from($format)));
         // The digests are nested one level down, under `checksums`. Unwrapping a
         // generated response type rather than a hand-written shape is what keeps
         // the depth honest; reading a top-level `sha256` returns nothing against
         // a perfectly healthy API.
-        $wire = $this->model($response, DatasetChecksumsResponse::class);
-        return DatasetChecksums::fromWire($wire->getChecksums());
+        $wire = $this->model($response, DatabaseChecksumsResponse::class);
+        return DbChecksums::fromWire($wire->getChecksums());
     }
 
     /**
@@ -93,7 +94,7 @@ final class DatabaseApi
      */
     public function downloadUrl(string $id, string $format): string
     {
-        $response = $this->transport->send($this->api->downloadDatabaseRequest($id, $format));
+        $response = $this->transport->send($this->api->downloadDatabaseRequest($id, WireFormat::from($format)));
         $location = $response->getHeaderLine('Location');
         if ($response->getStatusCode() === 302 && $location !== '') {
             return $location;
@@ -127,7 +128,7 @@ final class DatabaseApi
         if (!is_string($destination) && !is_resource($destination)) {
             throw new InvalidArgumentException('destination must be a path or a stream resource');
         }
-        $response = $this->fetchDatasetFile($id, $format);
+        $response = $this->fetchDatabaseFile($id, $format);
         if (!is_string($destination)) {
             return self::drain($response, $destination);
         }
@@ -163,7 +164,7 @@ final class DatabaseApi
      */
     public function downloadBytes(string $id, string $format): string
     {
-        $response = $this->fetchDatasetFile($id, $format);
+        $response = $this->fetchDatabaseFile($id, $format);
         $bytes = (string) $response->getBody();
         self::assertWholeTransfer($response, strlen($bytes));
         return $bytes;
@@ -172,7 +173,7 @@ final class DatabaseApi
     // Follows the 302 as a SECOND, unauthenticated request: the presigned URL
     // carries its own authorization, so forwarding the API key would hand a
     // credential to a host that has no business holding it.
-    private function fetchDatasetFile(string $id, string $format): ResponseInterface
+    private function fetchDatabaseFile(string $id, string $format): ResponseInterface
     {
         return $this->transport->sendStreaming(
             new Request('GET', $this->downloadUrl($id, $format)),

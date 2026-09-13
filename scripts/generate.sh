@@ -32,10 +32,9 @@ PROPS="${PROPS},artifactVersion=1.0.0,licenseName=MIT"
 # after the operation and status code (DatabaseChecksum200ResponseChecksums).
 # --model-name-mappings does NOT reach an inline schema; only
 # --inline-schema-name-mappings does, keyed by the generator's own placeholder.
-NAMES="listDatabases_200_response=DatasetList"
+NAMES="listDatabases_200_response=DatabaseList"
 NAMES="${NAMES},listDownloads_200_response=DownloadList"
-NAMES="${NAMES},databaseChecksum_200_response=DatasetChecksumsResponse"
-NAMES="${NAMES},databaseChecksum_200_response_checksums=DatasetChecksums"
+NAMES="${NAMES},databaseChecksum_200_response=DatabaseChecksumsResponse"
 
 rm -rf .gen
 mkdir -p .gen

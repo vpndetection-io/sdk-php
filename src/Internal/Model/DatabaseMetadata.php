@@ -1,6 +1,6 @@
 <?php
 /**
- * ClassDetail
+ * DatabaseMetadata
  *
  * PHP version 8.1
  *
@@ -35,15 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * ClassDetail Class Doc Comment
+ * DatabaseMetadata Class Doc Comment
  *
- * @description The shared detail shape for the hosting, relay, tor and cdn datasets. Every key is present when the object is populated; the object is &#x60;{}&#x60; when its flag is false.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
+class DatabaseMetadata implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -52,7 +51,7 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'ClassDetail';
+    protected static string $openAPIModelName = 'DatabaseMetadata';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -60,9 +59,15 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'provider' => 'string',
-        'confidence' => 'string',
-        'last_seen' => '\DateTime'
+        'id' => 'string',
+        'update_freq' => 'string',
+        'updated' => '\DateTime',
+        'entries' => 'int',
+        'schema' => 'array<string,\VPNDetection\Internal\Model\DatabaseMetadataColumn[]>',
+        'sample' => 'array<string,object[]>',
+        'size' => 'array<string,int>',
+        'sample_size' => 'array<string,int>',
+        'sample_entries' => 'int'
     ];
 
     /**
@@ -71,9 +76,15 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'provider' => null,
-        'confidence' => null,
-        'last_seen' => 'date'
+        'id' => null,
+        'update_freq' => null,
+        'updated' => 'date',
+        'entries' => null,
+        'schema' => null,
+        'sample' => null,
+        'size' => null,
+        'sample_size' => null,
+        'sample_entries' => null
     ];
 
     /**
@@ -82,9 +93,15 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'provider' => false,
-        'confidence' => false,
-        'last_seen' => false
+        'id' => false,
+        'update_freq' => false,
+        'updated' => false,
+        'entries' => false,
+        'schema' => false,
+        'sample' => false,
+        'size' => false,
+        'sample_size' => false,
+        'sample_entries' => false
     ];
 
     /**
@@ -163,9 +180,15 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'provider' => 'provider',
-        'confidence' => 'confidence',
-        'last_seen' => 'last_seen'
+        'id' => 'id',
+        'update_freq' => 'update_freq',
+        'updated' => 'updated',
+        'entries' => 'entries',
+        'schema' => 'schema',
+        'sample' => 'sample',
+        'size' => 'size',
+        'sample_size' => 'sample_size',
+        'sample_entries' => 'sample_entries'
     ];
 
     /**
@@ -174,9 +197,15 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'provider' => 'setProvider',
-        'confidence' => 'setConfidence',
-        'last_seen' => 'setLastSeen'
+        'id' => 'setId',
+        'update_freq' => 'setUpdateFreq',
+        'updated' => 'setUpdated',
+        'entries' => 'setEntries',
+        'schema' => 'setSchema',
+        'sample' => 'setSample',
+        'size' => 'setSize',
+        'sample_size' => 'setSampleSize',
+        'sample_entries' => 'setSampleEntries'
     ];
 
     /**
@@ -185,9 +214,15 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'provider' => 'getProvider',
-        'confidence' => 'getConfidence',
-        'last_seen' => 'getLastSeen'
+        'id' => 'getId',
+        'update_freq' => 'getUpdateFreq',
+        'updated' => 'getUpdated',
+        'entries' => 'getEntries',
+        'schema' => 'getSchema',
+        'sample' => 'getSample',
+        'size' => 'getSize',
+        'sample_size' => 'getSampleSize',
+        'sample_entries' => 'getSampleEntries'
     ];
 
     /**
@@ -237,9 +272,15 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('provider', $data ?? [], null);
-        $this->setIfExists('confidence', $data ?? [], null);
-        $this->setIfExists('last_seen', $data ?? [], null);
+        $this->setIfExists('id', $data ?? [], null);
+        $this->setIfExists('update_freq', $data ?? [], null);
+        $this->setIfExists('updated', $data ?? [], null);
+        $this->setIfExists('entries', $data ?? [], null);
+        $this->setIfExists('schema', $data ?? [], null);
+        $this->setIfExists('sample', $data ?? [], null);
+        $this->setIfExists('size', $data ?? [], null);
+        $this->setIfExists('sample_size', $data ?? [], null);
+        $this->setIfExists('sample_entries', $data ?? [], null);
     }
 
     /**
@@ -267,6 +308,18 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
+        if ($this->container['id'] === null) {
+            $invalidProperties[] = "'id' can't be null";
+        }
+        if ($this->container['updated'] === null) {
+            $invalidProperties[] = "'updated' can't be null";
+        }
+        if ($this->container['entries'] === null) {
+            $invalidProperties[] = "'entries' can't be null";
+        }
+        if ($this->container['schema'] === null) {
+            $invalidProperties[] = "'schema' can't be null";
+        }
         return $invalidProperties;
     }
 
@@ -280,82 +333,244 @@ class ClassDetail implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets provider
+     * Gets id
      *
-     * @return string|null
+     * @return string
      */
-    public function getProvider(): ?string
+    public function getId(): string
     {
-        return $this->container['provider'];
+        return $this->container['id'];
     }
 
     /**
-     * Sets provider
+     * Sets id
      *
-     * @param string|null $provider The provider, or an empty string where the dataset has none.
+     * @param string $id id
      *
      * @return $this
      */
-    public function setProvider(?string $provider): static
+    public function setId(string $id): static
     {
-        if (is_null($provider)) {
-            throw new InvalidArgumentException('non-nullable provider cannot be null');
+        if (is_null($id)) {
+            throw new InvalidArgumentException('non-nullable id cannot be null');
         }
-        $this->container['provider'] = $provider;
+        $this->container['id'] = $id;
 
         return $this;
     }
 
     /**
-     * Gets confidence
+     * Gets update_freq
      *
      * @return string|null
      */
-    public function getConfidence(): ?string
+    public function getUpdateFreq(): ?string
     {
-        return $this->container['confidence'];
+        return $this->container['update_freq'];
     }
 
     /**
-     * Sets confidence
+     * Sets update_freq
      *
-     * @param string|null $confidence How strongly the classification is supported.
+     * @param string|null $update_freq How often a new build is published
      *
      * @return $this
      */
-    public function setConfidence(?string $confidence): static
+    public function setUpdateFreq(?string $update_freq): static
     {
-        if (is_null($confidence)) {
-            throw new InvalidArgumentException('non-nullable confidence cannot be null');
+        if (is_null($update_freq)) {
+            throw new InvalidArgumentException('non-nullable update_freq cannot be null');
         }
-        $this->container['confidence'] = $confidence;
+        $this->container['update_freq'] = $update_freq;
 
         return $this;
     }
 
     /**
-     * Gets last_seen
+     * Gets updated
      *
-     * @return \DateTime|null
+     * @return \DateTime
      */
-    public function getLastSeen(): ?\DateTime
+    public function getUpdated(): \DateTime
     {
-        return $this->container['last_seen'];
+        return $this->container['updated'];
     }
 
     /**
-     * Sets last_seen
+     * Sets updated
      *
-     * @param \DateTime|null $last_seen The most recent date this address was observed in this dataset.
+     * @param \DateTime $updated updated
      *
      * @return $this
      */
-    public function setLastSeen(?\DateTime $last_seen): static
+    public function setUpdated(\DateTime $updated): static
     {
-        if (is_null($last_seen)) {
-            throw new InvalidArgumentException('non-nullable last_seen cannot be null');
+        if (is_null($updated)) {
+            throw new InvalidArgumentException('non-nullable updated cannot be null');
         }
-        $this->container['last_seen'] = $last_seen;
+        $this->container['updated'] = $updated;
+
+        return $this;
+    }
+
+    /**
+     * Gets entries
+     *
+     * @return int
+     */
+    public function getEntries(): int
+    {
+        return $this->container['entries'];
+    }
+
+    /**
+     * Sets entries
+     *
+     * @param int $entries Row count in the current build
+     *
+     * @return $this
+     */
+    public function setEntries(int $entries): static
+    {
+        if (is_null($entries)) {
+            throw new InvalidArgumentException('non-nullable entries cannot be null');
+        }
+        $this->container['entries'] = $entries;
+
+        return $this;
+    }
+
+    /**
+     * Gets schema
+     *
+     * @return array<string,\VPNDetection\Internal\Model\DatabaseMetadataColumn[]>
+     */
+    public function getSchema(): array
+    {
+        return $this->container['schema'];
+    }
+
+    /**
+     * Sets schema
+     *
+     * @param array<string,\VPNDetection\Internal\Model\DatabaseMetadataColumn[]> $schema Columns, keyed by format
+     *
+     * @return $this
+     */
+    public function setSchema(array $schema): static
+    {
+        if (is_null($schema)) {
+            throw new InvalidArgumentException('non-nullable schema cannot be null');
+        }
+        $this->container['schema'] = $schema;
+
+        return $this;
+    }
+
+    /**
+     * Gets sample
+     *
+     * @return array<string,object[]>|null
+     */
+    public function getSample(): ?array
+    {
+        return $this->container['sample'];
+    }
+
+    /**
+     * Sets sample
+     *
+     * @param array<string,object[]>|null $sample A few real rows, keyed by format
+     *
+     * @return $this
+     */
+    public function setSample(?array $sample): static
+    {
+        if (is_null($sample)) {
+            throw new InvalidArgumentException('non-nullable sample cannot be null');
+        }
+        $this->container['sample'] = $sample;
+
+        return $this;
+    }
+
+    /**
+     * Gets size
+     *
+     * @return array<string,int>|null
+     */
+    public function getSize(): ?array
+    {
+        return $this->container['size'];
+    }
+
+    /**
+     * Sets size
+     *
+     * @param array<string,int>|null $size Bytes per format
+     *
+     * @return $this
+     */
+    public function setSize(?array $size): static
+    {
+        if (is_null($size)) {
+            throw new InvalidArgumentException('non-nullable size cannot be null');
+        }
+        $this->container['size'] = $size;
+
+        return $this;
+    }
+
+    /**
+     * Gets sample_size
+     *
+     * @return array<string,int>|null
+     */
+    public function getSampleSize(): ?array
+    {
+        return $this->container['sample_size'];
+    }
+
+    /**
+     * Sets sample_size
+     *
+     * @param array<string,int>|null $sample_size Bytes per format of the evaluation sample, where one is published
+     *
+     * @return $this
+     */
+    public function setSampleSize(?array $sample_size): static
+    {
+        if (is_null($sample_size)) {
+            throw new InvalidArgumentException('non-nullable sample_size cannot be null');
+        }
+        $this->container['sample_size'] = $sample_size;
+
+        return $this;
+    }
+
+    /**
+     * Gets sample_entries
+     *
+     * @return int|null
+     */
+    public function getSampleEntries(): ?int
+    {
+        return $this->container['sample_entries'];
+    }
+
+    /**
+     * Sets sample_entries
+     *
+     * @param int|null $sample_entries Row count in the evaluation sample
+     *
+     * @return $this
+     */
+    public function setSampleEntries(?int $sample_entries): static
+    {
+        if (is_null($sample_entries)) {
+            throw new InvalidArgumentException('non-nullable sample_entries cannot be null');
+        }
+        $this->container['sample_entries'] = $sample_entries;
 
         return $this;
     }

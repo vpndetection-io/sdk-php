@@ -139,16 +139,16 @@ Note that `rate_limited` and `quota_exceeded` both arrive as HTTP 429 and are no
 
 ### Database downloads
 
-If your key carries the `db.download` scope, the licensed datasets are available through `$client->database`. `download` fetches one to a path, streaming it straight to disk so that nothing bigger than a chunk is ever held in memory:
+If your key carries the `db.download` scope, the licensed databases are available through `$client->database`. `download` fetches one to a path, streaming it straight to disk so that nothing bigger than a chunk is ever held in memory:
 
 ```php
-$datasets = $client->database->list();
+$databases = $client->database->list();
 
 $written = $client->database->download('vpn_ip_extended_v1', 'mmdb', '/srv/data/vpn_ip_extended_v1.mmdb');
 echo "{$written} bytes";
 ```
 
-Or take the time-limited link and run the transfer yourself, or take a small dataset as bytes:
+Or take the time-limited link and run the transfer yourself, or take a small database as bytes:
 
 ```php
 $url = $client->database->downloadUrl('vpn_ip_extended_v1', 'mmdb');
