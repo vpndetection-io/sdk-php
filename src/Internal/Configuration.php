@@ -501,10 +501,6 @@ class Configuration
             [
                 "url" => "https://api.vpndetection.io",
                 "description" => "Production",
-            ],
-            [
-                "url" => "https://api-staging.vpndetection.io",
-                "description" => "Staging",
             ]
         ];
     }
