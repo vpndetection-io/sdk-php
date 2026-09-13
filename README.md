@@ -45,6 +45,26 @@ $result->isHosting;         // true
 $result->hosting->provider; // 'M247'
 ```
 
+### Your own address
+
+```php
+$result = $client->myIp();
+echo $result->ip;   // the address we saw this call come from
+```
+
+Same answer `lookup` would give for that address, and the same cost against your allowance. It is deliberately not cached: which address you are is the whole question, and a machine that moves between networks would otherwise be told where it used to be.
+
+### Your plan and usage
+
+```php
+$acct = $client->myAccount();
+echo $acct->plan->key;          // max
+echo $acct->usage->requests;    // 580
+echo $acct->usage->windowEnd;   // when the allowance resets
+```
+
+Usage counts against the anniversary of your subscription, not the calendar month and not the billing period, and it is the same number a lookup is gated on. `hardLimit` is `null` on an uncapped plan, which is not the same as zero.
+
 ### Batch lookup
 
 You can do batch lookups with a list, which parallelizes requests for you efficiently:
