@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection\Tests;
 
+use GuzzleHttp\RequestOptions;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use VPNDetection\Bogon;
@@ -359,6 +360,42 @@ final class ClientTest extends TestCase
     {
         $stub = new Stub(Stub::lookups([$body['ip'] => Stub::ok($body)]));
         return (new Client(new Options(httpClient: $stub->client)))->lookup($body['ip']);
+    }
+
+    public function testApiCallsCarryATimeout(): void
+    {
+        $stub = new Stub(Stub::lookups(['1.1.1.1' => Stub::ok(['ip' => '1.1.1.1', 'is_vpn' => false])]));
+
+        (new Client(new Options(timeout: 7.5, httpClient: $stub->client)))->lookup('1.1.1.1');
+
+        // Guzzle defaults both to 0, meaning unlimited, so an unset option here
+        // is a caller held until the process is killed.
+        self::assertSame(7.5, $stub->options[0][RequestOptions::TIMEOUT]);
+        self::assertSame(7.5, $stub->options[0][RequestOptions::CONNECT_TIMEOUT]);
+    }
+
+    public function testATransferIsExemptFromTheWholeRequestTimeout(): void
+    {
+        $stub = new Stub([
+            '/api/v1/database/download' => [
+                'status' => 302,
+                'headers' => ['Location' => 'https://storage.invalid/cdn_ip_v1.csv.gz'],
+            ],
+            '/cdn_ip_v1.csv.gz' => ['status' => 200, 'body' => 'payload'],
+        ]);
+
+        (new Client(new Options(apiKey: 'k', timeout: 7.5, httpClient: $stub->client)))
+            ->database->downloadBytes('cdn_ip_v1', 'csvgz');
+
+        $transfer = $stub->options[1];
+        self::assertSame(0, $transfer[RequestOptions::TIMEOUT]);
+        self::assertSame(7.5, $transfer[RequestOptions::CONNECT_TIMEOUT]);
+    }
+
+    public function testANegativeTimeoutIsRefused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new Options(timeout: -1);
     }
 
     private static function addressStub(): Stub

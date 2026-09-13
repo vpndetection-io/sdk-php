@@ -29,6 +29,7 @@ final class Transport
     public function __construct(
         private readonly ClientInterface $http,
         private readonly int $defaultRetries,
+        private readonly float $timeout,
     ) {
     }
 
@@ -65,7 +66,14 @@ final class Transport
             $retries ?? $this->defaultRetries,
             0,
             0,
-            [RequestOptions::STREAM => true, RequestOptions::ALLOW_REDIRECTS => true],
+            [
+                RequestOptions::STREAM => true,
+                RequestOptions::ALLOW_REDIRECTS => true,
+                // 30s is right for an API call and wrong for a body that
+                // reaches gigabytes, so only the connect phase keeps it.
+                RequestOptions::TIMEOUT => 0,
+                RequestOptions::CONNECT_TIMEOUT => $this->timeout,
+            ],
             $errorMessage,
         )->wait();
     }
@@ -120,6 +128,10 @@ final class Transport
             // would pull a multi-gigabyte dataset into memory. Nothing this
             // client calls is meant to redirect.
             RequestOptions::ALLOW_REDIRECTS => false,
+            // Guzzle defaults both of these to 0, meaning unlimited, so without
+            // them a hung API holds the caller until the process is killed.
+            RequestOptions::TIMEOUT => $this->timeout,
+            RequestOptions::CONNECT_TIMEOUT => $this->timeout,
             ...$extraOptions,
         ];
         if ($delayMs > 0) {

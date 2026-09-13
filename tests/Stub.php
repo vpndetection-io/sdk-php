@@ -31,6 +31,9 @@ final class Stub
     /** @var list<RequestInterface> Every request as it was actually sent. */
     public array $requests = [];
 
+    /** @var list<array<string, mixed>> The Guzzle options each call was sent with. */
+    public array $options = [];
+
     public int $inFlight = 0;
     public int $peak = 0;
 
@@ -91,6 +94,7 @@ final class Stub
         $this->calls[] = $path;
         $this->delays[] = (int) ($options['delay'] ?? 0);
         $this->requests[] = $request;
+        $this->options[] = $options;
         $this->inFlight++;
         $this->peak = max($this->peak, $this->inFlight);
 

@@ -46,7 +46,7 @@ final class Client
 
         $http = $options->httpClient ?? new GuzzleClient();
         $this->lookupApi = new LookupApi($http, $config);
-        $this->transport = new Transport($http, $options->retries);
+        $this->transport = new Transport($http, $options->retries, $options->timeout);
         $this->cache = $options->cache
             ? new Cache($options->cacheMaxSize, $options->cacheTtlSeconds)
             : null;
