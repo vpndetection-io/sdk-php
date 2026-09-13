@@ -1425,6 +1425,156 @@
         }
       },
       {
+        "name": "numeric-inclusive-lower-bound",
+        "why": "gte INCLUDES the bound. hits is exactly 7 here, so a gte that compares strictly still passes every other numeric case and fails only this one.",
+        "body": {
+          "ip": "45.83.91.1",
+          "is_vpn": true,
+          "is_hosting": true,
+          "is_relay": false,
+          "is_tor": false,
+          "is_cdn": false,
+          "is_resproxy": true,
+          "is_dcproxy": false,
+          "is_mobproxy": false,
+          "vpn": {
+            "provider": "nordvpn",
+            "confidence": "high",
+            "method": "rdns",
+            "last_seen": "2026-09-01"
+          },
+          "hosting": {
+            "provider": "ovh",
+            "confidence": "medium",
+            "last_seen": "2026-09-01"
+          },
+          "relay": {},
+          "tor": {},
+          "cdn": {},
+          "resproxy": {
+            "provider": "brightdata",
+            "first_seen": "2026-06-01",
+            "last_seen": "2026-09-01",
+            "hits": 7,
+            "hits_days_pct": 42,
+            "providers_num": 2
+          },
+          "dcproxy": {},
+          "mobproxy": {}
+        },
+        "condition": {
+          "resproxy": {
+            "hits": {
+              "gte": 7
+            }
+          }
+        },
+        "expect": {
+          "blocked": true,
+          "missing": []
+        }
+      },
+      {
+        "name": "numeric-inclusive-upper-bound",
+        "why": "lte INCLUDES the bound, the mirror of the case above.",
+        "body": {
+          "ip": "45.83.91.1",
+          "is_vpn": true,
+          "is_hosting": true,
+          "is_relay": false,
+          "is_tor": false,
+          "is_cdn": false,
+          "is_resproxy": true,
+          "is_dcproxy": false,
+          "is_mobproxy": false,
+          "vpn": {
+            "provider": "nordvpn",
+            "confidence": "high",
+            "method": "rdns",
+            "last_seen": "2026-09-01"
+          },
+          "hosting": {
+            "provider": "ovh",
+            "confidence": "medium",
+            "last_seen": "2026-09-01"
+          },
+          "relay": {},
+          "tor": {},
+          "cdn": {},
+          "resproxy": {
+            "provider": "brightdata",
+            "first_seen": "2026-06-01",
+            "last_seen": "2026-09-01",
+            "hits": 7,
+            "hits_days_pct": 42,
+            "providers_num": 2
+          },
+          "dcproxy": {},
+          "mobproxy": {}
+        },
+        "condition": {
+          "resproxy": {
+            "hits": {
+              "lte": 7
+            }
+          }
+        },
+        "expect": {
+          "blocked": true,
+          "missing": []
+        }
+      },
+      {
+        "name": "numeric-exclusive-upper-bound",
+        "why": "lt EXCLUDES it. Together with numeric-exclusive-bound this pins all four comparators at the one value where inclusive and strict disagree.",
+        "body": {
+          "ip": "45.83.91.1",
+          "is_vpn": true,
+          "is_hosting": true,
+          "is_relay": false,
+          "is_tor": false,
+          "is_cdn": false,
+          "is_resproxy": true,
+          "is_dcproxy": false,
+          "is_mobproxy": false,
+          "vpn": {
+            "provider": "nordvpn",
+            "confidence": "high",
+            "method": "rdns",
+            "last_seen": "2026-09-01"
+          },
+          "hosting": {
+            "provider": "ovh",
+            "confidence": "medium",
+            "last_seen": "2026-09-01"
+          },
+          "relay": {},
+          "tor": {},
+          "cdn": {},
+          "resproxy": {
+            "provider": "brightdata",
+            "first_seen": "2026-06-01",
+            "last_seen": "2026-09-01",
+            "hits": 7,
+            "hits_days_pct": 42,
+            "providers_num": 2
+          },
+          "dcproxy": {},
+          "mobproxy": {}
+        },
+        "condition": {
+          "resproxy": {
+            "hits": {
+              "lt": 7
+            }
+          }
+        },
+        "expect": {
+          "blocked": false,
+          "missing": []
+        }
+      },
+      {
         "name": "fractional-bound-on-an-integer-member",
         "why": "Every numeric member the API serves is an integer, so the FRACTION has to come from the bound. Pinned because a comparison done in integers would round the bound and quietly widen or narrow the rule.",
         "body": {
