@@ -6,7 +6,7 @@ namespace VPNDetection\Integration\Tests;
 
 use PHPUnit\Framework\TestCase;
 use VPNDetection\Client;
-use VPNDetection\DatasetChecksums;
+use VPNDetection\DbChecksums;
 use VPNDetection\ErrorKind;
 use VPNDetection\Integration\Staging;
 use VPNDetection\Integration\Tiers;
@@ -38,7 +38,7 @@ final class DatabaseTest extends TestCase
     private static array $facts = [];
 
     private static ?Client $client = null;
-    /** @var array{bytes: int, path: string, checksums: DatasetChecksums}|null */
+    /** @var array{bytes: int, path: string, checksums: DbChecksums}|null */
     private static ?array $transfer = null;
     private static string $tmp = '';
 
@@ -76,14 +76,25 @@ final class DatabaseTest extends TestCase
     {
         $datasets = self::client()->database->list();
 
-        self::assertNotEmpty($datasets, 'the max organization licenses nothing');
+        self::assertNotEmpty($datasets, 'the catalogue arrived empty');
+        $licensed = [];
         foreach ($datasets as $dataset) {
             self::assertNotSame('', $dataset->base);
             self::assertNotSame('', $dataset->name);
             self::assertContains($dataset->standing, ['expired', 'licensed', 'unlicensed'],
                 "{$dataset->base} carries an undocumented standing");
-            self::assertContains($dataset->licenseType, ['evaluation', 'standard', 'redistribute'],
-                "{$dataset->base} carries an undocumented right");
+            // `list` answers the WHOLE catalogue, so an unlicensed family is a normal row
+            // with no licence type at all. Asserting one either way is what tells a null
+            // apart from a value this client cannot read.
+            if ($dataset->standing === 'unlicensed') {
+                self::assertNull($dataset->licenseType,
+                    "{$dataset->base} is unlicensed and carries a right");
+            } else {
+                self::assertContains($dataset->licenseType,
+                    ['evaluation', 'standard', 'redistribute'],
+                    "{$dataset->base} carries an undocumented right");
+                $licensed[] = $dataset->base;
+            }
             self::assertNotEmpty($dataset->versions, "{$dataset->base} carries no versions");
             foreach ($dataset->versions as $version) {
                 self::assertNotSame('', $version->id, "{$dataset->base} has a version with no id");
@@ -91,6 +102,9 @@ final class DatabaseTest extends TestCase
                 self::assertNotEmpty($version->formats, "{$version->id} carries no formats");
             }
         }
+        // The max org holds grants in staging, so an empty list here is the catalogue
+        // arriving without any of them rather than a plan that buys nothing.
+        self::assertNotEmpty($licensed, 'the max organization licenses nothing');
         $ids = [];
         foreach ($datasets as $dataset) {
             foreach ($dataset->versions as $version) {
@@ -170,7 +184,7 @@ final class DatabaseTest extends TestCase
      * Memoized, so the two transfer tests share one download rather than pulling
      * the dataset twice each.
      *
-     * @return array{bytes: int, path: string, checksums: DatasetChecksums}
+     * @return array{bytes: int, path: string, checksums: DbChecksums}
      */
     private static function downloaded(): array
     {
