@@ -716,7 +716,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -809,7 +809,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -858,7 +858,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -906,7 +906,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -954,7 +954,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1001,7 +1001,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1048,7 +1048,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1101,7 +1101,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1154,7 +1154,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1205,7 +1205,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1255,7 +1255,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1305,7 +1305,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1355,7 +1355,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1406,7 +1406,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1425,8 +1425,8 @@
         }
       },
       {
-        "name": "numeric-float-bound",
-        "why": "A fractional counter compares like any other number.",
+        "name": "fractional-bound-on-an-integer-member",
+        "why": "Every numeric member the API serves is an integer, so the FRACTION has to come from the bound. Pinned because a comparison done in integers would round the bound and quietly widen or narrow the rule.",
         "body": {
           "ip": "45.83.91.1",
           "is_vpn": true,
@@ -1456,7 +1456,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1465,7 +1465,7 @@
         "condition": {
           "resproxy": {
             "hits_days_pct": {
-              "gte": 42.5
+              "gte": 41.5
             }
           }
         },
@@ -1527,7 +1527,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1574,7 +1574,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
@@ -1621,7 +1621,7 @@
             "first_seen": "2026-06-01",
             "last_seen": "2026-09-01",
             "hits": 7,
-            "hits_days_pct": 42.5,
+            "hits_days_pct": 42,
             "providers_num": 2
           },
           "dcproxy": {},
