@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * AccountRevealedApikey
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * AccountRevealedApikey Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class AccountRevealedApikey implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'AccountRevealedApikey';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'rc' => 'string',
+        'key' => 'string'
     ];
 
     /**
@@ -68,7 +69,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'rc' => null,
+        'key' => null
     ];
 
     /**
@@ -77,7 +79,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'rc' => false,
+        'key' => false
     ];
 
     /**
@@ -156,7 +159,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'rc' => 'rc',
+        'key' => 'key'
     ];
 
     /**
@@ -165,7 +169,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'rc' => 'setRc',
+        'key' => 'setKey'
     ];
 
     /**
@@ -174,7 +179,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'rc' => 'getRc',
+        'key' => 'getKey'
     ];
 
     /**
@@ -225,6 +231,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     public function __construct(?array $data = null)
     {
         $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('key', $data ?? [], null);
     }
 
     /**
@@ -254,6 +261,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
         if ($this->container['rc'] === null) {
             $invalidProperties[] = "'rc' can't be null";
+        }
+        if ($this->container['key'] === null) {
+            $invalidProperties[] = "'key' can't be null";
         }
         return $invalidProperties;
     }
@@ -290,6 +300,33 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
             throw new InvalidArgumentException('non-nullable rc cannot be null');
         }
         $this->container['rc'] = $rc;
+
+        return $this;
+    }
+
+    /**
+     * Gets key
+     *
+     * @return string
+     */
+    public function getKey(): string
+    {
+        return $this->container['key'];
+    }
+
+    /**
+     * Sets key
+     *
+     * @param string $key The secret.
+     *
+     * @return $this
+     */
+    public function setKey(string $key): static
+    {
+        if (is_null($key)) {
+            throw new InvalidArgumentException('non-nullable key cannot be null');
+        }
+        $this->container['key'] = $key;
 
         return $this;
     }

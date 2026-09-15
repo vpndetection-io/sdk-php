@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
-use VPNDetection\Internal\Model\AccountPlan as WireAccountPlan;
+use VPNDetection\Internal\Model\EntitlementPlan as WireEntitlementPlan;
 
 /** The plan behind the key, and the field tier it buys. */
-final class AccountPlan
+final class EntitlementPlan
 {
     public function __construct(
         /** The plan the organization is on, e.g. `max`. */
@@ -22,7 +22,7 @@ final class AccountPlan
     }
 
     /** @internal */
-    public static function fromWire(WireAccountPlan $w): self
+    public static function fromWire(WireEntitlementPlan $w): self
     {
         return new self(key: $w->getKey(), tier: $w->getTier());
     }

@@ -1,6 +1,6 @@
 <?php
 /**
- * DatabaseVersion
+ * ApikeyDetail
  *
  * PHP version 8.1
  *
@@ -35,14 +35,15 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * DatabaseVersion Class Doc Comment
+ * ApikeyDetail Class Doc Comment
  *
+ * @description Key METADATA. Never the key itself.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
+class ApikeyDetail implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +52,7 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'DatabaseVersion';
+    protected static string $openAPIModelName = 'ApikeyDetail';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -60,10 +61,15 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
      */
     protected static array $openAPITypes = [
         'id' => 'string',
-        'version' => 'int',
-        'summary' => 'string',
-        'formats' => '\VPNDetection\Internal\Model\DatabaseFormatSize[]',
-        'sample_formats' => '\VPNDetection\Internal\Model\DatabaseFormat[]'
+        'name' => 'string',
+        'key_prefix' => 'string',
+        'created' => '\DateTime',
+        'expires' => '\DateTime',
+        'last_used_at' => '\DateTime',
+        'revoked_at' => '\DateTime',
+        'allowed_cidrs' => 'string[]',
+        'allowed_scopes' => 'string[]',
+        'retrievable' => 'bool'
     ];
 
     /**
@@ -72,11 +78,16 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'id' => null,
-        'version' => null,
-        'summary' => null,
-        'formats' => null,
-        'sample_formats' => null
+        'id' => 'uuid',
+        'name' => null,
+        'key_prefix' => null,
+        'created' => 'date-time',
+        'expires' => 'date-time',
+        'last_used_at' => 'date-time',
+        'revoked_at' => 'date-time',
+        'allowed_cidrs' => null,
+        'allowed_scopes' => null,
+        'retrievable' => null
     ];
 
     /**
@@ -86,10 +97,15 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
      */
     protected static array $openAPINullables = [
         'id' => false,
-        'version' => false,
-        'summary' => false,
-        'formats' => false,
-        'sample_formats' => false
+        'name' => false,
+        'key_prefix' => false,
+        'created' => false,
+        'expires' => true,
+        'last_used_at' => true,
+        'revoked_at' => true,
+        'allowed_cidrs' => false,
+        'allowed_scopes' => false,
+        'retrievable' => false
     ];
 
     /**
@@ -169,10 +185,15 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
      */
     protected static array $attributeMap = [
         'id' => 'id',
-        'version' => 'version',
-        'summary' => 'summary',
-        'formats' => 'formats',
-        'sample_formats' => 'sample_formats'
+        'name' => 'name',
+        'key_prefix' => 'key_prefix',
+        'created' => 'created',
+        'expires' => 'expires',
+        'last_used_at' => 'last_used_at',
+        'revoked_at' => 'revoked_at',
+        'allowed_cidrs' => 'allowed_cidrs',
+        'allowed_scopes' => 'allowed_scopes',
+        'retrievable' => 'retrievable'
     ];
 
     /**
@@ -182,10 +203,15 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
      */
     protected static array $setters = [
         'id' => 'setId',
-        'version' => 'setVersion',
-        'summary' => 'setSummary',
-        'formats' => 'setFormats',
-        'sample_formats' => 'setSampleFormats'
+        'name' => 'setName',
+        'key_prefix' => 'setKeyPrefix',
+        'created' => 'setCreated',
+        'expires' => 'setExpires',
+        'last_used_at' => 'setLastUsedAt',
+        'revoked_at' => 'setRevokedAt',
+        'allowed_cidrs' => 'setAllowedCidrs',
+        'allowed_scopes' => 'setAllowedScopes',
+        'retrievable' => 'setRetrievable'
     ];
 
     /**
@@ -195,10 +221,15 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
      */
     protected static array $getters = [
         'id' => 'getId',
-        'version' => 'getVersion',
-        'summary' => 'getSummary',
-        'formats' => 'getFormats',
-        'sample_formats' => 'getSampleFormats'
+        'name' => 'getName',
+        'key_prefix' => 'getKeyPrefix',
+        'created' => 'getCreated',
+        'expires' => 'getExpires',
+        'last_used_at' => 'getLastUsedAt',
+        'revoked_at' => 'getRevokedAt',
+        'allowed_cidrs' => 'getAllowedCidrs',
+        'allowed_scopes' => 'getAllowedScopes',
+        'retrievable' => 'getRetrievable'
     ];
 
     /**
@@ -249,10 +280,15 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
     public function __construct(?array $data = null)
     {
         $this->setIfExists('id', $data ?? [], null);
-        $this->setIfExists('version', $data ?? [], null);
-        $this->setIfExists('summary', $data ?? [], null);
-        $this->setIfExists('formats', $data ?? [], null);
-        $this->setIfExists('sample_formats', $data ?? [], null);
+        $this->setIfExists('name', $data ?? [], null);
+        $this->setIfExists('key_prefix', $data ?? [], null);
+        $this->setIfExists('created', $data ?? [], null);
+        $this->setIfExists('expires', $data ?? [], null);
+        $this->setIfExists('last_used_at', $data ?? [], null);
+        $this->setIfExists('revoked_at', $data ?? [], null);
+        $this->setIfExists('allowed_cidrs', $data ?? [], null);
+        $this->setIfExists('allowed_scopes', $data ?? [], null);
+        $this->setIfExists('retrievable', $data ?? [], null);
     }
 
     /**
@@ -283,11 +319,14 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
         if ($this->container['id'] === null) {
             $invalidProperties[] = "'id' can't be null";
         }
-        if ($this->container['version'] === null) {
-            $invalidProperties[] = "'version' can't be null";
+        if ($this->container['name'] === null) {
+            $invalidProperties[] = "'name' can't be null";
         }
-        if ($this->container['formats'] === null) {
-            $invalidProperties[] = "'formats' can't be null";
+        if ($this->container['key_prefix'] === null) {
+            $invalidProperties[] = "'key_prefix' can't be null";
+        }
+        if ($this->container['created'] === null) {
+            $invalidProperties[] = "'created' can't be null";
         }
         return $invalidProperties;
     }
@@ -314,7 +353,7 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets id
      *
-     * @param string $id The versioned database id, e.g. `vpn_ip_v1`. Pass this to download.
+     * @param string $id id
      *
      * @return $this
      */
@@ -329,109 +368,265 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
     }
 
     /**
-     * Gets version
+     * Gets name
      *
-     * @return int
+     * @return string
      */
-    public function getVersion(): int
+    public function getName(): string
     {
-        return $this->container['version'];
+        return $this->container['name'];
     }
 
     /**
-     * Sets version
+     * Sets name
      *
-     * @param int $version version
+     * @param string $name name
      *
      * @return $this
      */
-    public function setVersion(int $version): static
+    public function setName(string $name): static
     {
-        if (is_null($version)) {
-            throw new InvalidArgumentException('non-nullable version cannot be null');
+        if (is_null($name)) {
+            throw new InvalidArgumentException('non-nullable name cannot be null');
         }
-        $this->container['version'] = $version;
+        $this->container['name'] = $name;
 
         return $this;
     }
 
     /**
-     * Gets summary
+     * Gets key_prefix
      *
-     * @return string|null
+     * @return string
      */
-    public function getSummary(): ?string
+    public function getKeyPrefix(): string
     {
-        return $this->container['summary'];
+        return $this->container['key_prefix'];
     }
 
     /**
-     * Sets summary
+     * Sets key_prefix
      *
-     * @param string|null $summary summary
+     * @param string $key_prefix The leading, non-secret part, so a key is recognisable without storing it.
      *
      * @return $this
      */
-    public function setSummary(?string $summary): static
+    public function setKeyPrefix(string $key_prefix): static
     {
-        if (is_null($summary)) {
-            throw new InvalidArgumentException('non-nullable summary cannot be null');
+        if (is_null($key_prefix)) {
+            throw new InvalidArgumentException('non-nullable key_prefix cannot be null');
         }
-        $this->container['summary'] = $summary;
+        $this->container['key_prefix'] = $key_prefix;
 
         return $this;
     }
 
     /**
-     * Gets formats
+     * Gets created
      *
-     * @return \VPNDetection\Internal\Model\DatabaseFormatSize[]
+     * @return \DateTime
      */
-    public function getFormats(): array
+    public function getCreated(): \DateTime
     {
-        return $this->container['formats'];
+        return $this->container['created'];
     }
 
     /**
-     * Sets formats
+     * Sets created
      *
-     * @param \VPNDetection\Internal\Model\DatabaseFormatSize[] $formats formats
+     * @param \DateTime $created created
      *
      * @return $this
      */
-    public function setFormats(array $formats): static
+    public function setCreated(\DateTime $created): static
     {
-        if (is_null($formats)) {
-            throw new InvalidArgumentException('non-nullable formats cannot be null');
+        if (is_null($created)) {
+            throw new InvalidArgumentException('non-nullable created cannot be null');
         }
-        $this->container['formats'] = $formats;
+        $this->container['created'] = $created;
 
         return $this;
     }
 
     /**
-     * Gets sample_formats
+     * Gets expires
      *
-     * @return \VPNDetection\Internal\Model\DatabaseFormat[]|null
+     * @return \DateTime|null
      */
-    public function getSampleFormats(): ?array
+    public function getExpires(): ?\DateTime
     {
-        return $this->container['sample_formats'];
+        return $this->container['expires'];
     }
 
     /**
-     * Sets sample_formats
+     * Sets expires
      *
-     * @param \VPNDetection\Internal\Model\DatabaseFormat[]|null $sample_formats The formats an evaluation sample is published in, if any.
+     * @param \DateTime|null $expires expires
      *
      * @return $this
      */
-    public function setSampleFormats(?array $sample_formats): static
+    public function setExpires(?\DateTime $expires): static
     {
-        if (is_null($sample_formats)) {
-            throw new InvalidArgumentException('non-nullable sample_formats cannot be null');
+        if (is_null($expires)) {
+            array_push($this->openAPINullablesSetToNull, 'expires');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('expires', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
         }
-        $this->container['sample_formats'] = $sample_formats;
+        $this->container['expires'] = $expires;
+
+        return $this;
+    }
+
+    /**
+     * Gets last_used_at
+     *
+     * @return \DateTime|null
+     */
+    public function getLastUsedAt(): ?\DateTime
+    {
+        return $this->container['last_used_at'];
+    }
+
+    /**
+     * Sets last_used_at
+     *
+     * @param \DateTime|null $last_used_at last_used_at
+     *
+     * @return $this
+     */
+    public function setLastUsedAt(?\DateTime $last_used_at): static
+    {
+        if (is_null($last_used_at)) {
+            array_push($this->openAPINullablesSetToNull, 'last_used_at');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('last_used_at', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['last_used_at'] = $last_used_at;
+
+        return $this;
+    }
+
+    /**
+     * Gets revoked_at
+     *
+     * @return \DateTime|null
+     */
+    public function getRevokedAt(): ?\DateTime
+    {
+        return $this->container['revoked_at'];
+    }
+
+    /**
+     * Sets revoked_at
+     *
+     * @param \DateTime|null $revoked_at revoked_at
+     *
+     * @return $this
+     */
+    public function setRevokedAt(?\DateTime $revoked_at): static
+    {
+        if (is_null($revoked_at)) {
+            array_push($this->openAPINullablesSetToNull, 'revoked_at');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('revoked_at', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['revoked_at'] = $revoked_at;
+
+        return $this;
+    }
+
+    /**
+     * Gets allowed_cidrs
+     *
+     * @return string[]|null
+     */
+    public function getAllowedCidrs(): ?array
+    {
+        return $this->container['allowed_cidrs'];
+    }
+
+    /**
+     * Sets allowed_cidrs
+     *
+     * @param string[]|null $allowed_cidrs Source-IP allowlist. EMPTY MEANS UNRESTRICTED, not deny-all.
+     *
+     * @return $this
+     */
+    public function setAllowedCidrs(?array $allowed_cidrs): static
+    {
+        if (is_null($allowed_cidrs)) {
+            throw new InvalidArgumentException('non-nullable allowed_cidrs cannot be null');
+        }
+        $this->container['allowed_cidrs'] = $allowed_cidrs;
+
+        return $this;
+    }
+
+    /**
+     * Gets allowed_scopes
+     *
+     * @return string[]|null
+     */
+    public function getAllowedScopes(): ?array
+    {
+        return $this->container['allowed_scopes'];
+    }
+
+    /**
+     * Sets allowed_scopes
+     *
+     * @param string[]|null $allowed_scopes allowed_scopes
+     *
+     * @return $this
+     */
+    public function setAllowedScopes(?array $allowed_scopes): static
+    {
+        if (is_null($allowed_scopes)) {
+            throw new InvalidArgumentException('non-nullable allowed_scopes cannot be null');
+        }
+        $this->container['allowed_scopes'] = $allowed_scopes;
+
+        return $this;
+    }
+
+    /**
+     * Gets retrievable
+     *
+     * @return bool|null
+     */
+    public function getRetrievable(): ?bool
+    {
+        return $this->container['retrievable'];
+    }
+
+    /**
+     * Sets retrievable
+     *
+     * @param bool|null $retrievable Whether this key's secret can still be read back. False permanently for a key issued before secrets were stored recoverably.
+     *
+     * @return $this
+     */
+    public function setRetrievable(?bool $retrievable): static
+    {
+        if (is_null($retrievable)) {
+            throw new InvalidArgumentException('non-nullable retrievable cannot be null');
+        }
+        $this->container['retrievable'] = $retrievable;
 
         return $this;
     }

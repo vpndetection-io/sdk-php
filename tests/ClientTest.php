@@ -409,7 +409,7 @@ final class ClientTest extends TestCase
         }
         return new Stub(Stub::lookups($routes));
     }
-    private const ACCOUNT_BODY = [
+    private const ENTITLEMENT_BODY = [
         'org_id' => '85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61',
         'apikey' => [
             'id' => '0ab424cc-7619-4dad-b027-afacdc2cedb0',
@@ -451,28 +451,28 @@ final class ClientTest extends TestCase
 
     public function testMyAccountReportsThePlanAndTheUsage(): void
     {
-        $stub = new Stub(['/api/v1/account/me' => Stub::ok(self::ACCOUNT_BODY)]);
+        $stub = new Stub(['/api/v1/entitlement/me' => Stub::ok(self::ENTITLEMENT_BODY)]);
         $client = new Client(new Options(httpClient: $stub->client));
 
-        $account = $client->myAccount();
+        $ent = $client->myEntitlement();
 
-        self::assertSame('max', $account->plan->key);
-        self::assertSame('max', $account->plan->tier);
-        self::assertSame(580, $account->usage->requests);
-        self::assertSame(5000000, $account->usage->quota);
+        self::assertSame('max', $ent->plan->key);
+        self::assertSame('max', $ent->plan->tier);
+        self::assertSame(580, $ent->usage->requests);
+        self::assertSame(5000000, $ent->usage->quota);
         // Null means NEVER stop, which is not the same as a limit of zero.
-        self::assertNull($account->usage->hardLimit);
-        self::assertSame([], $account->apikey->allowedCidrs);
+        self::assertNull($ent->usage->hardLimit);
+        self::assertSame([], $ent->apikey->allowedCidrs);
     }
 
     public function testMyAccountIsNotCached(): void
     {
         // The whole point is what has been spent.
-        $stub = new Stub(['/api/v1/account/me' => Stub::ok(self::ACCOUNT_BODY)]);
+        $stub = new Stub(['/api/v1/entitlement/me' => Stub::ok(self::ENTITLEMENT_BODY)]);
         $client = new Client(new Options(httpClient: $stub->client));
 
-        $client->myAccount();
-        $client->myAccount();
+        $client->myEntitlement();
+        $client->myEntitlement();
 
         self::assertCount(2, $stub->calls);
     }
@@ -480,12 +480,12 @@ final class ClientTest extends TestCase
     public function testMyAccountSurfacesAnUnauthorizedKey(): void
     {
         $stub = new Stub([
-            '/api/v1/account/me' => ['status' => 401, 'body' => ['error' => 'invalid API key']],
+            '/api/v1/entitlement/me' => ['status' => 401, 'body' => ['error' => 'invalid API key']],
         ]);
         $client = new Client(new Options(retries: 0, httpClient: $stub->client));
 
         $this->expectException(VPNDetectionException::class);
-        $client->myAccount();
+        $client->myEntitlement();
     }
 
 }

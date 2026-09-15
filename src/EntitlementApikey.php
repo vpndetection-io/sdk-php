@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace VPNDetection;
 
 use DateTimeImmutable;
-use VPNDetection\Internal\Model\AccountApikey as WireAccountApikey;
+use VPNDetection\Internal\Model\EntitlementApikey as WireEntitlementApikey;
 
 /**
  * The credential itself.
@@ -13,7 +13,7 @@ use VPNDetection\Internal\Model\AccountApikey as WireAccountApikey;
  * The key is never echoed back - only its id, which is what the console shows
  * and what you can act on.
  */
-final class AccountApikey
+final class EntitlementApikey
 {
     public function __construct(
         public readonly string $id,
@@ -30,7 +30,7 @@ final class AccountApikey
     }
 
     /** @internal */
-    public static function fromWire(WireAccountApikey $w): self
+    public static function fromWire(WireEntitlementApikey $w): self
     {
         return new self(
             id: $w->getId(),

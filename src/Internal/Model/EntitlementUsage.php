@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * EntitlementUsage
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * EntitlementUsage Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class EntitlementUsage implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'EntitlementUsage';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'requests' => 'int',
+        'quota' => 'int',
+        'hard_limit' => 'int',
+        'window_start' => '\DateTime',
+        'window_end' => '\DateTime'
     ];
 
     /**
@@ -68,7 +72,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'requests' => 'int64',
+        'quota' => 'int64',
+        'hard_limit' => 'int64',
+        'window_start' => 'date-time',
+        'window_end' => 'date-time'
     ];
 
     /**
@@ -77,7 +85,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'requests' => false,
+        'quota' => false,
+        'hard_limit' => true,
+        'window_start' => false,
+        'window_end' => false
     ];
 
     /**
@@ -156,7 +168,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'requests' => 'requests',
+        'quota' => 'quota',
+        'hard_limit' => 'hard_limit',
+        'window_start' => 'window_start',
+        'window_end' => 'window_end'
     ];
 
     /**
@@ -165,7 +181,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'requests' => 'setRequests',
+        'quota' => 'setQuota',
+        'hard_limit' => 'setHardLimit',
+        'window_start' => 'setWindowStart',
+        'window_end' => 'setWindowEnd'
     ];
 
     /**
@@ -174,7 +194,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'requests' => 'getRequests',
+        'quota' => 'getQuota',
+        'hard_limit' => 'getHardLimit',
+        'window_start' => 'getWindowStart',
+        'window_end' => 'getWindowEnd'
     ];
 
     /**
@@ -224,7 +248,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('requests', $data ?? [], null);
+        $this->setIfExists('quota', $data ?? [], null);
+        $this->setIfExists('hard_limit', $data ?? [], null);
+        $this->setIfExists('window_start', $data ?? [], null);
+        $this->setIfExists('window_end', $data ?? [], null);
     }
 
     /**
@@ -252,8 +280,20 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['rc'] === null) {
-            $invalidProperties[] = "'rc' can't be null";
+        if ($this->container['requests'] === null) {
+            $invalidProperties[] = "'requests' can't be null";
+        }
+        if ($this->container['quota'] === null) {
+            $invalidProperties[] = "'quota' can't be null";
+        }
+        if ($this->container['hard_limit'] === null && !$this->isNullableSetToNull('hard_limit')) {
+            $invalidProperties[] = "'hard_limit' is required";
+        }
+        if ($this->container['window_start'] === null) {
+            $invalidProperties[] = "'window_start' can't be null";
+        }
+        if ($this->container['window_end'] === null) {
+            $invalidProperties[] = "'window_end' can't be null";
         }
         return $invalidProperties;
     }
@@ -268,28 +308,143 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets rc
+     * Gets requests
      *
-     * @return string
+     * @return int
      */
-    public function getRc(): string
+    public function getRequests(): int
     {
-        return $this->container['rc'];
+        return $this->container['requests'];
     }
 
     /**
-     * Sets rc
+     * Sets requests
      *
-     * @param string $rc rc
+     * @param int $requests Requests counted in the current window. The same number the lookup API gates on, and it can lag by a few seconds.
      *
      * @return $this
      */
-    public function setRc(string $rc): static
+    public function setRequests(int $requests): static
     {
-        if (is_null($rc)) {
-            throw new InvalidArgumentException('non-nullable rc cannot be null');
+        if (is_null($requests)) {
+            throw new InvalidArgumentException('non-nullable requests cannot be null');
         }
-        $this->container['rc'] = $rc;
+        $this->container['requests'] = $requests;
+
+        return $this;
+    }
+
+    /**
+     * Gets quota
+     *
+     * @return int
+     */
+    public function getQuota(): int
+    {
+        return $this->container['quota'];
+    }
+
+    /**
+     * Sets quota
+     *
+     * @param int $quota What the plan includes. Zero on a plan that includes none.
+     *
+     * @return $this
+     */
+    public function setQuota(int $quota): static
+    {
+        if (is_null($quota)) {
+            throw new InvalidArgumentException('non-nullable quota cannot be null');
+        }
+        $this->container['quota'] = $quota;
+
+        return $this;
+    }
+
+    /**
+     * Gets hard_limit
+     *
+     * @return int|null
+     */
+    public function getHardLimit(): ?int
+    {
+        return $this->container['hard_limit'];
+    }
+
+    /**
+     * Sets hard_limit
+     *
+     * @param int|null $hard_limit Where we stop serving. NULL means never, which is the normal state of an uncapped paid plan and is not the same as zero. Above the quota and below this, requests are served and billed as overage.
+     *
+     * @return $this
+     */
+    public function setHardLimit(?int $hard_limit): static
+    {
+        if (is_null($hard_limit)) {
+            array_push($this->openAPINullablesSetToNull, 'hard_limit');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('hard_limit', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['hard_limit'] = $hard_limit;
+
+        return $this;
+    }
+
+    /**
+     * Gets window_start
+     *
+     * @return \DateTime
+     */
+    public function getWindowStart(): \DateTime
+    {
+        return $this->container['window_start'];
+    }
+
+    /**
+     * Sets window_start
+     *
+     * @param \DateTime $window_start When the current allowance period began.
+     *
+     * @return $this
+     */
+    public function setWindowStart(\DateTime $window_start): static
+    {
+        if (is_null($window_start)) {
+            throw new InvalidArgumentException('non-nullable window_start cannot be null');
+        }
+        $this->container['window_start'] = $window_start;
+
+        return $this;
+    }
+
+    /**
+     * Gets window_end
+     *
+     * @return \DateTime
+     */
+    public function getWindowEnd(): \DateTime
+    {
+        return $this->container['window_end'];
+    }
+
+    /**
+     * Sets window_end
+     *
+     * @param \DateTime $window_end When the allowance next resets.
+     *
+     * @return $this
+     */
+    public function setWindowEnd(\DateTime $window_end): static
+    {
+        if (is_null($window_end)) {
+            throw new InvalidArgumentException('non-nullable window_end cannot be null');
+        }
+        $this->container['window_end'] = $window_end;
 
         return $this;
     }

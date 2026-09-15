@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * EntitlementPlan
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * EntitlementPlan Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class EntitlementPlan implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'EntitlementPlan';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'key' => 'string',
+        'tier' => 'string'
     ];
 
     /**
@@ -68,7 +69,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'key' => null,
+        'tier' => null
     ];
 
     /**
@@ -77,7 +79,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'key' => false,
+        'tier' => false
     ];
 
     /**
@@ -156,7 +159,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'key' => 'key',
+        'tier' => 'tier'
     ];
 
     /**
@@ -165,7 +169,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'key' => 'setKey',
+        'tier' => 'setTier'
     ];
 
     /**
@@ -174,7 +179,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'key' => 'getKey',
+        'tier' => 'getTier'
     ];
 
     /**
@@ -209,6 +215,25 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
         return self::$openAPIModelName;
     }
 
+    public const TIER_FREE = 'free';
+    public const TIER_STARTER = 'starter';
+    public const TIER_SCALE = 'scale';
+    public const TIER_MAX = 'max';
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public static function getTierAllowableValues()
+    {
+        return [
+            self::TIER_FREE,
+            self::TIER_STARTER,
+            self::TIER_SCALE,
+            self::TIER_MAX,
+        ];
+    }
 
     /**
      * Associative array for storing property values
@@ -224,7 +249,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('key', $data ?? [], null);
+        $this->setIfExists('tier', $data ?? [], null);
     }
 
     /**
@@ -252,9 +278,21 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['rc'] === null) {
-            $invalidProperties[] = "'rc' can't be null";
+        if ($this->container['key'] === null) {
+            $invalidProperties[] = "'key' can't be null";
         }
+        if ($this->container['tier'] === null) {
+            $invalidProperties[] = "'tier' can't be null";
+        }
+        $allowedValues = self::getTierAllowableValues();
+        if (!is_null($this->container['tier']) && !in_array($this->container['tier'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'tier', must be one of '%s'",
+                $this->container['tier'],
+                implode("', '", $allowedValues)
+            );
+        }
+
         return $invalidProperties;
     }
 
@@ -268,28 +306,65 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets rc
+     * Gets key
      *
      * @return string
      */
-    public function getRc(): string
+    public function getKey(): string
     {
-        return $this->container['rc'];
+        return $this->container['key'];
     }
 
     /**
-     * Sets rc
+     * Sets key
      *
-     * @param string $rc rc
+     * @param string $key The plan the organization is on.
      *
      * @return $this
      */
-    public function setRc(string $rc): static
+    public function setKey(string $key): static
     {
-        if (is_null($rc)) {
-            throw new InvalidArgumentException('non-nullable rc cannot be null');
+        if (is_null($key)) {
+            throw new InvalidArgumentException('non-nullable key cannot be null');
         }
-        $this->container['rc'] = $rc;
+        $this->container['key'] = $key;
+
+        return $this;
+    }
+
+    /**
+     * Gets tier
+     *
+     * @return string
+     */
+    public function getTier(): string
+    {
+        return $this->container['tier'];
+    }
+
+    /**
+     * Sets tier
+     *
+     * @param string $tier The field tier, which decides how much of a lookup answer comes back. What each tier includes is documented on the lookup endpoint rather than repeated here, so there is one place it can be wrong.
+     *
+     * @return $this
+     */
+    public function setTier(string $tier): static
+    {
+        if (is_null($tier)) {
+            throw new InvalidArgumentException('non-nullable tier cannot be null');
+        }
+        $allowedValues = self::getTierAllowableValues();
+        if (!in_array($tier, $allowedValues, true)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    "Invalid value '%s' for 'tier', must be one of '%s'",
+                    $tier,
+                    implode("', '", $allowedValues)
+                )
+            );
+        }
+        $this->container['tier'] = $tier;
 
         return $this;
     }

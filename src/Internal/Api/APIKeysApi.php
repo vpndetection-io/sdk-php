@@ -1,6 +1,6 @@
 <?php
 /**
- * DatabaseApi
+ * APIKeysApi
  * PHP version 8.1
  *
  * @package  VPNDetection\Internal
@@ -43,13 +43,13 @@ use VPNDetection\Internal\HeaderSelector;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * DatabaseApi Class Doc Comment
+ * APIKeysApi Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  */
-class DatabaseApi
+class APIKeysApi
 {
     /**
      * @var ClientInterface
@@ -73,19 +73,19 @@ class DatabaseApi
 
     /** @var array<string,string[]> $contentTypes **/
     public const contentTypes = [
-        'databaseChecksum' => [
+        'accountCreateApikey' => [
             'application/json',
         ],
-        'databaseMetadata' => [
+        'accountListApikeys' => [
             'application/json',
         ],
-        'downloadDatabase' => [
+        'accountRevealApikey' => [
             'application/json',
         ],
-        'listDatabases' => [
+        'accountRevokeApikey' => [
             'application/json',
         ],
-        'listDownloads' => [
+        'accountRotateApikey' => [
             'application/json',
         ],
     ];
@@ -137,48 +137,44 @@ class DatabaseApi
     }
 
     /**
-     * Operation databaseChecksum
+     * Operation accountCreateApikey
      *
-     * Checksums
+     * Create an API key
      *
-     * @param  string $id id (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format format (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseChecksum'] to see the possible values for this operation
+     * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request account_create_apikey_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\DatabaseChecksumsResponse|\VPNDetection\Internal\Model\Error
+     * @return \VPNDetection\Internal\Model\AccountCreatedApikey|\VPNDetection\Internal\Model\AccountRc
      */
-    public function databaseChecksum(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['databaseChecksum'][0]
-    ): \VPNDetection\Internal\Model\DatabaseChecksumsResponse|\VPNDetection\Internal\Model\Error
+    public function accountCreateApikey(
+        \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request,
+        string $contentType = self::contentTypes['accountCreateApikey'][0]
+    ): \VPNDetection\Internal\Model\AccountCreatedApikey|\VPNDetection\Internal\Model\AccountRc
     {
-        list($response) = $this->databaseChecksumWithHttpInfo($id, $format, $contentType);
+        list($response) = $this->accountCreateApikeyWithHttpInfo($account_create_apikey_request, $contentType);
         return $response;
     }
 
     /**
-     * Operation databaseChecksumWithHttpInfo
+     * Operation accountCreateApikeyWithHttpInfo
      *
-     * Checksums
+     * Create an API key
      *
-     * @param  string $id (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseChecksum'] to see the possible values for this operation
+     * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return array{0: \VPNDetection\Internal\Model\DatabaseChecksumsResponse|\VPNDetection\Internal\Model\Error, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     * @return array{0: \VPNDetection\Internal\Model\AccountCreatedApikey|\VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
      */
-    public function databaseChecksumWithHttpInfo(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['databaseChecksum'][0]
+    public function accountCreateApikeyWithHttpInfo(
+        \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request,
+        string $contentType = self::contentTypes['accountCreateApikey'][0]
     ): array
     {
-        $request = $this->databaseChecksumRequest($id, $format, $contentType);
+        $request = $this->accountCreateApikeyRequest($account_create_apikey_request, $contentType);
 
         try {
             $options = $this->createHttpClientOption();
@@ -205,37 +201,25 @@ class DatabaseApi
             switch($statusCode) {
                 case 200:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\DatabaseChecksumsResponse',
+                        '\VPNDetection\Internal\Model\AccountCreatedApikey',
                         $request,
                         $response,
                     );
                 case 400:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
                 case 401:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
                 case 403:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
-                        $request,
-                        $response,
-                    );
-                case 404:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
-                        $request,
-                        $response,
-                    );
-                case 503:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
@@ -255,7 +239,7 @@ class DatabaseApi
             }
 
             return $this->handleResponseWithDataType(
-                '\VPNDetection\Internal\Model\DatabaseChecksumsResponse',
+                '\VPNDetection\Internal\Model\AccountCreatedApikey',
                 $request,
                 $response,
             );
@@ -264,7 +248,7 @@ class DatabaseApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\DatabaseChecksumsResponse',
+                        '\VPNDetection\Internal\Model\AccountCreatedApikey',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -272,7 +256,7 @@ class DatabaseApi
                 case 400:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -280,7 +264,7 @@ class DatabaseApi
                 case 401:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -288,23 +272,7 @@ class DatabaseApi
                 case 403:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 404:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 503:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -316,24 +284,22 @@ class DatabaseApi
     }
 
     /**
-     * Operation databaseChecksumAsync
+     * Operation accountCreateApikeyAsync
      *
-     * Checksums
+     * Create an API key
      *
-     * @param  string $id (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseChecksum'] to see the possible values for this operation
+     * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function databaseChecksumAsync(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['databaseChecksum'][0]
+    public function accountCreateApikeyAsync(
+        \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request,
+        string $contentType = self::contentTypes['accountCreateApikey'][0]
     ): PromiseInterface
     {
-        return $this->databaseChecksumAsyncWithHttpInfo($id, $format, $contentType)
+        return $this->accountCreateApikeyAsyncWithHttpInfo($account_create_apikey_request, $contentType)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -342,25 +308,23 @@ class DatabaseApi
     }
 
     /**
-     * Operation databaseChecksumAsyncWithHttpInfo
+     * Operation accountCreateApikeyAsyncWithHttpInfo
      *
-     * Checksums
+     * Create an API key
      *
-     * @param  string $id (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseChecksum'] to see the possible values for this operation
+     * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function databaseChecksumAsyncWithHttpInfo(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['databaseChecksum'][0]
+    public function accountCreateApikeyAsyncWithHttpInfo(
+        \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request,
+        string $contentType = self::contentTypes['accountCreateApikey'][0]
     ): PromiseInterface
     {
-        $returnType = '\VPNDetection\Internal\Model\DatabaseChecksumsResponse';
-        $request = $this->databaseChecksumRequest($id, $format, $contentType);
+        $returnType = '\VPNDetection\Internal\Model\AccountCreatedApikey';
+        $request = $this->accountCreateApikeyRequest($account_create_apikey_request, $contentType);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -399,58 +363,33 @@ class DatabaseApi
     }
 
     /**
-     * Create request for operation 'databaseChecksum'
+     * Create request for operation 'accountCreateApikey'
      *
-     * @param  string $id (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseChecksum'] to see the possible values for this operation
+     * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    public function databaseChecksumRequest(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['databaseChecksum'][0]
+    public function accountCreateApikeyRequest(
+        \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request,
+        string $contentType = self::contentTypes['accountCreateApikey'][0]
     ): Request
     {
-        // verify the required parameter 'id' is set
-        if ($id === null || (is_array($id) && count($id) === 0)) {
+        // verify the required parameter 'account_create_apikey_request' is set
+        if ($account_create_apikey_request === null || (is_array($account_create_apikey_request) && count($account_create_apikey_request) === 0)) {
             throw new InvalidArgumentException(
-                'Missing the required parameter $id when calling databaseChecksum'
-            );
-        }
-        // verify the required parameter 'format' is set
-        if ($format === null || (is_array($format) && count($format) === 0)) {
-            throw new InvalidArgumentException(
-                'Missing the required parameter $format when calling databaseChecksum'
+                'Missing the required parameter $account_create_apikey_request when calling accountCreateApikey'
             );
         }
 
-        $resourcePath = '/api/v1/database/checksum';
+        $resourcePath = '/api/v1/account/apikeys';
+        $formParams = [];
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
         $multipart = false;
 
-        // query params
-        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
-            $id,
-            'id', // param base name
-            'string', // openApiType
-            'form', // style
-            true, // explode
-            true // required
-        ) ?? []);
-        // query params
-        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
-            $format?->value,
-            'format', // param base name
-            'DatabaseFormat', // openApiType
-            'form', // style
-            true, // explode
-            true // required
-        ) ?? []);
 
 
 
@@ -461,22 +400,49 @@ class DatabaseApi
             $multipart
         );
 
+        // for model (json/xml)
+        if (isset($account_create_apikey_request)) {
+            if (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the body
+                try {
+                    $httpBody = json_encode(ObjectSerializer::sanitizeForSerialization($account_create_apikey_request), JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    throw new \InvalidArgumentException('json_encode error: ' . $e->getMessage(), 0, $e);
+                }
+            } else {
+                $httpBody = $account_create_apikey_request;
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new \GuzzleHttp\Psr7\MultipartStream($multipartContents);
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
-        if ($apiKey !== null) {
-            $queryParams['apikey'] = $apiKey;
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                try {
+                    $httpBody = json_encode($formParams, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    throw new \InvalidArgumentException('json_encode error: ' . $e->getMessage(), 0, $e);
+                }
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
         }
 
         // this endpoint requires Bearer authentication (access token)
         if (!empty($this->config->getAccessToken())) {
             $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
-        if ($apiKey !== null) {
-            $headers['X-Api-Key'] = $apiKey;
         }
 
         $defaultHeaders = [];
@@ -493,7 +459,7 @@ class DatabaseApi
         $operationHost = $this->config->getHost();
         $query = ObjectSerializer::buildQuery($queryParams);
         return new Request(
-            'GET',
+            'POST',
             $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody
@@ -501,44 +467,40 @@ class DatabaseApi
     }
 
     /**
-     * Operation databaseMetadata
+     * Operation accountListApikeys
      *
-     * Metadata
+     * List your API keys
      *
-     * @param  string $id id (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseMetadata'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\DatabaseMetadata|\VPNDetection\Internal\Model\Error
+     * @return \VPNDetection\Internal\Model\ApikeyList|\VPNDetection\Internal\Model\AccountRc
      */
-    public function databaseMetadata(
-        string $id,
-        string $contentType = self::contentTypes['databaseMetadata'][0]
-    ): \VPNDetection\Internal\Model\DatabaseMetadata|\VPNDetection\Internal\Model\Error
+    public function accountListApikeys(
+        string $contentType = self::contentTypes['accountListApikeys'][0]
+    ): \VPNDetection\Internal\Model\ApikeyList|\VPNDetection\Internal\Model\AccountRc
     {
-        list($response) = $this->databaseMetadataWithHttpInfo($id, $contentType);
+        list($response) = $this->accountListApikeysWithHttpInfo($contentType);
         return $response;
     }
 
     /**
-     * Operation databaseMetadataWithHttpInfo
+     * Operation accountListApikeysWithHttpInfo
      *
-     * Metadata
+     * List your API keys
      *
-     * @param  string $id (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseMetadata'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return array{0: \VPNDetection\Internal\Model\DatabaseMetadata|\VPNDetection\Internal\Model\Error, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     * @return array{0: \VPNDetection\Internal\Model\ApikeyList|\VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
      */
-    public function databaseMetadataWithHttpInfo(
-        string $id,
-        string $contentType = self::contentTypes['databaseMetadata'][0]
+    public function accountListApikeysWithHttpInfo(
+        string $contentType = self::contentTypes['accountListApikeys'][0]
     ): array
     {
-        $request = $this->databaseMetadataRequest($id, $contentType);
+        $request = $this->accountListApikeysRequest($contentType);
 
         try {
             $options = $this->createHttpClientOption();
@@ -565,31 +527,19 @@ class DatabaseApi
             switch($statusCode) {
                 case 200:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\DatabaseMetadata',
+                        '\VPNDetection\Internal\Model\ApikeyList',
                         $request,
                         $response,
                     );
                 case 401:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
                 case 403:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
-                        $request,
-                        $response,
-                    );
-                case 404:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
-                        $request,
-                        $response,
-                    );
-                case 503:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
@@ -609,7 +559,7 @@ class DatabaseApi
             }
 
             return $this->handleResponseWithDataType(
-                '\VPNDetection\Internal\Model\DatabaseMetadata',
+                '\VPNDetection\Internal\Model\ApikeyList',
                 $request,
                 $response,
             );
@@ -618,7 +568,7 @@ class DatabaseApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\DatabaseMetadata',
+                        '\VPNDetection\Internal\Model\ApikeyList',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -626,7 +576,7 @@ class DatabaseApi
                 case 401:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -634,23 +584,7 @@ class DatabaseApi
                 case 403:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 404:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 503:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -662,22 +596,20 @@ class DatabaseApi
     }
 
     /**
-     * Operation databaseMetadataAsync
+     * Operation accountListApikeysAsync
      *
-     * Metadata
+     * List your API keys
      *
-     * @param  string $id (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseMetadata'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function databaseMetadataAsync(
-        string $id,
-        string $contentType = self::contentTypes['databaseMetadata'][0]
+    public function accountListApikeysAsync(
+        string $contentType = self::contentTypes['accountListApikeys'][0]
     ): PromiseInterface
     {
-        return $this->databaseMetadataAsyncWithHttpInfo($id, $contentType)
+        return $this->accountListApikeysAsyncWithHttpInfo($contentType)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -686,23 +618,21 @@ class DatabaseApi
     }
 
     /**
-     * Operation databaseMetadataAsyncWithHttpInfo
+     * Operation accountListApikeysAsyncWithHttpInfo
      *
-     * Metadata
+     * List your API keys
      *
-     * @param  string $id (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseMetadata'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function databaseMetadataAsyncWithHttpInfo(
-        string $id,
-        string $contentType = self::contentTypes['databaseMetadata'][0]
+    public function accountListApikeysAsyncWithHttpInfo(
+        string $contentType = self::contentTypes['accountListApikeys'][0]
     ): PromiseInterface
     {
-        $returnType = '\VPNDetection\Internal\Model\DatabaseMetadata';
-        $request = $this->databaseMetadataRequest($id, $contentType);
+        $returnType = '\VPNDetection\Internal\Model\ApikeyList';
+        $request = $this->accountListApikeysRequest($contentType);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -741,41 +671,24 @@ class DatabaseApi
     }
 
     /**
-     * Create request for operation 'databaseMetadata'
+     * Create request for operation 'accountListApikeys'
      *
-     * @param  string $id (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['databaseMetadata'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    public function databaseMetadataRequest(
-        string $id,
-        string $contentType = self::contentTypes['databaseMetadata'][0]
+    public function accountListApikeysRequest(
+        string $contentType = self::contentTypes['accountListApikeys'][0]
     ): Request
     {
-        // verify the required parameter 'id' is set
-        if ($id === null || (is_array($id) && count($id) === 0)) {
-            throw new InvalidArgumentException(
-                'Missing the required parameter $id when calling databaseMetadata'
-            );
-        }
 
-        $resourcePath = '/api/v1/database/metadata';
+        $resourcePath = '/api/v1/account/apikeys';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
         $multipart = false;
 
-        // query params
-        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
-            $id,
-            'id', // param base name
-            'string', // openApiType
-            'form', // style
-            true, // explode
-            true // required
-        ) ?? []);
 
 
 
@@ -787,21 +700,9 @@ class DatabaseApi
         );
 
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
-        if ($apiKey !== null) {
-            $queryParams['apikey'] = $apiKey;
-        }
-
         // this endpoint requires Bearer authentication (access token)
         if (!empty($this->config->getAccessToken())) {
             $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
-        if ($apiKey !== null) {
-            $headers['X-Api-Key'] = $apiKey;
         }
 
         $defaultHeaders = [];
@@ -826,328 +727,44 @@ class DatabaseApi
     }
 
     /**
-     * Operation downloadDatabase
+     * Operation accountRevealApikey
      *
-     * Download
+     * Read back a key&#39;s secret
      *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogues are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\Error
+     * @return \VPNDetection\Internal\Model\AccountRevealedApikey|\VPNDetection\Internal\Model\AccountRc
      */
-    public function downloadDatabase(
+    public function accountRevealApikey(
         string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['downloadDatabase'][0]
-    ): \VPNDetection\Internal\Model\Error
+        string $contentType = self::contentTypes['accountRevealApikey'][0]
+    ): \VPNDetection\Internal\Model\AccountRevealedApikey|\VPNDetection\Internal\Model\AccountRc
     {
-        list($response) = $this->downloadDatabaseWithHttpInfo($id, $format, $contentType);
+        list($response) = $this->accountRevealApikeyWithHttpInfo($id, $contentType);
         return $response;
     }
 
     /**
-     * Operation downloadDatabaseWithHttpInfo
+     * Operation accountRevealApikeyWithHttpInfo
      *
-     * Download
+     * Read back a key&#39;s secret
      *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogues are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return array{0: null, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     * @return array{0: \VPNDetection\Internal\Model\AccountRevealedApikey|\VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
      */
-    public function downloadDatabaseWithHttpInfo(
+    public function accountRevealApikeyWithHttpInfo(
         string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['downloadDatabase'][0]
+        string $contentType = self::contentTypes['accountRevealApikey'][0]
     ): array
     {
-        $request = $this->downloadDatabaseRequest($id, $format, $contentType);
-
-        try {
-            $options = $this->createHttpClientOption();
-            try {
-                $response = $this->client->send($request, $options);
-            } catch (RequestException $e) {
-                throw new ApiException(
-                    "[{$e->getCode()}] {$e->getMessage()}",
-                    (int) $e->getCode(),
-                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
-                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
-                );
-            } catch (ConnectException $e) {
-                throw new ApiException(
-                    "[{$e->getCode()}] {$e->getMessage()}",
-                    (int) $e->getCode(),
-                    null,
-                    null
-                );
-            }
-
-            $statusCode = $response->getStatusCode();
-
-
-            return [null, $statusCode, $response->getHeaders()];
-        } catch (ApiException $e) {
-            switch ($e->getCode()) {
-                case 400:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 401:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 403:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 404:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 503:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-            }
-        
-            throw $e;
-        }
-    }
-
-    /**
-     * Operation downloadDatabaseAsync
-     *
-     * Download
-     *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogues are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
-     *
-     * @throws InvalidArgumentException
-     * @return PromiseInterface
-     */
-    public function downloadDatabaseAsync(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['downloadDatabase'][0]
-    ): PromiseInterface
-    {
-        return $this->downloadDatabaseAsyncWithHttpInfo($id, $format, $contentType)
-            ->then(
-                function ($response) {
-                    return $response[0];
-                }
-            );
-    }
-
-    /**
-     * Operation downloadDatabaseAsyncWithHttpInfo
-     *
-     * Download
-     *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogues are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
-     *
-     * @throws InvalidArgumentException
-     * @return PromiseInterface
-     */
-    public function downloadDatabaseAsyncWithHttpInfo(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['downloadDatabase'][0]
-    ): PromiseInterface
-    {
-        $returnType = '';
-        $request = $this->downloadDatabaseRequest($id, $format, $contentType);
-
-        return $this->client
-            ->sendAsync($request, $this->createHttpClientOption())
-            ->then(
-                function ($response) use ($returnType) {
-                    return [null, $response->getStatusCode(), $response->getHeaders()];
-                },
-                function ($exception) {
-                    $response = $exception->getResponse();
-                    $statusCode = $response->getStatusCode();
-                    throw new ApiException(
-                        sprintf(
-                            '[%d] Error connecting to the API (%s)',
-                            $statusCode,
-                            $exception->getRequest()->getUri()
-                        ),
-                        $statusCode,
-                        $response->getHeaders(),
-                        (string) $response->getBody()
-                    );
-                }
-            );
-    }
-
-    /**
-     * Create request for operation 'downloadDatabase'
-     *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogues are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
-     *
-     * @throws InvalidArgumentException
-     * @return \GuzzleHttp\Psr7\Request
-     */
-    public function downloadDatabaseRequest(
-        string $id,
-        \VPNDetection\Internal\Model\DatabaseFormat $format,
-        string $contentType = self::contentTypes['downloadDatabase'][0]
-    ): Request
-    {
-        // verify the required parameter 'id' is set
-        if ($id === null || (is_array($id) && count($id) === 0)) {
-            throw new InvalidArgumentException(
-                'Missing the required parameter $id when calling downloadDatabase'
-            );
-        }
-        // verify the required parameter 'format' is set
-        if ($format === null || (is_array($format) && count($format) === 0)) {
-            throw new InvalidArgumentException(
-                'Missing the required parameter $format when calling downloadDatabase'
-            );
-        }
-
-        $resourcePath = '/api/v1/database/download';
-        $queryParams = [];
-        $headerParams = [];
-        $httpBody = '';
-        $multipart = false;
-
-        // query params
-        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
-            $id,
-            'id', // param base name
-            'string', // openApiType
-            'form', // style
-            true, // explode
-            true // required
-        ) ?? []);
-        // query params
-        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
-            $format?->value,
-            'format', // param base name
-            'DatabaseFormat', // openApiType
-            'form', // style
-            true, // explode
-            true // required
-        ) ?? []);
-
-
-
-
-        $headers = $this->headerSelector->selectHeaders(
-            ['application/json', ],
-            $contentType,
-            $multipart
-        );
-
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
-        if ($apiKey !== null) {
-            $queryParams['apikey'] = $apiKey;
-        }
-
-        // this endpoint requires Bearer authentication (access token)
-        if (!empty($this->config->getAccessToken())) {
-            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
-        if ($apiKey !== null) {
-            $headers['X-Api-Key'] = $apiKey;
-        }
-
-        $defaultHeaders = [];
-        if ($this->config->getUserAgent()) {
-            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
-        }
-
-        $headers = array_merge(
-            $defaultHeaders,
-            $headerParams,
-            $headers
-        );
-
-        $operationHost = $this->config->getHost();
-        $query = ObjectSerializer::buildQuery($queryParams);
-        return new Request(
-            'GET',
-            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
-            $headers,
-            $httpBody
-        );
-    }
-
-    /**
-     * Operation listDatabases
-     *
-     * List
-     *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDatabases'] to see the possible values for this operation
-     *
-     * @throws ApiException on non-2xx response or if the response body is not in the expected format
-     * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\DatabaseList|\VPNDetection\Internal\Model\Error
-     */
-    public function listDatabases(
-        string $contentType = self::contentTypes['listDatabases'][0]
-    ): \VPNDetection\Internal\Model\DatabaseList|\VPNDetection\Internal\Model\Error
-    {
-        list($response) = $this->listDatabasesWithHttpInfo($contentType);
-        return $response;
-    }
-
-    /**
-     * Operation listDatabasesWithHttpInfo
-     *
-     * List
-     *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDatabases'] to see the possible values for this operation
-     *
-     * @throws ApiException on non-2xx response or if the response body is not in the expected format
-     * @throws InvalidArgumentException
-     * @return array{0: \VPNDetection\Internal\Model\DatabaseList|\VPNDetection\Internal\Model\Error, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
-     */
-    public function listDatabasesWithHttpInfo(
-        string $contentType = self::contentTypes['listDatabases'][0]
-    ): array
-    {
-        $request = $this->listDatabasesRequest($contentType);
+        $request = $this->accountRevealApikeyRequest($id, $contentType);
 
         try {
             $options = $this->createHttpClientOption();
@@ -1174,13 +791,25 @@ class DatabaseApi
             switch($statusCode) {
                 case 200:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\DatabaseList',
+                        '\VPNDetection\Internal\Model\AccountRevealedApikey',
                         $request,
                         $response,
                     );
                 case 401:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $request,
+                        $response,
+                    );
+                case 403:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $request,
+                        $response,
+                    );
+                case 404:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
@@ -1200,7 +829,7 @@ class DatabaseApi
             }
 
             return $this->handleResponseWithDataType(
-                '\VPNDetection\Internal\Model\DatabaseList',
+                '\VPNDetection\Internal\Model\AccountRevealedApikey',
                 $request,
                 $response,
             );
@@ -1209,7 +838,7 @@ class DatabaseApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\DatabaseList',
+                        '\VPNDetection\Internal\Model\AccountRevealedApikey',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -1217,7 +846,23 @@ class DatabaseApi
                 case 401:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 403:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 404:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -1229,20 +874,22 @@ class DatabaseApi
     }
 
     /**
-     * Operation listDatabasesAsync
+     * Operation accountRevealApikeyAsync
      *
-     * List
+     * Read back a key&#39;s secret
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDatabases'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function listDatabasesAsync(
-        string $contentType = self::contentTypes['listDatabases'][0]
+    public function accountRevealApikeyAsync(
+        string $id,
+        string $contentType = self::contentTypes['accountRevealApikey'][0]
     ): PromiseInterface
     {
-        return $this->listDatabasesAsyncWithHttpInfo($contentType)
+        return $this->accountRevealApikeyAsyncWithHttpInfo($id, $contentType)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -1251,21 +898,23 @@ class DatabaseApi
     }
 
     /**
-     * Operation listDatabasesAsyncWithHttpInfo
+     * Operation accountRevealApikeyAsyncWithHttpInfo
      *
-     * List
+     * Read back a key&#39;s secret
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDatabases'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function listDatabasesAsyncWithHttpInfo(
-        string $contentType = self::contentTypes['listDatabases'][0]
+    public function accountRevealApikeyAsyncWithHttpInfo(
+        string $id,
+        string $contentType = self::contentTypes['accountRevealApikey'][0]
     ): PromiseInterface
     {
-        $returnType = '\VPNDetection\Internal\Model\DatabaseList';
-        $request = $this->listDatabasesRequest($contentType);
+        $returnType = '\VPNDetection\Internal\Model\AccountRevealedApikey';
+        $request = $this->accountRevealApikeyRequest($id, $contentType);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -1304,19 +953,27 @@ class DatabaseApi
     }
 
     /**
-     * Create request for operation 'listDatabases'
+     * Create request for operation 'accountRevealApikey'
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDatabases'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    public function listDatabasesRequest(
-        string $contentType = self::contentTypes['listDatabases'][0]
+    public function accountRevealApikeyRequest(
+        string $id,
+        string $contentType = self::contentTypes['accountRevealApikey'][0]
     ): Request
     {
+        // verify the required parameter 'id' is set
+        if ($id === null || (is_array($id) && count($id) === 0)) {
+            throw new InvalidArgumentException(
+                'Missing the required parameter $id when calling accountRevealApikey'
+            );
+        }
 
-        $resourcePath = '/api/v1/database/list';
+        $resourcePath = '/api/v1/account/apikeys/{id}/reveal';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -1324,6 +981,14 @@ class DatabaseApi
 
 
 
+        // path params
+        if ($id !== null) {
+            $resourcePath = str_replace(
+                '{id}',
+                ObjectSerializer::toPathValue($id),
+                $resourcePath
+            );
+        }
 
 
         $headers = $this->headerSelector->selectHeaders(
@@ -1333,21 +998,9 @@ class DatabaseApi
         );
 
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
-        if ($apiKey !== null) {
-            $queryParams['apikey'] = $apiKey;
-        }
-
         // this endpoint requires Bearer authentication (access token)
         if (!empty($this->config->getAccessToken())) {
             $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
-        if ($apiKey !== null) {
-            $headers['X-Api-Key'] = $apiKey;
         }
 
         $defaultHeaders = [];
@@ -1364,7 +1017,7 @@ class DatabaseApi
         $operationHost = $this->config->getHost();
         $query = ObjectSerializer::buildQuery($queryParams);
         return new Request(
-            'GET',
+            'POST',
             $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody
@@ -1372,44 +1025,44 @@ class DatabaseApi
     }
 
     /**
-     * Operation listDownloads
+     * Operation accountRevokeApikey
      *
-     * History
+     * Revoke an API key
      *
-     * @param  int|null $limit limit (optional, default to 50)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDownloads'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\DownloadList|\VPNDetection\Internal\Model\Error
+     * @return \VPNDetection\Internal\Model\AccountRc
      */
-    public function listDownloads(
-        ?int $limit = 50,
-        string $contentType = self::contentTypes['listDownloads'][0]
-    ): \VPNDetection\Internal\Model\DownloadList|\VPNDetection\Internal\Model\Error
+    public function accountRevokeApikey(
+        string $id,
+        string $contentType = self::contentTypes['accountRevokeApikey'][0]
+    ): \VPNDetection\Internal\Model\AccountRc
     {
-        list($response) = $this->listDownloadsWithHttpInfo($limit, $contentType);
+        list($response) = $this->accountRevokeApikeyWithHttpInfo($id, $contentType);
         return $response;
     }
 
     /**
-     * Operation listDownloadsWithHttpInfo
+     * Operation accountRevokeApikeyWithHttpInfo
      *
-     * History
+     * Revoke an API key
      *
-     * @param  int|null $limit (optional, default to 50)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDownloads'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return array{0: \VPNDetection\Internal\Model\DownloadList|\VPNDetection\Internal\Model\Error, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     * @return array{0: \VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
      */
-    public function listDownloadsWithHttpInfo(
-        ?int $limit = 50,
-        string $contentType = self::contentTypes['listDownloads'][0]
+    public function accountRevokeApikeyWithHttpInfo(
+        string $id,
+        string $contentType = self::contentTypes['accountRevokeApikey'][0]
     ): array
     {
-        $request = $this->listDownloadsRequest($limit, $contentType);
+        $request = $this->accountRevokeApikeyRequest($id, $contentType);
 
         try {
             $options = $this->createHttpClientOption();
@@ -1436,13 +1089,25 @@ class DatabaseApi
             switch($statusCode) {
                 case 200:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\DownloadList',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
                 case 401:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $request,
+                        $response,
+                    );
+                case 403:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $request,
+                        $response,
+                    );
+                case 404:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
@@ -1462,7 +1127,7 @@ class DatabaseApi
             }
 
             return $this->handleResponseWithDataType(
-                '\VPNDetection\Internal\Model\DownloadList',
+                '\VPNDetection\Internal\Model\AccountRc',
                 $request,
                 $response,
             );
@@ -1471,7 +1136,7 @@ class DatabaseApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\DownloadList',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -1479,7 +1144,23 @@ class DatabaseApi
                 case 401:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Error',
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 403:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 404:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -1491,22 +1172,22 @@ class DatabaseApi
     }
 
     /**
-     * Operation listDownloadsAsync
+     * Operation accountRevokeApikeyAsync
      *
-     * History
+     * Revoke an API key
      *
-     * @param  int|null $limit (optional, default to 50)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDownloads'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function listDownloadsAsync(
-        ?int $limit = 50,
-        string $contentType = self::contentTypes['listDownloads'][0]
+    public function accountRevokeApikeyAsync(
+        string $id,
+        string $contentType = self::contentTypes['accountRevokeApikey'][0]
     ): PromiseInterface
     {
-        return $this->listDownloadsAsyncWithHttpInfo($limit, $contentType)
+        return $this->accountRevokeApikeyAsyncWithHttpInfo($id, $contentType)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -1515,23 +1196,23 @@ class DatabaseApi
     }
 
     /**
-     * Operation listDownloadsAsyncWithHttpInfo
+     * Operation accountRevokeApikeyAsyncWithHttpInfo
      *
-     * History
+     * Revoke an API key
      *
-     * @param  int|null $limit (optional, default to 50)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDownloads'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function listDownloadsAsyncWithHttpInfo(
-        ?int $limit = 50,
-        string $contentType = self::contentTypes['listDownloads'][0]
+    public function accountRevokeApikeyAsyncWithHttpInfo(
+        string $id,
+        string $contentType = self::contentTypes['accountRevokeApikey'][0]
     ): PromiseInterface
     {
-        $returnType = '\VPNDetection\Internal\Model\DownloadList';
-        $request = $this->listDownloadsRequest($limit, $contentType);
+        $returnType = '\VPNDetection\Internal\Model\AccountRc';
+        $request = $this->accountRevokeApikeyRequest($id, $contentType);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -1570,40 +1251,42 @@ class DatabaseApi
     }
 
     /**
-     * Create request for operation 'listDownloads'
+     * Create request for operation 'accountRevokeApikey'
      *
-     * @param  int|null $limit (optional, default to 50)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['listDownloads'] to see the possible values for this operation
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    public function listDownloadsRequest(
-        ?int $limit = 50,
-        string $contentType = self::contentTypes['listDownloads'][0]
+    public function accountRevokeApikeyRequest(
+        string $id,
+        string $contentType = self::contentTypes['accountRevokeApikey'][0]
     ): Request
     {
-        if ($limit !== null && $limit > 200) {
-            throw new InvalidArgumentException('invalid value for "$limit" when calling DatabaseApi.listDownloads, must be smaller than or equal to 200.');
+        // verify the required parameter 'id' is set
+        if ($id === null || (is_array($id) && count($id) === 0)) {
+            throw new InvalidArgumentException(
+                'Missing the required parameter $id when calling accountRevokeApikey'
+            );
         }
 
-        $resourcePath = '/api/v1/database/downloads';
+        $resourcePath = '/api/v1/account/apikeys/{id}/revoke';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
         $multipart = false;
 
-        // query params
-        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
-            $limit,
-            'limit', // param base name
-            'integer', // openApiType
-            'form', // style
-            true, // explode
-            false // required
-        ) ?? []);
 
 
+        // path params
+        if ($id !== null) {
+            $resourcePath = str_replace(
+                '{id}',
+                ObjectSerializer::toPathValue($id),
+                $resourcePath
+            );
+        }
 
 
         $headers = $this->headerSelector->selectHeaders(
@@ -1613,21 +1296,9 @@ class DatabaseApi
         );
 
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
-        if ($apiKey !== null) {
-            $queryParams['apikey'] = $apiKey;
-        }
-
         // this endpoint requires Bearer authentication (access token)
         if (!empty($this->config->getAccessToken())) {
             $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
-        if ($apiKey !== null) {
-            $headers['X-Api-Key'] = $apiKey;
         }
 
         $defaultHeaders = [];
@@ -1644,7 +1315,305 @@ class DatabaseApi
         $operationHost = $this->config->getHost();
         $query = ObjectSerializer::buildQuery($queryParams);
         return new Request(
-            'GET',
+            'POST',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    /**
+     * Operation accountRotateApikey
+     *
+     * Rotate an API key
+     *
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
+     *
+     * @throws ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws InvalidArgumentException
+     * @return \VPNDetection\Internal\Model\AccountCreatedApikey|\VPNDetection\Internal\Model\AccountRc
+     */
+    public function accountRotateApikey(
+        string $id,
+        string $contentType = self::contentTypes['accountRotateApikey'][0]
+    ): \VPNDetection\Internal\Model\AccountCreatedApikey|\VPNDetection\Internal\Model\AccountRc
+    {
+        list($response) = $this->accountRotateApikeyWithHttpInfo($id, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation accountRotateApikeyWithHttpInfo
+     *
+     * Rotate an API key
+     *
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
+     *
+     * @throws ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws InvalidArgumentException
+     * @return array{0: \VPNDetection\Internal\Model\AccountCreatedApikey|\VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     */
+    public function accountRotateApikeyWithHttpInfo(
+        string $id,
+        string $contentType = self::contentTypes['accountRotateApikey'][0]
+    ): array
+    {
+        $request = $this->accountRotateApikeyRequest($id, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountCreatedApikey',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $request,
+                        $response,
+                    );
+                case 403:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $request,
+                        $response,
+                    );
+                case 404:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $request,
+                        $response,
+                    );
+            }
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                '\VPNDetection\Internal\Model\AccountCreatedApikey',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountCreatedApikey',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 403:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 404:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\AccountRc',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation accountRotateApikeyAsync
+     *
+     * Rotate an API key
+     *
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
+     *
+     * @throws InvalidArgumentException
+     * @return PromiseInterface
+     */
+    public function accountRotateApikeyAsync(
+        string $id,
+        string $contentType = self::contentTypes['accountRotateApikey'][0]
+    ): PromiseInterface
+    {
+        return $this->accountRotateApikeyAsyncWithHttpInfo($id, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation accountRotateApikeyAsyncWithHttpInfo
+     *
+     * Rotate an API key
+     *
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
+     *
+     * @throws InvalidArgumentException
+     * @return PromiseInterface
+     */
+    public function accountRotateApikeyAsyncWithHttpInfo(
+        string $id,
+        string $contentType = self::contentTypes['accountRotateApikey'][0]
+    ): PromiseInterface
+    {
+        $returnType = '\VPNDetection\Internal\Model\AccountCreatedApikey';
+        $request = $this->accountRotateApikeyRequest($id, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if (in_array($returnType, ['\SplFileObject', '\Psr\Http\Message\StreamInterface'])) {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'accountRotateApikey'
+     *
+     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
+     *
+     * @throws InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function accountRotateApikeyRequest(
+        string $id,
+        string $contentType = self::contentTypes['accountRotateApikey'][0]
+    ): Request
+    {
+        // verify the required parameter 'id' is set
+        if ($id === null || (is_array($id) && count($id) === 0)) {
+            throw new InvalidArgumentException(
+                'Missing the required parameter $id when calling accountRotateApikey'
+            );
+        }
+
+        $resourcePath = '/api/v1/account/apikeys/{id}/rotate';
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+
+
+        // path params
+        if ($id !== null) {
+            $resourcePath = str_replace(
+                '{id}',
+                ObjectSerializer::toPathValue($id),
+                $resourcePath
+            );
+        }
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['application/json', ],
+            $contentType,
+            $multipart
+        );
+
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'POST',
             $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody

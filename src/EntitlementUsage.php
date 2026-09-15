@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace VPNDetection;
 
 use DateTimeImmutable;
-use VPNDetection\Internal\Model\AccountUsage as WireAccountUsage;
+use VPNDetection\Internal\Model\EntitlementUsage as WireEntitlementUsage;
 
 /** Consumption against the plan's allowance, in the current window. */
-final class AccountUsage
+final class EntitlementUsage
 {
     public function __construct(
         /**
@@ -32,7 +32,7 @@ final class AccountUsage
     }
 
     /** @internal */
-    public static function fromWire(WireAccountUsage $w): self
+    public static function fromWire(WireEntitlementUsage $w): self
     {
         return new self(
             requests: $w->getRequests(),

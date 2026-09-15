@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * AccountRc
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * AccountRc Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class AccountRc implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'AccountRc';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -280,7 +280,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets rc
      *
-     * @param string $rc rc
+     * @param string $rc The outcome. `SUCCESS` on success; otherwise the reason.
      *
      * @return $this
      */

@@ -1,6 +1,6 @@
 <?php
 /**
- * AccountApi
+ * EntitlementApi
  * PHP version 8.1
  *
  * @package  VPNDetection\Internal
@@ -43,13 +43,13 @@ use VPNDetection\Internal\HeaderSelector;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * AccountApi Class Doc Comment
+ * EntitlementApi Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  */
-class AccountApi
+class EntitlementApi
 {
     /**
      * @var ClientInterface
@@ -73,7 +73,7 @@ class AccountApi
 
     /** @var array<string,string[]> $contentTypes **/
     public const contentTypes = [
-        'accountIdentity' => [
+        'myEntitlement' => [
             'application/json',
         ],
     ];
@@ -125,40 +125,40 @@ class AccountApi
     }
 
     /**
-     * Operation accountIdentity
+     * Operation myEntitlement
      *
-     * Identity - who this credential belongs to
+     * Your key, plan and usage
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\Identity|\VPNDetection\Internal\Model\AccountRc
+     * @return \VPNDetection\Internal\Model\Entitlement|\VPNDetection\Internal\Model\EntitlementError
      */
-    public function accountIdentity(
-        string $contentType = self::contentTypes['accountIdentity'][0]
-    ): \VPNDetection\Internal\Model\Identity|\VPNDetection\Internal\Model\AccountRc
+    public function myEntitlement(
+        string $contentType = self::contentTypes['myEntitlement'][0]
+    ): \VPNDetection\Internal\Model\Entitlement|\VPNDetection\Internal\Model\EntitlementError
     {
-        list($response) = $this->accountIdentityWithHttpInfo($contentType);
+        list($response) = $this->myEntitlementWithHttpInfo($contentType);
         return $response;
     }
 
     /**
-     * Operation accountIdentityWithHttpInfo
+     * Operation myEntitlementWithHttpInfo
      *
-     * Identity - who this credential belongs to
+     * Your key, plan and usage
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return array{0: \VPNDetection\Internal\Model\Identity|\VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     * @return array{0: \VPNDetection\Internal\Model\Entitlement|\VPNDetection\Internal\Model\EntitlementError, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
      */
-    public function accountIdentityWithHttpInfo(
-        string $contentType = self::contentTypes['accountIdentity'][0]
+    public function myEntitlementWithHttpInfo(
+        string $contentType = self::contentTypes['myEntitlement'][0]
     ): array
     {
-        $request = $this->accountIdentityRequest($contentType);
+        $request = $this->myEntitlementRequest($contentType);
 
         try {
             $options = $this->createHttpClientOption();
@@ -185,19 +185,25 @@ class AccountApi
             switch($statusCode) {
                 case 200:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\Identity',
+                        '\VPNDetection\Internal\Model\Entitlement',
                         $request,
                         $response,
                     );
                 case 401:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\AccountRc',
+                        '\VPNDetection\Internal\Model\EntitlementError',
                         $request,
                         $response,
                     );
                 case 403:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\AccountRc',
+                        '\VPNDetection\Internal\Model\EntitlementError',
+                        $request,
+                        $response,
+                    );
+                case 503:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\EntitlementError',
                         $request,
                         $response,
                     );
@@ -217,7 +223,7 @@ class AccountApi
             }
 
             return $this->handleResponseWithDataType(
-                '\VPNDetection\Internal\Model\Identity',
+                '\VPNDetection\Internal\Model\Entitlement',
                 $request,
                 $response,
             );
@@ -226,7 +232,7 @@ class AccountApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\Identity',
+                        '\VPNDetection\Internal\Model\Entitlement',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -234,7 +240,7 @@ class AccountApi
                 case 401:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\AccountRc',
+                        '\VPNDetection\Internal\Model\EntitlementError',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -242,7 +248,15 @@ class AccountApi
                 case 403:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\AccountRc',
+                        '\VPNDetection\Internal\Model\EntitlementError',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 503:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\EntitlementError',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -254,20 +268,20 @@ class AccountApi
     }
 
     /**
-     * Operation accountIdentityAsync
+     * Operation myEntitlementAsync
      *
-     * Identity - who this credential belongs to
+     * Your key, plan and usage
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function accountIdentityAsync(
-        string $contentType = self::contentTypes['accountIdentity'][0]
+    public function myEntitlementAsync(
+        string $contentType = self::contentTypes['myEntitlement'][0]
     ): PromiseInterface
     {
-        return $this->accountIdentityAsyncWithHttpInfo($contentType)
+        return $this->myEntitlementAsyncWithHttpInfo($contentType)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -276,21 +290,21 @@ class AccountApi
     }
 
     /**
-     * Operation accountIdentityAsyncWithHttpInfo
+     * Operation myEntitlementAsyncWithHttpInfo
      *
-     * Identity - who this credential belongs to
+     * Your key, plan and usage
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function accountIdentityAsyncWithHttpInfo(
-        string $contentType = self::contentTypes['accountIdentity'][0]
+    public function myEntitlementAsyncWithHttpInfo(
+        string $contentType = self::contentTypes['myEntitlement'][0]
     ): PromiseInterface
     {
-        $returnType = '\VPNDetection\Internal\Model\Identity';
-        $request = $this->accountIdentityRequest($contentType);
+        $returnType = '\VPNDetection\Internal\Model\Entitlement';
+        $request = $this->myEntitlementRequest($contentType);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -329,19 +343,19 @@ class AccountApi
     }
 
     /**
-     * Create request for operation 'accountIdentity'
+     * Create request for operation 'myEntitlement'
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    public function accountIdentityRequest(
-        string $contentType = self::contentTypes['accountIdentity'][0]
+    public function myEntitlementRequest(
+        string $contentType = self::contentTypes['myEntitlement'][0]
     ): Request
     {
 
-        $resourcePath = '/api/v1/account/identity';
+        $resourcePath = '/api/v1/entitlement/me';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -358,9 +372,21 @@ class AccountApi
         );
 
 
+        // this endpoint requires API key authentication
+        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
+        if ($apiKey !== null) {
+            $queryParams['apikey'] = $apiKey;
+        }
+
         // this endpoint requires Bearer authentication (access token)
         if (!empty($this->config->getAccessToken())) {
             $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        // this endpoint requires API key authentication
+        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
+        if ($apiKey !== null) {
+            $headers['X-Api-Key'] = $apiKey;
         }
 
         $defaultHeaders = [];

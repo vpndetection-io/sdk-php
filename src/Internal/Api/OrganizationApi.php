@@ -1,6 +1,6 @@
 <?php
 /**
- * LookupApi
+ * OrganizationApi
  * PHP version 8.1
  *
  * @package  VPNDetection\Internal
@@ -43,13 +43,13 @@ use VPNDetection\Internal\HeaderSelector;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * LookupApi Class Doc Comment
+ * OrganizationApi Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  */
-class LookupApi
+class OrganizationApi
 {
     /**
      * @var ClientInterface
@@ -73,10 +73,10 @@ class LookupApi
 
     /** @var array<string,string[]> $contentTypes **/
     public const contentTypes = [
-        'lookupIp' => [
+        'accountOrg' => [
             'application/json',
         ],
-        'lookupMyIp' => [
+        'accountOrgMembers' => [
             'application/json',
         ],
     ];
@@ -128,44 +128,40 @@ class LookupApi
     }
 
     /**
-     * Operation lookupIp
+     * Operation accountOrg
      *
-     * Lookup
+     * Your organization
      *
-     * @param  string $ip The IPv4 or IPv6 address to classify. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\LookupResponse|\VPNDetection\Internal\Model\LookupError
+     * @return \VPNDetection\Internal\Model\AccountOrgWrap|\VPNDetection\Internal\Model\AccountRc
      */
-    public function lookupIp(
-        string $ip,
-        string $contentType = self::contentTypes['lookupIp'][0]
-    ): \VPNDetection\Internal\Model\LookupResponse|\VPNDetection\Internal\Model\LookupError
+    public function accountOrg(
+        string $contentType = self::contentTypes['accountOrg'][0]
+    ): \VPNDetection\Internal\Model\AccountOrgWrap|\VPNDetection\Internal\Model\AccountRc
     {
-        list($response) = $this->lookupIpWithHttpInfo($ip, $contentType);
+        list($response) = $this->accountOrgWithHttpInfo($contentType);
         return $response;
     }
 
     /**
-     * Operation lookupIpWithHttpInfo
+     * Operation accountOrgWithHttpInfo
      *
-     * Lookup
+     * Your organization
      *
-     * @param  string $ip The IPv4 or IPv6 address to classify. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return array{0: \VPNDetection\Internal\Model\LookupResponse|\VPNDetection\Internal\Model\LookupError, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     * @return array{0: \VPNDetection\Internal\Model\AccountOrgWrap|\VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
      */
-    public function lookupIpWithHttpInfo(
-        string $ip,
-        string $contentType = self::contentTypes['lookupIp'][0]
+    public function accountOrgWithHttpInfo(
+        string $contentType = self::contentTypes['accountOrg'][0]
     ): array
     {
-        $request = $this->lookupIpRequest($ip, $contentType);
+        $request = $this->accountOrgRequest($contentType);
 
         try {
             $options = $this->createHttpClientOption();
@@ -192,37 +188,19 @@ class LookupApi
             switch($statusCode) {
                 case 200:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupResponse',
-                        $request,
-                        $response,
-                    );
-                case 400:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountOrgWrap',
                         $request,
                         $response,
                     );
                 case 401:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
                 case 403:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $request,
-                        $response,
-                    );
-                case 429:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $request,
-                        $response,
-                    );
-                case 500:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
@@ -242,7 +220,7 @@ class LookupApi
             }
 
             return $this->handleResponseWithDataType(
-                '\VPNDetection\Internal\Model\LookupResponse',
+                '\VPNDetection\Internal\Model\AccountOrgWrap',
                 $request,
                 $response,
             );
@@ -251,15 +229,7 @@ class LookupApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupResponse',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 400:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountOrgWrap',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -267,7 +237,7 @@ class LookupApi
                 case 401:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -275,23 +245,7 @@ class LookupApi
                 case 403:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 429:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 500:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -303,22 +257,20 @@ class LookupApi
     }
 
     /**
-     * Operation lookupIpAsync
+     * Operation accountOrgAsync
      *
-     * Lookup
+     * Your organization
      *
-     * @param  string $ip The IPv4 or IPv6 address to classify. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function lookupIpAsync(
-        string $ip,
-        string $contentType = self::contentTypes['lookupIp'][0]
+    public function accountOrgAsync(
+        string $contentType = self::contentTypes['accountOrg'][0]
     ): PromiseInterface
     {
-        return $this->lookupIpAsyncWithHttpInfo($ip, $contentType)
+        return $this->accountOrgAsyncWithHttpInfo($contentType)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -327,23 +279,21 @@ class LookupApi
     }
 
     /**
-     * Operation lookupIpAsyncWithHttpInfo
+     * Operation accountOrgAsyncWithHttpInfo
      *
-     * Lookup
+     * Your organization
      *
-     * @param  string $ip The IPv4 or IPv6 address to classify. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function lookupIpAsyncWithHttpInfo(
-        string $ip,
-        string $contentType = self::contentTypes['lookupIp'][0]
+    public function accountOrgAsyncWithHttpInfo(
+        string $contentType = self::contentTypes['accountOrg'][0]
     ): PromiseInterface
     {
-        $returnType = '\VPNDetection\Internal\Model\LookupResponse';
-        $request = $this->lookupIpRequest($ip, $contentType);
+        $returnType = '\VPNDetection\Internal\Model\AccountOrgWrap';
+        $request = $this->accountOrgRequest($contentType);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -382,27 +332,19 @@ class LookupApi
     }
 
     /**
-     * Create request for operation 'lookupIp'
+     * Create request for operation 'accountOrg'
      *
-     * @param  string $ip The IPv4 or IPv6 address to classify. (required)
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    public function lookupIpRequest(
-        string $ip,
-        string $contentType = self::contentTypes['lookupIp'][0]
+    public function accountOrgRequest(
+        string $contentType = self::contentTypes['accountOrg'][0]
     ): Request
     {
-        // verify the required parameter 'ip' is set
-        if ($ip === null || (is_array($ip) && count($ip) === 0)) {
-            throw new InvalidArgumentException(
-                'Missing the required parameter $ip when calling lookupIp'
-            );
-        }
 
-        $resourcePath = '/{ip}';
+        $resourcePath = '/api/v1/account/org';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -410,14 +352,6 @@ class LookupApi
 
 
 
-        // path params
-        if ($ip !== null) {
-            $resourcePath = str_replace(
-                '{ip}',
-                ObjectSerializer::toPathValue($ip),
-                $resourcePath
-            );
-        }
 
 
         $headers = $this->headerSelector->selectHeaders(
@@ -427,21 +361,9 @@ class LookupApi
         );
 
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
-        if ($apiKey !== null) {
-            $queryParams['apikey'] = $apiKey;
-        }
-
         // this endpoint requires Bearer authentication (access token)
         if (!empty($this->config->getAccessToken())) {
             $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
-        if ($apiKey !== null) {
-            $headers['X-Api-Key'] = $apiKey;
         }
 
         $defaultHeaders = [];
@@ -466,40 +388,40 @@ class LookupApi
     }
 
     /**
-     * Operation lookupMyIp
+     * Operation accountOrgMembers
      *
-     * Lookup your own address
+     * Who else is in your organization
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return \VPNDetection\Internal\Model\LookupResponse|\VPNDetection\Internal\Model\LookupError
+     * @return \VPNDetection\Internal\Model\AccountRc
      */
-    public function lookupMyIp(
-        string $contentType = self::contentTypes['lookupMyIp'][0]
-    ): \VPNDetection\Internal\Model\LookupResponse|\VPNDetection\Internal\Model\LookupError
+    public function accountOrgMembers(
+        string $contentType = self::contentTypes['accountOrgMembers'][0]
+    ): \VPNDetection\Internal\Model\AccountRc
     {
-        list($response) = $this->lookupMyIpWithHttpInfo($contentType);
+        list($response) = $this->accountOrgMembersWithHttpInfo($contentType);
         return $response;
     }
 
     /**
-     * Operation lookupMyIpWithHttpInfo
+     * Operation accountOrgMembersWithHttpInfo
      *
-     * Lookup your own address
+     * Who else is in your organization
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
      * @throws InvalidArgumentException
-     * @return array{0: \VPNDetection\Internal\Model\LookupResponse|\VPNDetection\Internal\Model\LookupError, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     * @return array{0: \VPNDetection\Internal\Model\AccountRc, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
      */
-    public function lookupMyIpWithHttpInfo(
-        string $contentType = self::contentTypes['lookupMyIp'][0]
+    public function accountOrgMembersWithHttpInfo(
+        string $contentType = self::contentTypes['accountOrgMembers'][0]
     ): array
     {
-        $request = $this->lookupMyIpRequest($contentType);
+        $request = $this->accountOrgMembersRequest($contentType);
 
         try {
             $options = $this->createHttpClientOption();
@@ -526,31 +448,19 @@ class LookupApi
             switch($statusCode) {
                 case 200:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupResponse',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
                 case 401:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
                 case 403:
                     return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $request,
-                        $response,
-                    );
-                case 429:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $request,
-                        $response,
-                    );
-                case 500:
-                    return $this->handleResponseWithDataType(
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $request,
                         $response,
                     );
@@ -570,7 +480,7 @@ class LookupApi
             }
 
             return $this->handleResponseWithDataType(
-                '\VPNDetection\Internal\Model\LookupResponse',
+                '\VPNDetection\Internal\Model\AccountRc',
                 $request,
                 $response,
             );
@@ -579,7 +489,7 @@ class LookupApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupResponse',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -587,7 +497,7 @@ class LookupApi
                 case 401:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -595,23 +505,7 @@ class LookupApi
                 case 403:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 429:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
-                        $e->getResponseHeaders()
-                    );
-                    $e->setResponseObject($data);
-                    throw $e;
-                case 500:
-                    $data = ObjectSerializer::deserialize(
-                        $e->getResponseBody(),
-                        '\VPNDetection\Internal\Model\LookupError',
+                        '\VPNDetection\Internal\Model\AccountRc',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -623,20 +517,20 @@ class LookupApi
     }
 
     /**
-     * Operation lookupMyIpAsync
+     * Operation accountOrgMembersAsync
      *
-     * Lookup your own address
+     * Who else is in your organization
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function lookupMyIpAsync(
-        string $contentType = self::contentTypes['lookupMyIp'][0]
+    public function accountOrgMembersAsync(
+        string $contentType = self::contentTypes['accountOrgMembers'][0]
     ): PromiseInterface
     {
-        return $this->lookupMyIpAsyncWithHttpInfo($contentType)
+        return $this->accountOrgMembersAsyncWithHttpInfo($contentType)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -645,21 +539,21 @@ class LookupApi
     }
 
     /**
-     * Operation lookupMyIpAsyncWithHttpInfo
+     * Operation accountOrgMembersAsyncWithHttpInfo
      *
-     * Lookup your own address
+     * Who else is in your organization
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return PromiseInterface
      */
-    public function lookupMyIpAsyncWithHttpInfo(
-        string $contentType = self::contentTypes['lookupMyIp'][0]
+    public function accountOrgMembersAsyncWithHttpInfo(
+        string $contentType = self::contentTypes['accountOrgMembers'][0]
     ): PromiseInterface
     {
-        $returnType = '\VPNDetection\Internal\Model\LookupResponse';
-        $request = $this->lookupMyIpRequest($contentType);
+        $returnType = '\VPNDetection\Internal\Model\AccountRc';
+        $request = $this->accountOrgMembersRequest($contentType);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -698,19 +592,19 @@ class LookupApi
     }
 
     /**
-     * Create request for operation 'lookupMyIp'
+     * Create request for operation 'accountOrgMembers'
      *
-     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    public function lookupMyIpRequest(
-        string $contentType = self::contentTypes['lookupMyIp'][0]
+    public function accountOrgMembersRequest(
+        string $contentType = self::contentTypes['accountOrgMembers'][0]
     ): Request
     {
 
-        $resourcePath = '/myip';
+        $resourcePath = '/api/v1/account/org/members';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -727,21 +621,9 @@ class LookupApi
         );
 
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
-        if ($apiKey !== null) {
-            $queryParams['apikey'] = $apiKey;
-        }
-
         // this endpoint requires Bearer authentication (access token)
         if (!empty($this->config->getAccessToken())) {
             $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
-        if ($apiKey !== null) {
-            $headers['X-Api-Key'] = $apiKey;
         }
 
         $defaultHeaders = [];

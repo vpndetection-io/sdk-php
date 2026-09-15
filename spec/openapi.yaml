@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.13
+  version: 2026.09.15
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -23,9 +23,21 @@ tags:
   - name: Database
     description: List and download the licensed databases.
     x-displayName: Database
+  - name: Entitlement
+    description: What your key may spend, and what it has.
+    x-displayName: Entitlement
   - name: Account
-    description: Your key, your plan, your usage.
+    description: Who the credential belongs to, and what it may do.
     x-displayName: Account
+  - name: Organization
+    description: The organization it is scoped to.
+    x-displayName: Organization
+  - name: API keys
+    description: Creating, listing and rotating credentials.
+    x-displayName: API keys
+  - name: Authorization
+    description: Obtaining and revoking tokens.
+    x-displayName: Authorization
 paths:
   /{ip}:
     get:
@@ -531,11 +543,11 @@ paths:
         - apiKeyQuery: []
         - apiKeyHeader: []
         - bearerAuth: []
-  /api/v1/account/me:
+  /api/v1/entitlement/me:
     get:
-      operationId: accountMe
+      operationId: myEntitlement
       tags:
-        - Account
+        - Entitlement
       summary: Your key, plan and usage
       description: |
         Answers what the presented key is, what plan is behind it, and what has
@@ -546,7 +558,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountMe'
+                $ref: '#/components/schemas/Entitlement'
               examples:
                 paid:
                   summary: A key on a paid plan, uncapped
@@ -589,7 +601,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountError'
+                $ref: '#/components/schemas/EntitlementError'
               examples:
                 missing:
                   value:
@@ -610,7 +622,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountError'
+                $ref: '#/components/schemas/EntitlementError'
               example:
                 error: source address not allowed for this API key
         '503':
@@ -621,13 +633,459 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountError'
+                $ref: '#/components/schemas/EntitlementError'
               example:
                 error: usage is temporarily unavailable
       security:
         - apiKeyQuery: []
         - apiKeyHeader: []
         - bearerAuth: []
+  /api/v1/account/identity:
+    get:
+      operationId: accountIdentity
+      tags:
+        - Account
+      summary: Identity - who this credential belongs to
+      description: |
+        The identity behind this credential: what it is, the organization it is
+        scoped to, and the scopes it currently holds.
+
+        `user` is present for an OAuth token and ABSENT for an API key, which
+        has an organization but no person behind it. `credential.kind` says
+        which you are holding, so a client can branch without guessing from a
+        missing field.
+
+        Narrower than what the console shows its own user on purpose: an
+        integration needs a name to display and an organization to address, not
+        a profile. The `scopes` array is what the credential may do RIGHT NOW,
+        so a client can render its own capabilities rather than discovering
+        them from a 403.
+      security:
+        - bearerAuth:
+            - account.read
+      responses:
+        '200':
+          description: The caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+              examples:
+                ok:
+                  summary: A token granted read access
+                  value:
+                    rc: SUCCESS
+                    user:
+                      id: 3d86d1ef-f70b-4063-a3b8-f69605a8fc57
+                      fullname: Ada Lovelace
+                      email: ada@example.com
+                    org:
+                      id: 7b309476-0e70-4225-9a46-5e25650094dd
+                    scopes:
+                      - account.read
+                      - apikeys.read
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+  /api/v1/account/org:
+    get:
+      operationId: accountOrg
+      tags:
+        - Organization
+      summary: Your organization
+      description: |
+        The organization this credential is scoped to.
+
+        There is no way to name a different one. A credential describes exactly
+        one organization, so an identifier in the path could only ever be your
+        own or a refusal.
+      security:
+        - bearerAuth:
+            - org.read
+      responses:
+        '200':
+          description: The organization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOrgWrap'
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+  /api/v1/account/org/members:
+    get:
+      operationId: accountOrgMembers
+      tags:
+        - Organization
+      summary: Who else is in your organization
+      description: |
+        Read-only. Adding or removing a member is an invitation flow with email
+        in the middle rather than a POST, and modelling it as one here would
+        promise something this API does not do.
+      security:
+        - bearerAuth:
+            - org.read
+      responses:
+        '200':
+          description: The members.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountRc'
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+  /api/v1/account/apikeys:
+    get:
+      operationId: accountListApikeys
+      tags:
+        - API keys
+      summary: List your API keys
+      description: |
+        Metadata only. A key's secret is never in a list - not here and not in
+        the console - because a list is the response that ends up in logs,
+        caches and support tickets.
+
+        `retrievable` says whether the secret could still be read back at all.
+        A key issued before this product stored secrets recoverably was never
+        kept, so `reveal` will refuse it permanently; rotating produces one
+        that can be read.
+      security:
+        - bearerAuth:
+            - apikeys.read
+      responses:
+        '200':
+          description: The organization's keys, newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApikeyList'
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+    post:
+      operationId: accountCreateApikey
+      tags:
+        - API keys
+      summary: Create an API key
+      description: |
+        Creates a key and returns its secret.
+
+        This is the ONLY response that ever carries the secret, and only
+        because this is the moment it comes into existence. Store it now.
+      security:
+        - bearerAuth:
+            - apikeys.manage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateApikeyRequest'
+      responses:
+        '200':
+          description: The new key, including its secret.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountCreatedApikey'
+        '400':
+          $ref: '#/components/responses/AccountInvalid'
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+  /api/v1/account/apikeys/{id}/rotate:
+    post:
+      operationId: accountRotateApikey
+      tags:
+        - API keys
+      summary: Rotate an API key
+      description: |
+        Replaces the secret behind a key, keeping its id, name and settings.
+        The previous secret stops working immediately.
+      security:
+        - bearerAuth:
+            - apikeys.manage
+      parameters:
+        - $ref: '#/components/parameters/ApikeyIdParam'
+      responses:
+        '200':
+          description: The key, with its new secret.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountCreatedApikey'
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+        '404':
+          $ref: '#/components/responses/AccountNotFound'
+  /api/v1/account/apikeys/{id}/revoke:
+    post:
+      operationId: accountRevokeApikey
+      tags:
+        - API keys
+      summary: Revoke an API key
+      description: |
+        Stops the key working. Revocation is soft: the key stays listed with a
+        `revoked_at`, because the organization still owns whatever it did while
+        it was alive.
+      security:
+        - bearerAuth:
+            - apikeys.manage
+      parameters:
+        - $ref: '#/components/parameters/ApikeyIdParam'
+      responses:
+        '200':
+          description: Revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountRc'
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+        '404':
+          $ref: '#/components/responses/AccountNotFound'
+  /api/v1/account/apikeys/{id}/reveal:
+    post:
+      operationId: accountRevealApikey
+      tags:
+        - API keys
+      summary: Read back a key's secret
+      description: |
+        Returns an existing key's secret.
+
+        Its own scope rather than part of `apikeys.manage`, because the two are
+        different acts: rotating replaces a secret you never see, while this
+        hands one over.
+
+        Refused with `NOT_RETRIEVABLE` for a key issued before this product
+        stored secrets recoverably - that secret was never kept, so no retry
+        will ever produce it. Rotate the key instead.
+      security:
+        - bearerAuth:
+            - apikeys.reveal
+      parameters:
+        - $ref: '#/components/parameters/ApikeyIdParam'
+      responses:
+        '200':
+          description: The key's secret.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountRevealedApikey'
+        '401':
+          $ref: '#/components/responses/AccountUnauthorized'
+        '403':
+          $ref: '#/components/responses/AccountForbidden'
+        '404':
+          description: |
+            No such key in this organization, or its secret was never stored
+            recoverably (`NOT_RETRIEVABLE`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountRc'
+  /.well-known/oauth-authorization-server:
+    get:
+      operationId: oauthMetadata
+      tags:
+        - Authorization
+      summary: Discovery document
+      description: |
+        RFC 8414 authorization server metadata: the endpoints, the grant types
+        and the scopes this server supports.
+
+        Read this rather than hardcoding endpoints. It is also served at
+        `/.well-known/openid-configuration`, identically, because several
+        clients probe that path first.
+      security: []
+      responses:
+        '200':
+          description: The server's metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthMetadata'
+  /oauth/device_authorization:
+    post:
+      operationId: oauthDeviceAuthorization
+      tags:
+        - Authorization
+      summary: Begin a device authorization
+      description: |
+        Starts the device flow. Show the `user_code` to the person and send them
+        to `verification_uri`; `verification_uri_complete` has the code already
+        embedded, which is what to open if you can open a browser at all.
+
+        Then poll `/oauth/token`, no faster than `interval` seconds.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DeviceAuthorizationRequest'
+      responses:
+        '200':
+          description: A pending device authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceAuthorization'
+        '400':
+          description: |
+            `invalid_request`, `invalid_client`, `unauthorized_client`, or
+            `slow_down` when this address has started too many authorizations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthError'
+  /oauth/authorize:
+    get:
+      operationId: oauthAuthorize
+      tags:
+        - Authorization
+      summary: Send a user here to approve
+      description: |
+        The browser entry point for the authorization-code flow. This is a
+        redirect target, not something to call from code.
+
+        An unknown `client_id` or an unregistered `redirect_uri` is shown to the
+        USER and never redirected, because sending an error to an address we
+        have not verified belongs to you is how an open redirector works.
+        Everything else comes back to your `redirect_uri` with `error`, your
+        `state`, and `iss`.
+      security: []
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - code
+        - name: code_challenge
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: code_challenge_method
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - S256
+          description: S256 only. `plain` is refused rather than downgraded.
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Returned unchanged. Use it to bind the response to your request.
+        - name: resource
+          in: query
+          required: false
+          schema:
+            type: string
+          description: RFC 8707. What the token is FOR, so it cannot be replayed elsewhere.
+      responses:
+        '302':
+          description: A redirect to the consent screen, or back to your redirect_uri with an error.
+        '400':
+          description: Shown to the user. An unverified redirect target is never sent an error.
+  /oauth/token:
+    post:
+      operationId: oauthToken
+      tags:
+        - Authorization
+      summary: Exchange a grant for tokens
+      description: |
+        Three grant types.
+
+        `urn:ietf:params:oauth:grant-type:device_code` polls a device
+        authorization. Until the person approves it answers
+        `authorization_pending`; poll faster than `interval` and it answers
+        `slow_down`, which means widen your interval and keep it widened.
+
+        `authorization_code` exchanges a code from `/oauth/authorize`, with the
+        `code_verifier` matching the challenge you sent.
+
+        `refresh_token` exchanges a refresh token. The presented token is
+        consumed whatever happens next, so store the new one before using it.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Tokens.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: |
+            An RFC 6749 error. `authorization_pending` and `slow_down` are
+            normal answers while polling a device authorization, not failures.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthError'
+  /oauth/revoke:
+    post:
+      operationId: oauthRevoke
+      tags:
+        - Authorization
+      summary: Revoke a token
+      description: |
+        RFC 7009. Always answers 200, including for a token that was never
+        valid - an endpoint that distinguished the two would be a way to test
+        whether a stolen string is a live credential.
+
+        Revoking a REFRESH token ends the whole authorization and takes its
+        access tokens with it. Revoking an access token affects only that token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RevokeRequest'
+      responses:
+        '200':
+          description: Always, whatever was presented.
+          content:
+            application/json:
+              schema:
+                type: object
 components:
   securitySchemes:
     bearerAuth:
@@ -852,8 +1310,13 @@ components:
           $ref: '#/components/schemas/DatabaseFormat'
         bytes:
           type: integer
+          format: int64
           nullable: true
-          description: Size of the published file, or null when it has not been published yet
+          description: |
+            Size of the published file, or null when it has not been published
+            yet. int64 because it is not hypothetical: resproxy_ip_14d's MMDB is
+            4.58 GB, so a 32-bit field cannot carry the catalogue and `list`
+            throws for every caller rather than for that one entry.
       required:
         - format
         - bytes
@@ -984,10 +1447,13 @@ components:
           description: The evaluation sample rather than the database itself.
         bytes:
           type: integer
+          format: int64
           nullable: true
           description: |
             Object size at redirect time, NOT bytes delivered: the transfer is a
             presigned redirect straight to object storage, so we never observe it.
+            int64 for the same reason as DatabaseFormatSize.bytes - it is the
+            size of the same object.
         http_status:
           type: integer
           nullable: true
@@ -1078,11 +1544,13 @@ components:
           type: object
           additionalProperties:
             type: integer
+            format: int64
           description: Bytes per format
         sample_size:
           type: object
           additionalProperties:
             type: integer
+            format: int64
           description: Bytes per format of the evaluation sample, where one is published
         sample_entries:
           type: integer
@@ -1092,7 +1560,7 @@ components:
         - updated
         - entries
         - schema
-    AccountMe:
+    Entitlement:
       type: object
       required:
         - org_id
@@ -1105,12 +1573,12 @@ components:
           format: uuid
           description: The organization the key belongs to.
         apikey:
-          $ref: '#/components/schemas/AccountApikey'
+          $ref: '#/components/schemas/EntitlementApikey'
         plan:
-          $ref: '#/components/schemas/AccountPlan'
+          $ref: '#/components/schemas/EntitlementPlan'
         usage:
-          $ref: '#/components/schemas/AccountUsage'
-    AccountApikey:
+          $ref: '#/components/schemas/EntitlementUsage'
+    EntitlementApikey:
       type: object
       description: |
         The credential itself. The key is never echoed - only its id, which is
@@ -1135,7 +1603,7 @@ components:
           description: |
             The source addresses this key may be used from. EMPTY means
             unrestricted, never "deny all".
-    AccountPlan:
+    EntitlementPlan:
       type: object
       required:
         - key
@@ -1156,7 +1624,7 @@ components:
             The field tier, which decides how much of a lookup answer comes
             back. What each tier includes is documented on the lookup endpoint
             rather than repeated here, so there is one place it can be wrong.
-    AccountUsage:
+    EntitlementUsage:
       type: object
       required:
         - requests
@@ -1191,13 +1659,328 @@ components:
           type: string
           format: date-time
           description: When the allowance next resets.
-    AccountError:
+    EntitlementError:
       type: object
       required:
         - error
       properties:
         error:
           type: string
+    AccountRc:
+      type: object
+      properties:
+        rc:
+          type: string
+          description: The outcome. `SUCCESS` on success; otherwise the reason.
+      required:
+        - rc
+    Identity:
+      type: object
+      properties:
+        rc:
+          type: string
+        user:
+          $ref: '#/components/schemas/AccountUser'
+        org:
+          $ref: '#/components/schemas/AccountOrgRef'
+        scopes:
+          type: array
+          items:
+            type: string
+          description: What this credential may do right now.
+      required:
+        - rc
+        - user
+        - org
+        - scopes
+    AccountUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullname:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+        - id
+    AccountOrgRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
+    AccountOrgWrap:
+      type: object
+      properties:
+        rc:
+          type: string
+        org:
+          $ref: '#/components/schemas/AccountOrg'
+      required:
+        - rc
+        - org
+    AccountOrg:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+    ApikeyList:
+      type: object
+      properties:
+        rc:
+          type: string
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApikeyDetail'
+      required:
+        - rc
+        - keys
+    ApikeyDetail:
+      description: Key METADATA. Never the key itself.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        key_prefix:
+          type: string
+          description: The leading, non-secret part, so a key is recognisable without storing it.
+        created:
+          type: string
+          format: date-time
+        expires:
+          type: string
+          format: date-time
+          nullable: true
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+        allowed_cidrs:
+          type: array
+          items:
+            type: string
+          description: Source-IP allowlist. EMPTY MEANS UNRESTRICTED, not deny-all.
+        allowed_scopes:
+          type: array
+          items:
+            type: string
+        retrievable:
+          type: boolean
+          description: >-
+            Whether this key's secret can still be read back. False permanently for a key issued
+            before secrets were stored recoverably.
+      required:
+        - id
+        - name
+        - key_prefix
+        - created
+    AccountCreateApikeyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A label you will recognise later. Shown wherever the key is listed.
+        allowed_scopes:
+          type: array
+          items:
+            type: string
+          description: >-
+            What the new key may do. Omit for a key that carries no named scope, which is the safe
+            default.
+      required:
+        - name
+    AccountCreatedApikey:
+      type: object
+      properties:
+        rc:
+          type: string
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        key:
+          type: string
+          description: The secret. Returned once, here, and never again.
+        key_prefix:
+          type: string
+        allowed_cidrs:
+          type: array
+          items:
+            type: string
+        allowed_scopes:
+          type: array
+          items:
+            type: string
+      required:
+        - rc
+        - id
+        - key
+    AccountRevealedApikey:
+      type: object
+      properties:
+        rc:
+          type: string
+        key:
+          type: string
+          description: The secret.
+      required:
+        - rc
+        - key
+    OauthMetadata:
+      type: object
+      properties:
+        issuer:
+          type: string
+        authorization_endpoint:
+          type: string
+        token_endpoint:
+          type: string
+        device_authorization_endpoint:
+          type: string
+        revocation_endpoint:
+          type: string
+        scopes_supported:
+          type: array
+          items:
+            type: string
+        response_types_supported:
+          type: array
+          items:
+            type: string
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+        code_challenge_methods_supported:
+          type: array
+          items:
+            type: string
+        client_id_metadata_document_supported:
+          type: boolean
+          description: A client_id may be an https URL serving your client metadata.
+      required:
+        - issuer
+        - authorization_endpoint
+        - token_endpoint
+    DeviceAuthorizationRequest:
+      type: object
+      properties:
+        client_id:
+          type: string
+        scope:
+          type: string
+          description: >-
+            Space-delimited. Anything your client is not registered for is dropped rather than
+            refused.
+        resource:
+          type: string
+          description: 'RFC 8707: what the token is for.'
+      required:
+        - client_id
+    DeviceAuthorization:
+      type: object
+      properties:
+        device_code:
+          type: string
+          description: Yours. Poll with it; never show it to anyone.
+        user_code:
+          type: string
+          description: Short and typable. This is what the person confirms.
+        verification_uri:
+          type: string
+        verification_uri_complete:
+          type: string
+          description: The same page with the code already filled in.
+        expires_in:
+          type: integer
+        interval:
+          type: integer
+          description: Seconds between polls.
+      required:
+        - device_code
+        - user_code
+        - verification_uri
+        - expires_in
+        - interval
+    TokenRequest:
+      type: object
+      properties:
+        grant_type:
+          type: string
+        client_id:
+          type: string
+        device_code:
+          type: string
+        code:
+          type: string
+        code_verifier:
+          type: string
+        redirect_uri:
+          type: string
+        refresh_token:
+          type: string
+      required:
+        - grant_type
+        - client_id
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+        scope:
+          type: string
+          description: What was actually granted, which may be narrower than what was asked for.
+      required:
+        - access_token
+        - token_type
+        - expires_in
+    RevokeRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        client_id:
+          type: string
+      required:
+        - token
+    OauthError:
+      type: object
+      properties:
+        error:
+          type: string
+        error_description:
+          type: string
+      required:
+        - error
   responses:
     Unauthorized:
       description: Missing or invalid key, or the key lacks the db.download scope
@@ -1223,6 +2006,41 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    AccountUnauthorized:
+      description: No credential was presented, or it is not valid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountRc'
+    AccountForbidden:
+      description: |
+        The credential does not hold the scope this endpoint requires. The
+        missing scope is deliberately not named.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountRc'
+    AccountNotFound:
+      description: No such key in this organization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountRc'
+    AccountInvalid:
+      description: The request body is missing a required field.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountRc'
+  parameters:
+    ApikeyIdParam:
+      name: id
+      in: path
+      required: true
+      description: The key's id, as returned by the list endpoint. Never the key itself.
+      schema:
+        type: string
+        format: uuid
 x-tagGroups:
   - name: VPNDetection IP API
     tags:
@@ -1230,6 +2048,14 @@ x-tagGroups:
   - name: VPNDetection Database API
     tags:
       - Database
-  - name: VPNDetection Account API
+  - name: VPNDetection Entitlement API
+    tags:
+      - Entitlement
+  - name: VPNDetection IAM API
     tags:
       - Account
+      - Organization
+      - API keys
+  - name: VPNDetection Authorization
+    tags:
+      - Authorization

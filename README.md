@@ -57,7 +57,7 @@ Same answer `lookup` would give for that address, and the same cost against your
 ### Your plan and usage
 
 ```php
-$acct = $client->myAccount();
+$acct = $client->myEntitlement();
 echo $acct->plan->key;          // max
 echo $acct->usage->requests;    // 580
 echo $acct->usage->windowEnd;   // when the allowance resets

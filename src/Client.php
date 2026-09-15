@@ -12,11 +12,11 @@ use GuzzleHttp\Promise\PromiseInterface;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use Psr\Http\Message\ResponseInterface;
-use VPNDetection\Internal\Api\AccountApi as WireAccountApi;
+use VPNDetection\Internal\Api\EntitlementApi as WireEntitlementApi;
 use VPNDetection\Internal\Api\DatabaseApi as WireDatabaseApi;
 use VPNDetection\Internal\Api\LookupApi;
 use VPNDetection\Internal\Configuration;
-use VPNDetection\Internal\Model\AccountMe;
+use VPNDetection\Internal\Model\Entitlement;
 use VPNDetection\Internal\Model\LookupResponse;
 
 /**
@@ -30,7 +30,7 @@ final class Client
     public const DEFAULT_BASE_URL = 'https://api.vpndetection.io';
 
     private readonly LookupApi $lookupApi;
-    private readonly WireAccountApi $accountApi;
+    private readonly WireEntitlementApi $entitlementApi;
     private readonly Transport $transport;
     private readonly ?Cache $cache;
     private readonly int $concurrency;
@@ -49,7 +49,7 @@ final class Client
 
         $http = $options->httpClient ?? new GuzzleClient();
         $this->lookupApi = new LookupApi($http, $config);
-        $this->accountApi = new WireAccountApi($http, $config);
+        $this->entitlementApi = new WireEntitlementApi($http, $config);
         $this->transport = new Transport($http, $options->retries, $options->timeout);
         $this->cache = $options->cache
             ? new Cache($options->cacheMaxSize, $options->cacheTtlSeconds)
@@ -123,7 +123,7 @@ final class Client
      *
      * Named for what it answers rather than `me`, which sits one letter from
      * `myIp` and means something quite different: one is which address you are
-     * calling FROM, the other is which account you are calling AS.
+     * calling FROM, the other is what the key you are calling WITH may spend.
      *
      * Unlike a lookup there is no useful unauthenticated answer, so a client
      * built without an API key gets an unauthorized error rather than a partial
@@ -140,15 +140,15 @@ final class Client
      * @param array{retries?: int} $options Per-call overrides.
      * @throws VPNDetectionException
      */
-    public function myAccount(array $options = []): Account
+    public function myEntitlement(array $options = []): Entitlement
     {
         self::assertOptions($options, ['retries']);
-        $request = $this->accountApi->accountMeRequest();
+        $request = $this->entitlementApi->myEntitlementRequest();
         return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
-            function (ResponseInterface $response): Account {
+            function (ResponseInterface $response): Entitlement {
                 $body = (string) $response->getBody();
                 $status = $response->getStatusCode();
-                return Account::fromWire(Transport::toModel($body, AccountMe::class, $status));
+                return Entitlement::fromWire(Transport::toModel($body, Entitlement::class, $status));
             },
         )->wait();
     }

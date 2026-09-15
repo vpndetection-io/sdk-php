@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * TokenResponse
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * TokenResponse Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class TokenResponse implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'TokenResponse';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'access_token' => 'string',
+        'token_type' => 'string',
+        'expires_in' => 'int',
+        'refresh_token' => 'string',
+        'scope' => 'string'
     ];
 
     /**
@@ -68,7 +72,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'access_token' => null,
+        'token_type' => null,
+        'expires_in' => null,
+        'refresh_token' => null,
+        'scope' => null
     ];
 
     /**
@@ -77,7 +85,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'access_token' => false,
+        'token_type' => false,
+        'expires_in' => false,
+        'refresh_token' => false,
+        'scope' => false
     ];
 
     /**
@@ -156,7 +168,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'access_token' => 'access_token',
+        'token_type' => 'token_type',
+        'expires_in' => 'expires_in',
+        'refresh_token' => 'refresh_token',
+        'scope' => 'scope'
     ];
 
     /**
@@ -165,7 +181,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'access_token' => 'setAccessToken',
+        'token_type' => 'setTokenType',
+        'expires_in' => 'setExpiresIn',
+        'refresh_token' => 'setRefreshToken',
+        'scope' => 'setScope'
     ];
 
     /**
@@ -174,7 +194,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'access_token' => 'getAccessToken',
+        'token_type' => 'getTokenType',
+        'expires_in' => 'getExpiresIn',
+        'refresh_token' => 'getRefreshToken',
+        'scope' => 'getScope'
     ];
 
     /**
@@ -224,7 +248,11 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('access_token', $data ?? [], null);
+        $this->setIfExists('token_type', $data ?? [], null);
+        $this->setIfExists('expires_in', $data ?? [], null);
+        $this->setIfExists('refresh_token', $data ?? [], null);
+        $this->setIfExists('scope', $data ?? [], null);
     }
 
     /**
@@ -252,8 +280,14 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['rc'] === null) {
-            $invalidProperties[] = "'rc' can't be null";
+        if ($this->container['access_token'] === null) {
+            $invalidProperties[] = "'access_token' can't be null";
+        }
+        if ($this->container['token_type'] === null) {
+            $invalidProperties[] = "'token_type' can't be null";
+        }
+        if ($this->container['expires_in'] === null) {
+            $invalidProperties[] = "'expires_in' can't be null";
         }
         return $invalidProperties;
     }
@@ -268,28 +302,136 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets rc
+     * Gets access_token
      *
      * @return string
      */
-    public function getRc(): string
+    public function getAccessToken(): string
     {
-        return $this->container['rc'];
+        return $this->container['access_token'];
     }
 
     /**
-     * Sets rc
+     * Sets access_token
      *
-     * @param string $rc rc
+     * @param string $access_token access_token
      *
      * @return $this
      */
-    public function setRc(string $rc): static
+    public function setAccessToken(string $access_token): static
     {
-        if (is_null($rc)) {
-            throw new InvalidArgumentException('non-nullable rc cannot be null');
+        if (is_null($access_token)) {
+            throw new InvalidArgumentException('non-nullable access_token cannot be null');
         }
-        $this->container['rc'] = $rc;
+        $this->container['access_token'] = $access_token;
+
+        return $this;
+    }
+
+    /**
+     * Gets token_type
+     *
+     * @return string
+     */
+    public function getTokenType(): string
+    {
+        return $this->container['token_type'];
+    }
+
+    /**
+     * Sets token_type
+     *
+     * @param string $token_type token_type
+     *
+     * @return $this
+     */
+    public function setTokenType(string $token_type): static
+    {
+        if (is_null($token_type)) {
+            throw new InvalidArgumentException('non-nullable token_type cannot be null');
+        }
+        $this->container['token_type'] = $token_type;
+
+        return $this;
+    }
+
+    /**
+     * Gets expires_in
+     *
+     * @return int
+     */
+    public function getExpiresIn(): int
+    {
+        return $this->container['expires_in'];
+    }
+
+    /**
+     * Sets expires_in
+     *
+     * @param int $expires_in expires_in
+     *
+     * @return $this
+     */
+    public function setExpiresIn(int $expires_in): static
+    {
+        if (is_null($expires_in)) {
+            throw new InvalidArgumentException('non-nullable expires_in cannot be null');
+        }
+        $this->container['expires_in'] = $expires_in;
+
+        return $this;
+    }
+
+    /**
+     * Gets refresh_token
+     *
+     * @return string|null
+     */
+    public function getRefreshToken(): ?string
+    {
+        return $this->container['refresh_token'];
+    }
+
+    /**
+     * Sets refresh_token
+     *
+     * @param string|null $refresh_token refresh_token
+     *
+     * @return $this
+     */
+    public function setRefreshToken(?string $refresh_token): static
+    {
+        if (is_null($refresh_token)) {
+            throw new InvalidArgumentException('non-nullable refresh_token cannot be null');
+        }
+        $this->container['refresh_token'] = $refresh_token;
+
+        return $this;
+    }
+
+    /**
+     * Gets scope
+     *
+     * @return string|null
+     */
+    public function getScope(): ?string
+    {
+        return $this->container['scope'];
+    }
+
+    /**
+     * Sets scope
+     *
+     * @param string|null $scope What was actually granted, which may be narrower than what was asked for.
+     *
+     * @return $this
+     */
+    public function setScope(?string $scope): static
+    {
+        if (is_null($scope)) {
+            throw new InvalidArgumentException('non-nullable scope cannot be null');
+        }
+        $this->container['scope'] = $scope;
 
         return $this;
     }

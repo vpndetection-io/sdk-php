@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * Entitlement
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * Entitlement Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class Entitlement implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'Entitlement';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,10 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'org_id' => 'string',
+        'apikey' => '\VPNDetection\Internal\Model\EntitlementApikey',
+        'plan' => '\VPNDetection\Internal\Model\EntitlementPlan',
+        'usage' => '\VPNDetection\Internal\Model\EntitlementUsage'
     ];
 
     /**
@@ -68,7 +71,10 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'org_id' => 'uuid',
+        'apikey' => null,
+        'plan' => null,
+        'usage' => null
     ];
 
     /**
@@ -77,7 +83,10 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'org_id' => false,
+        'apikey' => false,
+        'plan' => false,
+        'usage' => false
     ];
 
     /**
@@ -156,7 +165,10 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'org_id' => 'org_id',
+        'apikey' => 'apikey',
+        'plan' => 'plan',
+        'usage' => 'usage'
     ];
 
     /**
@@ -165,7 +177,10 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'org_id' => 'setOrgId',
+        'apikey' => 'setApikey',
+        'plan' => 'setPlan',
+        'usage' => 'setUsage'
     ];
 
     /**
@@ -174,7 +189,10 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'org_id' => 'getOrgId',
+        'apikey' => 'getApikey',
+        'plan' => 'getPlan',
+        'usage' => 'getUsage'
     ];
 
     /**
@@ -224,7 +242,10 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('org_id', $data ?? [], null);
+        $this->setIfExists('apikey', $data ?? [], null);
+        $this->setIfExists('plan', $data ?? [], null);
+        $this->setIfExists('usage', $data ?? [], null);
     }
 
     /**
@@ -252,8 +273,17 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['rc'] === null) {
-            $invalidProperties[] = "'rc' can't be null";
+        if ($this->container['org_id'] === null) {
+            $invalidProperties[] = "'org_id' can't be null";
+        }
+        if ($this->container['apikey'] === null) {
+            $invalidProperties[] = "'apikey' can't be null";
+        }
+        if ($this->container['plan'] === null) {
+            $invalidProperties[] = "'plan' can't be null";
+        }
+        if ($this->container['usage'] === null) {
+            $invalidProperties[] = "'usage' can't be null";
         }
         return $invalidProperties;
     }
@@ -268,28 +298,109 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets rc
+     * Gets org_id
      *
      * @return string
      */
-    public function getRc(): string
+    public function getOrgId(): string
     {
-        return $this->container['rc'];
+        return $this->container['org_id'];
     }
 
     /**
-     * Sets rc
+     * Sets org_id
      *
-     * @param string $rc rc
+     * @param string $org_id The organization the key belongs to.
      *
      * @return $this
      */
-    public function setRc(string $rc): static
+    public function setOrgId(string $org_id): static
     {
-        if (is_null($rc)) {
-            throw new InvalidArgumentException('non-nullable rc cannot be null');
+        if (is_null($org_id)) {
+            throw new InvalidArgumentException('non-nullable org_id cannot be null');
         }
-        $this->container['rc'] = $rc;
+        $this->container['org_id'] = $org_id;
+
+        return $this;
+    }
+
+    /**
+     * Gets apikey
+     *
+     * @return \VPNDetection\Internal\Model\EntitlementApikey
+     */
+    public function getApikey(): \VPNDetection\Internal\Model\EntitlementApikey
+    {
+        return $this->container['apikey'];
+    }
+
+    /**
+     * Sets apikey
+     *
+     * @param \VPNDetection\Internal\Model\EntitlementApikey $apikey apikey
+     *
+     * @return $this
+     */
+    public function setApikey(\VPNDetection\Internal\Model\EntitlementApikey $apikey): static
+    {
+        if (is_null($apikey)) {
+            throw new InvalidArgumentException('non-nullable apikey cannot be null');
+        }
+        $this->container['apikey'] = $apikey;
+
+        return $this;
+    }
+
+    /**
+     * Gets plan
+     *
+     * @return \VPNDetection\Internal\Model\EntitlementPlan
+     */
+    public function getPlan(): \VPNDetection\Internal\Model\EntitlementPlan
+    {
+        return $this->container['plan'];
+    }
+
+    /**
+     * Sets plan
+     *
+     * @param \VPNDetection\Internal\Model\EntitlementPlan $plan plan
+     *
+     * @return $this
+     */
+    public function setPlan(\VPNDetection\Internal\Model\EntitlementPlan $plan): static
+    {
+        if (is_null($plan)) {
+            throw new InvalidArgumentException('non-nullable plan cannot be null');
+        }
+        $this->container['plan'] = $plan;
+
+        return $this;
+    }
+
+    /**
+     * Gets usage
+     *
+     * @return \VPNDetection\Internal\Model\EntitlementUsage
+     */
+    public function getUsage(): \VPNDetection\Internal\Model\EntitlementUsage
+    {
+        return $this->container['usage'];
+    }
+
+    /**
+     * Sets usage
+     *
+     * @param \VPNDetection\Internal\Model\EntitlementUsage $usage usage
+     *
+     * @return $this
+     */
+    public function setUsage(\VPNDetection\Internal\Model\EntitlementUsage $usage): static
+    {
+        if (is_null($usage)) {
+            throw new InvalidArgumentException('non-nullable usage cannot be null');
+        }
+        $this->container['usage'] = $usage;
 
         return $this;
     }

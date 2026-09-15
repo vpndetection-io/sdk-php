@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * AccountOrgWrap
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * AccountOrgWrap Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class AccountOrgWrap implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'AccountOrgWrap';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'rc' => 'string',
+        'org' => '\VPNDetection\Internal\Model\AccountOrg'
     ];
 
     /**
@@ -68,7 +69,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'rc' => null,
+        'org' => null
     ];
 
     /**
@@ -77,7 +79,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'rc' => false,
+        'org' => false
     ];
 
     /**
@@ -156,7 +159,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'rc' => 'rc',
+        'org' => 'org'
     ];
 
     /**
@@ -165,7 +169,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'rc' => 'setRc',
+        'org' => 'setOrg'
     ];
 
     /**
@@ -174,7 +179,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'rc' => 'getRc',
+        'org' => 'getOrg'
     ];
 
     /**
@@ -225,6 +231,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     public function __construct(?array $data = null)
     {
         $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('org', $data ?? [], null);
     }
 
     /**
@@ -254,6 +261,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
         if ($this->container['rc'] === null) {
             $invalidProperties[] = "'rc' can't be null";
+        }
+        if ($this->container['org'] === null) {
+            $invalidProperties[] = "'org' can't be null";
         }
         return $invalidProperties;
     }
@@ -290,6 +300,33 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
             throw new InvalidArgumentException('non-nullable rc cannot be null');
         }
         $this->container['rc'] = $rc;
+
+        return $this;
+    }
+
+    /**
+     * Gets org
+     *
+     * @return \VPNDetection\Internal\Model\AccountOrg
+     */
+    public function getOrg(): \VPNDetection\Internal\Model\AccountOrg
+    {
+        return $this->container['org'];
+    }
+
+    /**
+     * Sets org
+     *
+     * @param \VPNDetection\Internal\Model\AccountOrg $org org
+     *
+     * @return $this
+     */
+    public function setOrg(\VPNDetection\Internal\Model\AccountOrg $org): static
+    {
+        if (is_null($org)) {
+            throw new InvalidArgumentException('non-nullable org cannot be null');
+        }
+        $this->container['org'] = $org;
 
         return $this;
     }

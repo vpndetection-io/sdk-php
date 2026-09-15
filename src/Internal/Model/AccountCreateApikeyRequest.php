@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * AccountCreateApikeyRequest
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * AccountCreateApikeyRequest Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class AccountCreateApikeyRequest implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'AccountCreateApikeyRequest';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'name' => 'string',
+        'allowed_scopes' => 'string[]'
     ];
 
     /**
@@ -68,7 +69,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'name' => null,
+        'allowed_scopes' => null
     ];
 
     /**
@@ -77,7 +79,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'name' => false,
+        'allowed_scopes' => false
     ];
 
     /**
@@ -156,7 +159,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'name' => 'name',
+        'allowed_scopes' => 'allowed_scopes'
     ];
 
     /**
@@ -165,7 +169,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'name' => 'setName',
+        'allowed_scopes' => 'setAllowedScopes'
     ];
 
     /**
@@ -174,7 +179,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'name' => 'getName',
+        'allowed_scopes' => 'getAllowedScopes'
     ];
 
     /**
@@ -224,7 +230,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('name', $data ?? [], null);
+        $this->setIfExists('allowed_scopes', $data ?? [], null);
     }
 
     /**
@@ -252,8 +259,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['rc'] === null) {
-            $invalidProperties[] = "'rc' can't be null";
+        if ($this->container['name'] === null) {
+            $invalidProperties[] = "'name' can't be null";
         }
         return $invalidProperties;
     }
@@ -268,28 +275,55 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets rc
+     * Gets name
      *
      * @return string
      */
-    public function getRc(): string
+    public function getName(): string
     {
-        return $this->container['rc'];
+        return $this->container['name'];
     }
 
     /**
-     * Sets rc
+     * Sets name
      *
-     * @param string $rc rc
+     * @param string $name A label you will recognise later. Shown wherever the key is listed.
      *
      * @return $this
      */
-    public function setRc(string $rc): static
+    public function setName(string $name): static
     {
-        if (is_null($rc)) {
-            throw new InvalidArgumentException('non-nullable rc cannot be null');
+        if (is_null($name)) {
+            throw new InvalidArgumentException('non-nullable name cannot be null');
         }
-        $this->container['rc'] = $rc;
+        $this->container['name'] = $name;
+
+        return $this;
+    }
+
+    /**
+     * Gets allowed_scopes
+     *
+     * @return string[]|null
+     */
+    public function getAllowedScopes(): ?array
+    {
+        return $this->container['allowed_scopes'];
+    }
+
+    /**
+     * Sets allowed_scopes
+     *
+     * @param string[]|null $allowed_scopes What the new key may do. Omit for a key that carries no named scope, which is the safe default.
+     *
+     * @return $this
+     */
+    public function setAllowedScopes(?array $allowed_scopes): static
+    {
+        if (is_null($allowed_scopes)) {
+            throw new InvalidArgumentException('non-nullable allowed_scopes cannot be null');
+        }
+        $this->container['allowed_scopes'] = $allowed_scopes;
 
         return $this;
     }

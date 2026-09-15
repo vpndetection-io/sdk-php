@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * AccountUser
  *
  * PHP version 8.1
  *
@@ -35,14 +35,14 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * AccountUser Class Doc Comment
  *
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class AccountUser implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +51,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'AccountUser';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +59,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'id' => 'string',
+        'fullname' => 'string',
+        'email' => 'string'
     ];
 
     /**
@@ -68,7 +70,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'id' => 'uuid',
+        'fullname' => null,
+        'email' => 'email'
     ];
 
     /**
@@ -77,7 +81,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'id' => false,
+        'fullname' => false,
+        'email' => false
     ];
 
     /**
@@ -156,7 +162,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'id' => 'id',
+        'fullname' => 'fullname',
+        'email' => 'email'
     ];
 
     /**
@@ -165,7 +173,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'id' => 'setId',
+        'fullname' => 'setFullname',
+        'email' => 'setEmail'
     ];
 
     /**
@@ -174,7 +184,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'id' => 'getId',
+        'fullname' => 'getFullname',
+        'email' => 'getEmail'
     ];
 
     /**
@@ -224,7 +236,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('id', $data ?? [], null);
+        $this->setIfExists('fullname', $data ?? [], null);
+        $this->setIfExists('email', $data ?? [], null);
     }
 
     /**
@@ -252,8 +266,8 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['rc'] === null) {
-            $invalidProperties[] = "'rc' can't be null";
+        if ($this->container['id'] === null) {
+            $invalidProperties[] = "'id' can't be null";
         }
         return $invalidProperties;
     }
@@ -268,28 +282,82 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets rc
+     * Gets id
      *
      * @return string
      */
-    public function getRc(): string
+    public function getId(): string
     {
-        return $this->container['rc'];
+        return $this->container['id'];
     }
 
     /**
-     * Sets rc
+     * Sets id
      *
-     * @param string $rc rc
+     * @param string $id id
      *
      * @return $this
      */
-    public function setRc(string $rc): static
+    public function setId(string $id): static
     {
-        if (is_null($rc)) {
-            throw new InvalidArgumentException('non-nullable rc cannot be null');
+        if (is_null($id)) {
+            throw new InvalidArgumentException('non-nullable id cannot be null');
         }
-        $this->container['rc'] = $rc;
+        $this->container['id'] = $id;
+
+        return $this;
+    }
+
+    /**
+     * Gets fullname
+     *
+     * @return string|null
+     */
+    public function getFullname(): ?string
+    {
+        return $this->container['fullname'];
+    }
+
+    /**
+     * Sets fullname
+     *
+     * @param string|null $fullname fullname
+     *
+     * @return $this
+     */
+    public function setFullname(?string $fullname): static
+    {
+        if (is_null($fullname)) {
+            throw new InvalidArgumentException('non-nullable fullname cannot be null');
+        }
+        $this->container['fullname'] = $fullname;
+
+        return $this;
+    }
+
+    /**
+     * Gets email
+     *
+     * @return string|null
+     */
+    public function getEmail(): ?string
+    {
+        return $this->container['email'];
+    }
+
+    /**
+     * Sets email
+     *
+     * @param string|null $email email
+     *
+     * @return $this
+     */
+    public function setEmail(?string $email): static
+    {
+        if (is_null($email)) {
+            throw new InvalidArgumentException('non-nullable email cannot be null');
+        }
+        $this->container['email'] = $email;
 
         return $this;
     }

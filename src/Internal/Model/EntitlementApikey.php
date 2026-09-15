@@ -1,6 +1,6 @@
 <?php
 /**
- * Error
+ * EntitlementApikey
  *
  * PHP version 8.1
  *
@@ -35,14 +35,15 @@ use ReturnTypeWillChange;
 use VPNDetection\Internal\ObjectSerializer;
 
 /**
- * Error Class Doc Comment
+ * EntitlementApikey Class Doc Comment
  *
+ * @description The credential itself. The key is never echoed - only its id, which is what the console shows and what you can act on.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
  * @implements ArrayAccess<string, mixed>
  */
-class Error implements ModelInterface, ArrayAccess, JsonSerializable
+class EntitlementApikey implements ModelInterface, ArrayAccess, JsonSerializable
 {
     public const DISCRIMINATOR = null;
 
@@ -51,7 +52,7 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      *
      * @var string
      */
-    protected static string $openAPIModelName = 'Error';
+    protected static string $openAPIModelName = 'EntitlementApikey';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
@@ -59,7 +60,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $openAPITypes = [
-        'rc' => 'string'
+        'id' => 'string',
+        'expires' => '\DateTime',
+        'allowed_cidrs' => 'string[]'
     ];
 
     /**
@@ -68,7 +71,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string|null>
      */
     protected static array $openAPIFormats = [
-        'rc' => null
+        'id' => 'uuid',
+        'expires' => 'date-time',
+        'allowed_cidrs' => null
     ];
 
     /**
@@ -77,7 +82,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, bool>
      */
     protected static array $openAPINullables = [
-        'rc' => false
+        'id' => false,
+        'expires' => true,
+        'allowed_cidrs' => false
     ];
 
     /**
@@ -156,7 +163,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $attributeMap = [
-        'rc' => 'rc'
+        'id' => 'id',
+        'expires' => 'expires',
+        'allowed_cidrs' => 'allowed_cidrs'
     ];
 
     /**
@@ -165,7 +174,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $setters = [
-        'rc' => 'setRc'
+        'id' => 'setId',
+        'expires' => 'setExpires',
+        'allowed_cidrs' => 'setAllowedCidrs'
     ];
 
     /**
@@ -174,7 +185,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      * @var array<string, string>
      */
     protected static array $getters = [
-        'rc' => 'getRc'
+        'id' => 'getId',
+        'expires' => 'getExpires',
+        'allowed_cidrs' => 'getAllowedCidrs'
     ];
 
     /**
@@ -224,7 +237,9 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
      */
     public function __construct(?array $data = null)
     {
-        $this->setIfExists('rc', $data ?? [], null);
+        $this->setIfExists('id', $data ?? [], null);
+        $this->setIfExists('expires', $data ?? [], null);
+        $this->setIfExists('allowed_cidrs', $data ?? [], null);
     }
 
     /**
@@ -252,8 +267,14 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
     {
         $invalidProperties = [];
 
-        if ($this->container['rc'] === null) {
-            $invalidProperties[] = "'rc' can't be null";
+        if ($this->container['id'] === null) {
+            $invalidProperties[] = "'id' can't be null";
+        }
+        if ($this->container['expires'] === null && !$this->isNullableSetToNull('expires')) {
+            $invalidProperties[] = "'expires' is required";
+        }
+        if ($this->container['allowed_cidrs'] === null) {
+            $invalidProperties[] = "'allowed_cidrs' can't be null";
         }
         return $invalidProperties;
     }
@@ -268,28 +289,89 @@ class Error implements ModelInterface, ArrayAccess, JsonSerializable
 
 
     /**
-     * Gets rc
+     * Gets id
      *
      * @return string
      */
-    public function getRc(): string
+    public function getId(): string
     {
-        return $this->container['rc'];
+        return $this->container['id'];
     }
 
     /**
-     * Sets rc
+     * Sets id
      *
-     * @param string $rc rc
+     * @param string $id id
      *
      * @return $this
      */
-    public function setRc(string $rc): static
+    public function setId(string $id): static
     {
-        if (is_null($rc)) {
-            throw new InvalidArgumentException('non-nullable rc cannot be null');
+        if (is_null($id)) {
+            throw new InvalidArgumentException('non-nullable id cannot be null');
         }
-        $this->container['rc'] = $rc;
+        $this->container['id'] = $id;
+
+        return $this;
+    }
+
+    /**
+     * Gets expires
+     *
+     * @return \DateTime|null
+     */
+    public function getExpires(): ?\DateTime
+    {
+        return $this->container['expires'];
+    }
+
+    /**
+     * Sets expires
+     *
+     * @param \DateTime|null $expires Null for a key with no end date, which is the normal case.
+     *
+     * @return $this
+     */
+    public function setExpires(?\DateTime $expires): static
+    {
+        if (is_null($expires)) {
+            array_push($this->openAPINullablesSetToNull, 'expires');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('expires', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['expires'] = $expires;
+
+        return $this;
+    }
+
+    /**
+     * Gets allowed_cidrs
+     *
+     * @return string[]
+     */
+    public function getAllowedCidrs(): array
+    {
+        return $this->container['allowed_cidrs'];
+    }
+
+    /**
+     * Sets allowed_cidrs
+     *
+     * @param string[] $allowed_cidrs The source addresses this key may be used from. EMPTY means unrestricted, never \"deny all\".
+     *
+     * @return $this
+     */
+    public function setAllowedCidrs(array $allowed_cidrs): static
+    {
+        if (is_null($allowed_cidrs)) {
+            throw new InvalidArgumentException('non-nullable allowed_cidrs cannot be null');
+        }
+        $this->container['allowed_cidrs'] = $allowed_cidrs;
 
         return $this;
     }
