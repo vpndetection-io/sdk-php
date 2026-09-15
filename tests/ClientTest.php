@@ -449,9 +449,9 @@ final class ClientTest extends TestCase
         self::assertCount(2, $stub->calls);
     }
 
-    public function testMyAccountReportsThePlanAndTheUsage(): void
+    public function testMyEntitlementReportsThePlanAndTheUsage(): void
     {
-        $stub = new Stub(['/api/v1/entitlement/me' => Stub::ok(self::ENTITLEMENT_BODY)]);
+        $stub = new Stub(['/api/v1/entitlement' => Stub::ok(self::ENTITLEMENT_BODY)]);
         $client = new Client(new Options(httpClient: $stub->client));
 
         $ent = $client->myEntitlement();
@@ -465,10 +465,10 @@ final class ClientTest extends TestCase
         self::assertSame([], $ent->apikey->allowedCidrs);
     }
 
-    public function testMyAccountIsNotCached(): void
+    public function testMyEntitlementIsNotCached(): void
     {
         // The whole point is what has been spent.
-        $stub = new Stub(['/api/v1/entitlement/me' => Stub::ok(self::ENTITLEMENT_BODY)]);
+        $stub = new Stub(['/api/v1/entitlement' => Stub::ok(self::ENTITLEMENT_BODY)]);
         $client = new Client(new Options(httpClient: $stub->client));
 
         $client->myEntitlement();
@@ -477,10 +477,10 @@ final class ClientTest extends TestCase
         self::assertCount(2, $stub->calls);
     }
 
-    public function testMyAccountSurfacesAnUnauthorizedKey(): void
+    public function testMyEntitlementSurfacesAnUnauthorizedKey(): void
     {
         $stub = new Stub([
-            '/api/v1/entitlement/me' => ['status' => 401, 'body' => ['error' => 'invalid API key']],
+            '/api/v1/entitlement' => ['status' => 401, 'body' => ['error' => 'invalid API key']],
         ]);
         $client = new Client(new Options(retries: 0, httpClient: $stub->client));
 

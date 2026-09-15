@@ -127,7 +127,7 @@ class EntitlementApi
     /**
      * Operation myEntitlement
      *
-     * Your key, plan and usage
+     * Plan and usage
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
@@ -146,7 +146,7 @@ class EntitlementApi
     /**
      * Operation myEntitlementWithHttpInfo
      *
-     * Your key, plan and usage
+     * Plan and usage
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
@@ -270,7 +270,7 @@ class EntitlementApi
     /**
      * Operation myEntitlementAsync
      *
-     * Your key, plan and usage
+     * Plan and usage
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
@@ -292,7 +292,7 @@ class EntitlementApi
     /**
      * Operation myEntitlementAsyncWithHttpInfo
      *
-     * Your key, plan and usage
+     * Plan and usage
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['myEntitlement'] to see the possible values for this operation
      *
@@ -355,7 +355,7 @@ class EntitlementApi
     ): Request
     {
 
-        $resourcePath = '/api/v1/entitlement/me';
+        $resourcePath = '/api/v1/entitlement';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';

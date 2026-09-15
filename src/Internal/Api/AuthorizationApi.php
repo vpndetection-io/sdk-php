@@ -139,7 +139,7 @@ class AuthorizationApi
     /**
      * Operation oauthAuthorize
      *
-     * Send a user here to approve
+     * Authorize
      *
      * @param  string $client_id client_id (required)
      * @param  string $redirect_uri redirect_uri (required)
@@ -173,7 +173,7 @@ class AuthorizationApi
     /**
      * Operation oauthAuthorizeWithHttpInfo
      *
-     * Send a user here to approve
+     * Authorize
      *
      * @param  string $client_id (required)
      * @param  string $redirect_uri (required)
@@ -238,7 +238,7 @@ class AuthorizationApi
     /**
      * Operation oauthAuthorizeAsync
      *
-     * Send a user here to approve
+     * Authorize
      *
      * @param  string $client_id (required)
      * @param  string $redirect_uri (required)
@@ -276,7 +276,7 @@ class AuthorizationApi
     /**
      * Operation oauthAuthorizeAsyncWithHttpInfo
      *
-     * Send a user here to approve
+     * Authorize
      *
      * @param  string $client_id (required)
      * @param  string $redirect_uri (required)
@@ -495,7 +495,7 @@ class AuthorizationApi
     /**
      * Operation oauthDeviceAuthorization
      *
-     * Begin a device authorization
+     * Device authorization
      *
      * @param  string $client_id client_id (required)
      * @param  string|null $scope Space-delimited. Anything your client is not registered for is dropped rather than refused. (optional)
@@ -520,7 +520,7 @@ class AuthorizationApi
     /**
      * Operation oauthDeviceAuthorizationWithHttpInfo
      *
-     * Begin a device authorization
+     * Device authorization
      *
      * @param  string $client_id (required)
      * @param  string|null $scope Space-delimited. Anything your client is not registered for is dropped rather than refused. (optional)
@@ -622,7 +622,7 @@ class AuthorizationApi
     /**
      * Operation oauthDeviceAuthorizationAsync
      *
-     * Begin a device authorization
+     * Device authorization
      *
      * @param  string $client_id (required)
      * @param  string|null $scope Space-delimited. Anything your client is not registered for is dropped rather than refused. (optional)
@@ -650,7 +650,7 @@ class AuthorizationApi
     /**
      * Operation oauthDeviceAuthorizationAsyncWithHttpInfo
      *
-     * Begin a device authorization
+     * Device authorization
      *
      * @param  string $client_id (required)
      * @param  string|null $scope Space-delimited. Anything your client is not registered for is dropped rather than refused. (optional)
@@ -812,7 +812,7 @@ class AuthorizationApi
     /**
      * Operation oauthMetadata
      *
-     * Discovery document
+     * Discovery
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['oauthMetadata'] to see the possible values for this operation
      *
@@ -831,7 +831,7 @@ class AuthorizationApi
     /**
      * Operation oauthMetadataWithHttpInfo
      *
-     * Discovery document
+     * Discovery
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['oauthMetadata'] to see the possible values for this operation
      *
@@ -913,7 +913,7 @@ class AuthorizationApi
     /**
      * Operation oauthMetadataAsync
      *
-     * Discovery document
+     * Discovery
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['oauthMetadata'] to see the possible values for this operation
      *
@@ -935,7 +935,7 @@ class AuthorizationApi
     /**
      * Operation oauthMetadataAsyncWithHttpInfo
      *
-     * Discovery document
+     * Discovery
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['oauthMetadata'] to see the possible values for this operation
      *
@@ -1039,7 +1039,7 @@ class AuthorizationApi
     /**
      * Operation oauthRevoke
      *
-     * Revoke a token
+     * Revoke
      *
      * @param  string $token token (required)
      * @param  string|null $client_id client_id (optional)
@@ -1062,7 +1062,7 @@ class AuthorizationApi
     /**
      * Operation oauthRevokeWithHttpInfo
      *
-     * Revoke a token
+     * Revoke
      *
      * @param  string $token (required)
      * @param  string|null $client_id (optional)
@@ -1148,7 +1148,7 @@ class AuthorizationApi
     /**
      * Operation oauthRevokeAsync
      *
-     * Revoke a token
+     * Revoke
      *
      * @param  string $token (required)
      * @param  string|null $client_id (optional)
@@ -1174,7 +1174,7 @@ class AuthorizationApi
     /**
      * Operation oauthRevokeAsyncWithHttpInfo
      *
-     * Revoke a token
+     * Revoke
      *
      * @param  string $token (required)
      * @param  string|null $client_id (optional)
@@ -1331,7 +1331,7 @@ class AuthorizationApi
     /**
      * Operation oauthToken
      *
-     * Exchange a grant for tokens
+     * Token
      *
      * @param  string $grant_type grant_type (required)
      * @param  string $client_id client_id (required)
@@ -1364,7 +1364,7 @@ class AuthorizationApi
     /**
      * Operation oauthTokenWithHttpInfo
      *
-     * Exchange a grant for tokens
+     * Token
      *
      * @param  string $grant_type (required)
      * @param  string $client_id (required)
@@ -1474,7 +1474,7 @@ class AuthorizationApi
     /**
      * Operation oauthTokenAsync
      *
-     * Exchange a grant for tokens
+     * Token
      *
      * @param  string $grant_type (required)
      * @param  string $client_id (required)
@@ -1510,7 +1510,7 @@ class AuthorizationApi
     /**
      * Operation oauthTokenAsyncWithHttpInfo
      *
-     * Exchange a grant for tokens
+     * Token
      *
      * @param  string $grant_type (required)
      * @param  string $client_id (required)

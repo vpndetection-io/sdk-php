@@ -468,7 +468,7 @@ class LookupApi
     /**
      * Operation lookupMyIp
      *
-     * Lookup your own address
+     * My IP
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
      *
@@ -487,7 +487,7 @@ class LookupApi
     /**
      * Operation lookupMyIpWithHttpInfo
      *
-     * Lookup your own address
+     * My IP
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
      *
@@ -625,7 +625,7 @@ class LookupApi
     /**
      * Operation lookupMyIpAsync
      *
-     * Lookup your own address
+     * My IP
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
      *
@@ -647,7 +647,7 @@ class LookupApi
     /**
      * Operation lookupMyIpAsyncWithHttpInfo
      *
-     * Lookup your own address
+     * My IP
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupMyIp'] to see the possible values for this operation
      *

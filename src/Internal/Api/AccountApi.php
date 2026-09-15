@@ -127,7 +127,7 @@ class AccountApi
     /**
      * Operation accountIdentity
      *
-     * Identity - who this credential belongs to
+     * Identity
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
      *
@@ -146,7 +146,7 @@ class AccountApi
     /**
      * Operation accountIdentityWithHttpInfo
      *
-     * Identity - who this credential belongs to
+     * Identity
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
      *
@@ -256,7 +256,7 @@ class AccountApi
     /**
      * Operation accountIdentityAsync
      *
-     * Identity - who this credential belongs to
+     * Identity
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
      *
@@ -278,7 +278,7 @@ class AccountApi
     /**
      * Operation accountIdentityAsyncWithHttpInfo
      *
-     * Identity - who this credential belongs to
+     * Identity
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountIdentity'] to see the possible values for this operation
      *
@@ -341,7 +341,7 @@ class AccountApi
     ): Request
     {
 
-        $resourcePath = '/api/v1/account/identity';
+        $resourcePath = '/api/v1/iam/identity';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';

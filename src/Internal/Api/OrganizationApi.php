@@ -130,7 +130,7 @@ class OrganizationApi
     /**
      * Operation accountOrg
      *
-     * Your organization
+     * Organization
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
@@ -149,7 +149,7 @@ class OrganizationApi
     /**
      * Operation accountOrgWithHttpInfo
      *
-     * Your organization
+     * Organization
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
@@ -259,7 +259,7 @@ class OrganizationApi
     /**
      * Operation accountOrgAsync
      *
-     * Your organization
+     * Organization
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
@@ -281,7 +281,7 @@ class OrganizationApi
     /**
      * Operation accountOrgAsyncWithHttpInfo
      *
-     * Your organization
+     * Organization
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrg'] to see the possible values for this operation
      *
@@ -344,7 +344,7 @@ class OrganizationApi
     ): Request
     {
 
-        $resourcePath = '/api/v1/account/org';
+        $resourcePath = '/api/v1/iam/org';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -390,7 +390,7 @@ class OrganizationApi
     /**
      * Operation accountOrgMembers
      *
-     * Who else is in your organization
+     * Members
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
@@ -409,7 +409,7 @@ class OrganizationApi
     /**
      * Operation accountOrgMembersWithHttpInfo
      *
-     * Who else is in your organization
+     * Members
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
@@ -519,7 +519,7 @@ class OrganizationApi
     /**
      * Operation accountOrgMembersAsync
      *
-     * Who else is in your organization
+     * Members
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
@@ -541,7 +541,7 @@ class OrganizationApi
     /**
      * Operation accountOrgMembersAsyncWithHttpInfo
      *
-     * Who else is in your organization
+     * Members
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountOrgMembers'] to see the possible values for this operation
      *
@@ -604,7 +604,7 @@ class OrganizationApi
     ): Request
     {
 
-        $resourcePath = '/api/v1/account/org/members';
+        $resourcePath = '/api/v1/iam/org/members';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';

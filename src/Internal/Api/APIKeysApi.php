@@ -139,7 +139,7 @@ class APIKeysApi
     /**
      * Operation accountCreateApikey
      *
-     * Create an API key
+     * Create
      *
      * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request account_create_apikey_request (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
@@ -160,7 +160,7 @@ class APIKeysApi
     /**
      * Operation accountCreateApikeyWithHttpInfo
      *
-     * Create an API key
+     * Create
      *
      * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
@@ -286,7 +286,7 @@ class APIKeysApi
     /**
      * Operation accountCreateApikeyAsync
      *
-     * Create an API key
+     * Create
      *
      * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
@@ -310,7 +310,7 @@ class APIKeysApi
     /**
      * Operation accountCreateApikeyAsyncWithHttpInfo
      *
-     * Create an API key
+     * Create
      *
      * @param  \VPNDetection\Internal\Model\AccountCreateApikeyRequest $account_create_apikey_request (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountCreateApikey'] to see the possible values for this operation
@@ -383,7 +383,7 @@ class APIKeysApi
             );
         }
 
-        $resourcePath = '/api/v1/account/apikeys';
+        $resourcePath = '/api/v1/iam/apikeys';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -469,7 +469,7 @@ class APIKeysApi
     /**
      * Operation accountListApikeys
      *
-     * List your API keys
+     * List
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
@@ -488,7 +488,7 @@ class APIKeysApi
     /**
      * Operation accountListApikeysWithHttpInfo
      *
-     * List your API keys
+     * List
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
@@ -598,7 +598,7 @@ class APIKeysApi
     /**
      * Operation accountListApikeysAsync
      *
-     * List your API keys
+     * List
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
@@ -620,7 +620,7 @@ class APIKeysApi
     /**
      * Operation accountListApikeysAsyncWithHttpInfo
      *
-     * List your API keys
+     * List
      *
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountListApikeys'] to see the possible values for this operation
      *
@@ -683,7 +683,7 @@ class APIKeysApi
     ): Request
     {
 
-        $resourcePath = '/api/v1/account/apikeys';
+        $resourcePath = '/api/v1/iam/apikeys';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -729,7 +729,7 @@ class APIKeysApi
     /**
      * Operation accountRevealApikey
      *
-     * Read back a key&#39;s secret
+     * Reveal
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
@@ -750,7 +750,7 @@ class APIKeysApi
     /**
      * Operation accountRevealApikeyWithHttpInfo
      *
-     * Read back a key&#39;s secret
+     * Reveal
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
@@ -876,7 +876,7 @@ class APIKeysApi
     /**
      * Operation accountRevealApikeyAsync
      *
-     * Read back a key&#39;s secret
+     * Reveal
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
@@ -900,7 +900,7 @@ class APIKeysApi
     /**
      * Operation accountRevealApikeyAsyncWithHttpInfo
      *
-     * Read back a key&#39;s secret
+     * Reveal
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
@@ -973,7 +973,7 @@ class APIKeysApi
             );
         }
 
-        $resourcePath = '/api/v1/account/apikeys/{id}/reveal';
+        $resourcePath = '/api/v1/iam/apikeys/{id}/reveal';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -1027,7 +1027,7 @@ class APIKeysApi
     /**
      * Operation accountRevokeApikey
      *
-     * Revoke an API key
+     * Revoke
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
@@ -1048,7 +1048,7 @@ class APIKeysApi
     /**
      * Operation accountRevokeApikeyWithHttpInfo
      *
-     * Revoke an API key
+     * Revoke
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
@@ -1174,7 +1174,7 @@ class APIKeysApi
     /**
      * Operation accountRevokeApikeyAsync
      *
-     * Revoke an API key
+     * Revoke
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
@@ -1198,7 +1198,7 @@ class APIKeysApi
     /**
      * Operation accountRevokeApikeyAsyncWithHttpInfo
      *
-     * Revoke an API key
+     * Revoke
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
@@ -1271,7 +1271,7 @@ class APIKeysApi
             );
         }
 
-        $resourcePath = '/api/v1/account/apikeys/{id}/revoke';
+        $resourcePath = '/api/v1/iam/apikeys/{id}/revoke';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
@@ -1325,7 +1325,7 @@ class APIKeysApi
     /**
      * Operation accountRotateApikey
      *
-     * Rotate an API key
+     * Rotate
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
@@ -1346,7 +1346,7 @@ class APIKeysApi
     /**
      * Operation accountRotateApikeyWithHttpInfo
      *
-     * Rotate an API key
+     * Rotate
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
@@ -1472,7 +1472,7 @@ class APIKeysApi
     /**
      * Operation accountRotateApikeyAsync
      *
-     * Rotate an API key
+     * Rotate
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
@@ -1496,7 +1496,7 @@ class APIKeysApi
     /**
      * Operation accountRotateApikeyAsyncWithHttpInfo
      *
-     * Rotate an API key
+     * Rotate
      *
      * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
@@ -1569,7 +1569,7 @@ class APIKeysApi
             );
         }
 
-        $resourcePath = '/api/v1/account/apikeys/{id}/rotate';
+        $resourcePath = '/api/v1/iam/apikeys/{id}/rotate';
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';

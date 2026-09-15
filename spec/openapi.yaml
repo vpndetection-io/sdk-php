@@ -238,7 +238,7 @@ paths:
       operationId: lookupMyIp
       tags:
         - Lookup
-      summary: Lookup your own address
+      summary: My IP
       description: |
         Answers what is known about the address this request came from, which is
         the same answer `GET /{ip}` gives for that address: the plan behind the
@@ -543,12 +543,12 @@ paths:
         - apiKeyQuery: []
         - apiKeyHeader: []
         - bearerAuth: []
-  /api/v1/entitlement/me:
+  /api/v1/entitlement:
     get:
       operationId: myEntitlement
       tags:
         - Entitlement
-      summary: Your key, plan and usage
+      summary: Plan and usage
       description: |
         Answers what the presented key is, what plan is behind it, and what has
         been spent against that plan's allowance in the current window.
@@ -640,12 +640,12 @@ paths:
         - apiKeyQuery: []
         - apiKeyHeader: []
         - bearerAuth: []
-  /api/v1/account/identity:
+  /api/v1/iam/identity:
     get:
       operationId: accountIdentity
       tags:
         - Account
-      summary: Identity - who this credential belongs to
+      summary: Identity
       description: |
         The identity behind this credential: what it is, the organization it is
         scoped to, and the scopes it currently holds.
@@ -688,12 +688,12 @@ paths:
           $ref: '#/components/responses/AccountUnauthorized'
         '403':
           $ref: '#/components/responses/AccountForbidden'
-  /api/v1/account/org:
+  /api/v1/iam/org:
     get:
       operationId: accountOrg
       tags:
         - Organization
-      summary: Your organization
+      summary: Organization
       description: |
         The organization this credential is scoped to.
 
@@ -714,12 +714,12 @@ paths:
           $ref: '#/components/responses/AccountUnauthorized'
         '403':
           $ref: '#/components/responses/AccountForbidden'
-  /api/v1/account/org/members:
+  /api/v1/iam/org/members:
     get:
       operationId: accountOrgMembers
       tags:
         - Organization
-      summary: Who else is in your organization
+      summary: Members
       description: |
         Read-only. Adding or removing a member is an invitation flow with email
         in the middle rather than a POST, and modelling it as one here would
@@ -738,12 +738,12 @@ paths:
           $ref: '#/components/responses/AccountUnauthorized'
         '403':
           $ref: '#/components/responses/AccountForbidden'
-  /api/v1/account/apikeys:
+  /api/v1/iam/apikeys:
     get:
       operationId: accountListApikeys
       tags:
         - API keys
-      summary: List your API keys
+      summary: List
       description: |
         Metadata only. A key's secret is never in a list - not here and not in
         the console - because a list is the response that ends up in logs,
@@ -771,7 +771,7 @@ paths:
       operationId: accountCreateApikey
       tags:
         - API keys
-      summary: Create an API key
+      summary: Create
       description: |
         Creates a key and returns its secret.
 
@@ -799,12 +799,12 @@ paths:
           $ref: '#/components/responses/AccountUnauthorized'
         '403':
           $ref: '#/components/responses/AccountForbidden'
-  /api/v1/account/apikeys/{id}/rotate:
+  /api/v1/iam/apikeys/{id}/rotate:
     post:
       operationId: accountRotateApikey
       tags:
         - API keys
-      summary: Rotate an API key
+      summary: Rotate
       description: |
         Replaces the secret behind a key, keeping its id, name and settings.
         The previous secret stops working immediately.
@@ -826,12 +826,12 @@ paths:
           $ref: '#/components/responses/AccountForbidden'
         '404':
           $ref: '#/components/responses/AccountNotFound'
-  /api/v1/account/apikeys/{id}/revoke:
+  /api/v1/iam/apikeys/{id}/revoke:
     post:
       operationId: accountRevokeApikey
       tags:
         - API keys
-      summary: Revoke an API key
+      summary: Revoke
       description: |
         Stops the key working. Revocation is soft: the key stays listed with a
         `revoked_at`, because the organization still owns whatever it did while
@@ -854,12 +854,12 @@ paths:
           $ref: '#/components/responses/AccountForbidden'
         '404':
           $ref: '#/components/responses/AccountNotFound'
-  /api/v1/account/apikeys/{id}/reveal:
+  /api/v1/iam/apikeys/{id}/reveal:
     post:
       operationId: accountRevealApikey
       tags:
         - API keys
-      summary: Read back a key's secret
+      summary: Reveal
       description: |
         Returns an existing key's secret.
 
@@ -899,7 +899,7 @@ paths:
       operationId: oauthMetadata
       tags:
         - Authorization
-      summary: Discovery document
+      summary: Discovery
       description: |
         RFC 8414 authorization server metadata: the endpoints, the grant types
         and the scopes this server supports.
@@ -920,7 +920,7 @@ paths:
       operationId: oauthDeviceAuthorization
       tags:
         - Authorization
-      summary: Begin a device authorization
+      summary: Device authorization
       description: |
         Starts the device flow. Show the `user_code` to the person and send them
         to `verification_uri`; `verification_uri_complete` has the code already
@@ -954,7 +954,7 @@ paths:
       operationId: oauthAuthorize
       tags:
         - Authorization
-      summary: Send a user here to approve
+      summary: Authorize
       description: |
         The browser entry point for the authorization-code flow. This is a
         redirect target, not something to call from code.
@@ -1023,7 +1023,7 @@ paths:
       operationId: oauthToken
       tags:
         - Authorization
-      summary: Exchange a grant for tokens
+      summary: Token
       description: |
         Three grant types.
 
@@ -1064,7 +1064,7 @@ paths:
       operationId: oauthRevoke
       tags:
         - Authorization
-      summary: Revoke a token
+      summary: Revoke
       description: |
         RFC 7009. Always answers 200, including for a token that was never
         valid - an endpoint that distinguished the two would be a way to test
@@ -2056,6 +2056,6 @@ x-tagGroups:
       - Account
       - Organization
       - API keys
-  - name: VPNDetection Authorization
+  - name: VPNDetection Authorization Authorization
     tags:
       - Authorization

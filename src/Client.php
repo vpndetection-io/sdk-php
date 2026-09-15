@@ -16,7 +16,7 @@ use VPNDetection\Internal\Api\EntitlementApi as WireEntitlementApi;
 use VPNDetection\Internal\Api\DatabaseApi as WireDatabaseApi;
 use VPNDetection\Internal\Api\LookupApi;
 use VPNDetection\Internal\Configuration;
-use VPNDetection\Internal\Model\Entitlement;
+use VPNDetection\Internal\Model\Entitlement as WireEntitlement;
 use VPNDetection\Internal\Model\LookupResponse;
 
 /**
@@ -148,7 +148,7 @@ final class Client
             function (ResponseInterface $response): Entitlement {
                 $body = (string) $response->getBody();
                 $status = $response->getStatusCode();
-                return Entitlement::fromWire(Transport::toModel($body, Entitlement::class, $status));
+                return Entitlement::fromWire(Transport::toModel($body, WireEntitlement::class, $status));
             },
         )->wait();
     }
