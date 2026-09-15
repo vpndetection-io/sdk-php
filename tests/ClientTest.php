@@ -87,9 +87,9 @@ final class ClientTest extends TestCase
         $stub = self::addressStub();
         $client = new Client(new Options(cache: false, httpClient: $stub->client));
 
-        $client->lookupBatch(self::ADDRS, ['concurrency' => 3]);
+        $client->lookupBatch(self::manyAddresses(), ['concurrency' => 3]);
 
-        self::assertCount(count(self::ADDRS), $stub->calls);
+        self::assertCount(7, $stub->calls, 'one request per chunk of 1000');
         self::assertLessThanOrEqual(3, $stub->peak, "peak in flight was {$stub->peak}");
         self::assertGreaterThan(1, $stub->peak, 'requests should still overlap');
     }
@@ -100,7 +100,7 @@ final class ClientTest extends TestCase
         // Instance default of 2, raised to 6 for this one batch.
         $client = new Client(new Options(cache: false, concurrency: 2, httpClient: $stub->client));
 
-        $client->lookupBatch(self::ADDRS, ['concurrency' => 6]);
+        $client->lookupBatch(self::manyAddresses(), ['concurrency' => 6]);
 
         self::assertGreaterThan(2, $stub->peak, "override ignored: peak was {$stub->peak}");
         self::assertLessThanOrEqual(6, $stub->peak, "peak in flight was {$stub->peak}");
@@ -111,7 +111,7 @@ final class ClientTest extends TestCase
         $stub = self::addressStub();
         $client = new Client(new Options(cache: false, concurrency: 2, httpClient: $stub->client));
 
-        $client->lookupBatch(self::ADDRS);
+        $client->lookupBatch(self::manyAddresses());
 
         self::assertLessThanOrEqual(2, $stub->peak, "peak in flight was {$stub->peak}");
     }
@@ -404,10 +404,26 @@ final class ClientTest extends TestCase
     private static function addressStub(): Stub
     {
         $routes = [];
-        foreach (self::ADDRS as $ip) {
+        foreach ([...self::ADDRS, ...self::manyAddresses()] as $ip) {
             $routes[$ip] = Stub::ok(['ip' => $ip, 'is_vpn' => false]);
         }
         return new Stub(Stub::lookups($routes));
+    }
+
+    /**
+     * Enough addresses for seven chunks of the batch endpoint's 1000, so a
+     * concurrency bound has something to bound: one request per chunk, and only
+     * the chunks overlap.
+     *
+     * @return list<string>
+     */
+    private static function manyAddresses(): array
+    {
+        $addresses = [];
+        for ($i = 0; $i < 6001; $i++) {
+            $addresses[] = sprintf('9.%d.%d.%d', 1 + intdiv($i, 65536), intdiv($i, 256) % 256, $i % 256);
+        }
+        return $addresses;
     }
     private const ENTITLEMENT_BODY = [
         'org_id' => '85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61',

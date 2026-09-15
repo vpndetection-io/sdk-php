@@ -320,6 +320,174 @@ paths:
         - apiKeyQuery: []
         - apiKeyHeader: []
         - bearerAuth: []
+  /batch:
+    post:
+      operationId: lookupBatch
+      tags:
+        - Lookup
+      summary: Batch
+      description: |
+        Answers up to 1000 addresses in one call. Each distinct string in `ips`
+        is one lookup: it costs exactly what `GET /{ip}` costs for that address
+        and comes back with exactly the fields that call would carry for your
+        plan. Exact duplicates collapse to one entry and one lookup.
+
+        Both maps in the answer are keyed by the string you sent, so nothing has
+        to be lined up by position; the `ip` inside each result is the
+        normalized form. An address that could not be answered sits in `errors`
+        with the status and message the single lookup would have given, and
+        never disturbs the others: a string that is not an address is a `400`
+        there, and an allowance that runs out part way through leaves the
+        remaining entries as `429`s.
+
+        The call itself fails only for the reasons below, and a `429` on the
+        call always carries `Retry-After`: the batch is admitted or refused
+        whole by the rate limit, so a per-entry `429` is always a spent
+        allowance and never a throttle.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchLookupRequest'
+            example:
+              ips:
+                - 1.1.1.1
+                - '2606:4700:4700:0:0:0:0:1111'
+                - 192.168.1.1
+                - not-an-ip
+      responses:
+        '200':
+          description: |
+            One entry per distinct input string, in `results` or in `errors`.
+            Present fields within a result are those your plan includes; see the
+            tier table in the API description.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchLookupResponse'
+              examples:
+                free:
+                  summary: No API key, or a key on the free plan
+                  value:
+                    results:
+                      1.1.1.1:
+                        ip: 1.1.1.1
+                        is_vpn: false
+                      '2606:4700:4700:0:0:0:0:1111':
+                        ip: 2606:4700:4700::1111
+                        is_vpn: false
+                      192.168.1.1:
+                        ip: 192.168.1.1
+                        is_vpn: false
+                    errors:
+                      not-an-ip:
+                        status: 400
+                        error: not a valid IP address
+                keylessDailyLimit:
+                  summary: No API key, and the daily allowance ran out after the first entry
+                  value:
+                    results:
+                      1.1.1.1:
+                        ip: 1.1.1.1
+                        is_vpn: false
+                    errors:
+                      8.8.8.8:
+                        status: 429
+                        error: daily limit for unauthenticated requests exceeded; use an API key
+                quotaExceeded:
+                  summary: A key on the starter plan whose allowance ran out after the first entry
+                  value:
+                    results:
+                      1.1.1.1:
+                        ip: 1.1.1.1
+                        is_vpn: false
+                        is_hosting: true
+                        is_relay: false
+                        is_tor: false
+                        is_cdn: false
+                        vpn: {}
+                    errors:
+                      8.8.8.8:
+                        status: 429
+                        error: request allowance exceeded; raise or remove your overage limit
+                lookupFailed:
+                  summary: The VPN dataset could not be consulted, which fails every entry
+                  value:
+                    results: {}
+                    errors:
+                      1.1.1.1:
+                        status: 500
+                        error: lookup failed
+        '400':
+          description: The body is not a batch, or names too few or too many addresses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              examples:
+                malformed:
+                  value:
+                    error: body must be a JSON object whose ips member is an array of strings
+                size:
+                  value:
+                    error: ips must hold between 1 and 1000 addresses
+        '401':
+          description: The presented API key is unknown, revoked, or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              examples:
+                invalid:
+                  value:
+                    error: invalid API key
+                revoked:
+                  value:
+                    error: API key revoked
+                expired:
+                  value:
+                    error: API key expired
+        '403':
+          description: |
+            The key restricts which source addresses may use it, and this
+            request did not come from one of them.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: source address not allowed for this API key
+        '413':
+          description: The body is larger than any batch of 1000 addresses can be.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: request body too large
+        '429':
+          description: |
+            The rate limit refused the whole call. Always transient and always
+            with `Retry-After`; a spent allowance is reported per entry in a
+            `200` instead.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying the call.
+              required: true
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: rate limit exceeded
+      security:
+        - {}
+        - apiKeyQuery: []
+        - apiKeyHeader: []
+        - bearerAuth: []
   /api/v1/database/list:
     get:
       operationId: listDatabases
@@ -1180,6 +1348,63 @@ components:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
           description: Detail for `is_mobproxy`. Empty when false. Max only.
+    BatchLookupRequest:
+      type: object
+      required:
+        - ips
+      properties:
+        ips:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            type: string
+          description: |
+            The addresses to classify, 1 to 1000 per call, counted before
+            duplicates collapse. Each distinct string is one lookup.
+          example:
+            - 1.1.1.1
+            - 2606:4700:4700::1111
+    BatchLookupResponse:
+      type: object
+      required:
+        - results
+        - errors
+      properties:
+        results:
+          type: object
+          description: |
+            One answer per input string that was classified, keyed by the string
+            as you sent it; the `ip` inside is the normalized form. Each value is
+            exactly what `GET /{ip}` answers for your plan.
+          additionalProperties:
+            $ref: '#/components/schemas/LookupResponse'
+        errors:
+          type: object
+          description: |
+            One entry per input string that could not be classified, keyed the
+            same way. Empty when every entry was answered.
+          additionalProperties:
+            $ref: '#/components/schemas/BatchLookupError'
+    BatchLookupError:
+      type: object
+      description: Why one entry of a batch was not answered, as the single lookup would have reported it.
+      required:
+        - status
+        - error
+      properties:
+        status:
+          type: integer
+          description: |
+            The HTTP status `GET /{ip}` would have answered for this entry: `400`
+            for a string that is not an address, `429` for a spent allowance,
+            `500` when the VPN dataset could not be consulted. A `429` here is
+            never a throttle; the whole call is refused instead.
+          example: 400
+        error:
+          type: string
+          description: The same message the single lookup carries for that status.
+          example: not a valid IP address
     VpnDetail:
       type: object
       description: |
@@ -2056,6 +2281,6 @@ x-tagGroups:
       - Account
       - Organization
       - API keys
-  - name: VPNDetection Authorization Authorization
+  - name: VPNDetection Authorization
     tags:
       - Authorization

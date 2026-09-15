@@ -26,7 +26,7 @@ final class Options
         public readonly int $cacheMaxSize = 10_000,
         /** How long an answer stays fresh, in seconds. */
         public readonly float $cacheTtlSeconds = 3600.0,
-        /** Concurrent in-flight requests during a batch. */
+        /** Concurrent batch requests - chunks of up to 1000 addresses - during a batch. */
         public readonly int $concurrency = 8,
         /** Retry attempts for a transient failure. */
         public readonly int $retries = 2,

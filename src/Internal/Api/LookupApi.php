@@ -73,6 +73,9 @@ class LookupApi
 
     /** @var array<string,string[]> $contentTypes **/
     public const contentTypes = [
+        'lookupBatch' => [
+            'application/json',
+        ],
         'lookupIp' => [
             'application/json',
         ],
@@ -125,6 +128,376 @@ class LookupApi
     public function getConfig(): Configuration
     {
         return $this->config;
+    }
+
+    /**
+     * Operation lookupBatch
+     *
+     * Batch
+     *
+     * @param  \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request batch_lookup_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupBatch'] to see the possible values for this operation
+     *
+     * @throws ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws InvalidArgumentException
+     * @return \VPNDetection\Internal\Model\BatchLookupResponse|\VPNDetection\Internal\Model\LookupError
+     */
+    public function lookupBatch(
+        \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request,
+        string $contentType = self::contentTypes['lookupBatch'][0]
+    ): \VPNDetection\Internal\Model\BatchLookupResponse|\VPNDetection\Internal\Model\LookupError
+    {
+        list($response) = $this->lookupBatchWithHttpInfo($batch_lookup_request, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation lookupBatchWithHttpInfo
+     *
+     * Batch
+     *
+     * @param  \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupBatch'] to see the possible values for this operation
+     *
+     * @throws ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws InvalidArgumentException
+     * @return array{0: \VPNDetection\Internal\Model\BatchLookupResponse|\VPNDetection\Internal\Model\LookupError, 1: int, 2: array<string, string[]>} [response data, HTTP status code, HTTP response headers]
+     */
+    public function lookupBatchWithHttpInfo(
+        \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request,
+        string $contentType = self::contentTypes['lookupBatch'][0]
+    ): array
+    {
+        $request = $this->lookupBatchRequest($batch_lookup_request, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\BatchLookupResponse',
+                        $request,
+                        $response,
+                    );
+                case 400:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $request,
+                        $response,
+                    );
+                case 403:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $request,
+                        $response,
+                    );
+                case 413:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $request,
+                        $response,
+                    );
+                case 429:
+                    return $this->handleResponseWithDataType(
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $request,
+                        $response,
+                    );
+            }
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                '\VPNDetection\Internal\Model\BatchLookupResponse',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\BatchLookupResponse',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 400:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 403:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 413:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 429:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\VPNDetection\Internal\Model\LookupError',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation lookupBatchAsync
+     *
+     * Batch
+     *
+     * @param  \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupBatch'] to see the possible values for this operation
+     *
+     * @throws InvalidArgumentException
+     * @return PromiseInterface
+     */
+    public function lookupBatchAsync(
+        \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request,
+        string $contentType = self::contentTypes['lookupBatch'][0]
+    ): PromiseInterface
+    {
+        return $this->lookupBatchAsyncWithHttpInfo($batch_lookup_request, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation lookupBatchAsyncWithHttpInfo
+     *
+     * Batch
+     *
+     * @param  \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupBatch'] to see the possible values for this operation
+     *
+     * @throws InvalidArgumentException
+     * @return PromiseInterface
+     */
+    public function lookupBatchAsyncWithHttpInfo(
+        \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request,
+        string $contentType = self::contentTypes['lookupBatch'][0]
+    ): PromiseInterface
+    {
+        $returnType = '\VPNDetection\Internal\Model\BatchLookupResponse';
+        $request = $this->lookupBatchRequest($batch_lookup_request, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if (in_array($returnType, ['\SplFileObject', '\Psr\Http\Message\StreamInterface'])) {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'lookupBatch'
+     *
+     * @param  \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['lookupBatch'] to see the possible values for this operation
+     *
+     * @throws InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function lookupBatchRequest(
+        \VPNDetection\Internal\Model\BatchLookupRequest $batch_lookup_request,
+        string $contentType = self::contentTypes['lookupBatch'][0]
+    ): Request
+    {
+        // verify the required parameter 'batch_lookup_request' is set
+        if ($batch_lookup_request === null || (is_array($batch_lookup_request) && count($batch_lookup_request) === 0)) {
+            throw new InvalidArgumentException(
+                'Missing the required parameter $batch_lookup_request when calling lookupBatch'
+            );
+        }
+
+        $resourcePath = '/batch';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+
+
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['application/json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (isset($batch_lookup_request)) {
+            if (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the body
+                try {
+                    $httpBody = json_encode(ObjectSerializer::sanitizeForSerialization($batch_lookup_request), JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    throw new \InvalidArgumentException('json_encode error: ' . $e->getMessage(), 0, $e);
+                }
+            } else {
+                $httpBody = $batch_lookup_request;
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new \GuzzleHttp\Psr7\MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                try {
+                    $httpBody = json_encode($formParams, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    throw new \InvalidArgumentException('json_encode error: ' . $e->getMessage(), 0, $e);
+                }
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires API key authentication
+        $apiKey = $this->config->getApiKeyWithPrefix('apikey');
+        if ($apiKey !== null) {
+            $queryParams['apikey'] = $apiKey;
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        // this endpoint requires API key authentication
+        $apiKey = $this->config->getApiKeyWithPrefix('X-Api-Key');
+        if ($apiKey !== null) {
+            $headers['X-Api-Key'] = $apiKey;
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'POST',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
     }
 
     /**

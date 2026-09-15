@@ -167,6 +167,7 @@ final class ConformanceTest extends TestCase
         self::assertSame($case['expect']['keys'], array_keys($got));
         foreach ($case['expect']['errorKeys'] as $key) {
             self::assertInstanceOf(VPNDetectionException::class, $got[$key], "{$key} should carry its error");
+            self::assertSame($case['expect']['errorKinds'][$key], $got[$key]->kind->value, $key);
         }
         self::assertInstanceOf(Result::class, $got['1.1.1.1']);
         self::assertFalse($got['1.1.1.1']->isVpn, 'the good address still answered');
@@ -182,6 +183,52 @@ final class ConformanceTest extends TestCase
 
         for ($i = 0; $i < $case['repeat']; $i++) {
             $client->lookupBatch($case['input']);
+        }
+        self::assertCount($case['expect']['httpRequests'], $stub->calls);
+    }
+
+    public function testALargeBatchIsSentInChunksOfAThousand(): void
+    {
+        $case = self::batchCase('chunks-of-one-thousand');
+        $routes = [];
+        foreach ($case['input'] as $ip) {
+            $routes[$ip] = Stub::ok(['ip' => $ip, 'is_vpn' => false]);
+        }
+        $stub = new Stub(Stub::lookups($routes));
+        $client = new Client(new Options(cache: false, httpClient: $stub->client));
+
+        $got = $client->lookupBatch($case['input']);
+
+        self::assertCount($case['expect']['keyCount'], $got);
+        self::assertCount($case['expect']['httpRequests'], $stub->calls);
+        foreach ($case['input'] as $ip) {
+            self::assertInstanceOf(Result::class, $got[$ip], $ip);
+            self::assertSame($ip, $got[$ip]->ip, "{$ip} should be answered for itself");
+        }
+    }
+
+    // A per-entry failure carries no headers, so its 429 can only be a spent
+    // allowance, and a 500 is the server's; neither is retried per entry, because
+    // retries belong to the call and the call succeeded.
+    public function testAnEntryErrorIsClassifiedByItsStatus(): void
+    {
+        $case = self::batchCase('an-entry-error-is-classified-by-its-status');
+        $stub = new Stub(Stub::lookups([
+            '1.1.1.1' => Stub::ok(['ip' => '1.1.1.1', 'is_vpn' => false]),
+            '8.8.8.8' => [
+                'status' => 429,
+                'body' => ['error' => 'request allowance exceeded; raise or remove your overage limit'],
+            ],
+            '9.9.9.9' => ['status' => 500, 'body' => ['error' => 'lookup failed']],
+        ]));
+        $client = new Client(new Options(httpClient: $stub->client, retries: 3));
+
+        $got = $client->lookupBatch($case['input']);
+
+        self::assertSame($case['expect']['keys'], array_keys($got));
+        foreach ($case['expect']['errorKinds'] as $ip => $kind) {
+            self::assertInstanceOf(VPNDetectionException::class, $got[$ip], "{$ip} should carry its error");
+            self::assertSame($kind, $got[$ip]->kind->value, $ip);
         }
         self::assertCount($case['expect']['httpRequests'], $stub->calls);
     }

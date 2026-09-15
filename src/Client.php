@@ -16,6 +16,7 @@ use VPNDetection\Internal\Api\EntitlementApi as WireEntitlementApi;
 use VPNDetection\Internal\Api\DatabaseApi as WireDatabaseApi;
 use VPNDetection\Internal\Api\LookupApi;
 use VPNDetection\Internal\Configuration;
+use VPNDetection\Internal\Model\BatchLookupRequest;
 use VPNDetection\Internal\Model\Entitlement as WireEntitlement;
 use VPNDetection\Internal\Model\LookupResponse;
 
@@ -28,6 +29,9 @@ use VPNDetection\Internal\Model\LookupResponse;
 final class Client
 {
     public const DEFAULT_BASE_URL = 'https://api.vpndetection.io';
+
+    /** The most addresses POST /batch takes in one call; a larger batch is sent in chunks of this size. */
+    private const BATCH_MAX = 1000;
 
     private readonly LookupApi $lookupApi;
     private readonly WireEntitlementApi $entitlementApi;
@@ -154,12 +158,16 @@ final class Client
     }
 
     /**
-     * Classify many addresses concurrently.
+     * Classify many addresses in as few requests as possible.
      *
-     * Keyed by address rather than positional, so duplicates in the input
-     * collapse to a single request and the caller never has to line two lists up.
-     * An address that fails carries its error as its value, so one bad entry
-     * cannot lose the rest of the answers.
+     * Bogons are answered locally and cached answers are reused; everything else
+     * goes to the batch endpoint in chunks of up to 1000 addresses, with at most
+     * `concurrency` chunks in flight. Keyed by address rather than positional, so
+     * duplicates in the input collapse to a single entry and the caller never has
+     * to line two lists up. An address that fails carries its error as its value,
+     * so one bad entry cannot lose the rest of the answers: the API reports a
+     * per-entry failure with the status the single lookup would have answered,
+     * and a chunk that fails as a whole marks every address in it.
      *
      * @param iterable<string> $ips
      * @param array{retries?: int, concurrency?: int} $options Per-call overrides.
@@ -179,24 +187,36 @@ final class Client
         }
         $unique = array_map(strval(...), array_keys($seen));
 
-        // A generator, so only `concurrency` promises exist at once: creating one
-        // starts its transfer, and an eagerly built list would put every address
-        // in flight regardless of the limit.
-        $pending = (function () use ($unique, $options): iterable {
-            foreach ($unique as $ip) {
-                yield $ip => $this->lookupAsync($ip, $options);
+        $answers = [];
+        $pending = [];
+        foreach ($unique as $ip) {
+            if (Bogon::isBogon($ip)) {
+                $answers[$ip] = Bogon::result($ip);
+                continue;
+            }
+            $hit = $this->cache?->get($ip);
+            if ($hit !== null) {
+                $answers[$ip] = $hit;
+                continue;
+            }
+            $pending[] = $ip;
+        }
+
+        // A generator, so only `concurrency` chunks are in flight at once: creating
+        // a promise starts its transfer, and an eagerly built list would put every
+        // chunk in flight regardless of the limit.
+        $chunks = (function () use ($pending, $options): iterable {
+            foreach (array_chunk($pending, self::BATCH_MAX) as $chunk) {
+                yield $this->lookupChunkAsync($chunk, $options);
             }
         })();
-
-        $answers = [];
         Each::ofLimit(
-            $pending,
+            $chunks,
             $concurrency,
-            function (Result $value, string $ip) use (&$answers): void {
-                $answers[$ip] = $value;
-            },
-            function (mixed $reason, string $ip) use (&$answers): void {
-                $answers[$ip] = Errors::coerce($reason);
+            function (array $value) use (&$answers): void {
+                foreach ($value as $ip => $answer) {
+                    $answers[$ip] = $answer;
+                }
             },
         )->wait();
 
@@ -207,6 +227,60 @@ final class Client
             $ordered[$ip] = $answers[$ip];
         }
         return $ordered;
+    }
+
+    /**
+     * One POST /batch, mapped back onto the addresses it was asked about. A
+     * chunk-level failure - the call refused, the transport failing, the retries
+     * exhausted - becomes every address's error, exactly as it would have been
+     * had each been looked up alone. Never rejects: the failure is the value.
+     *
+     * @param list<string> $chunk
+     * @param array{retries?: int, concurrency?: int} $options
+     * @return PromiseInterface Resolving to array<string, Result|VPNDetectionException>.
+     */
+    private function lookupChunkAsync(array $chunk, array $options): PromiseInterface
+    {
+        $request = $this->lookupApi->lookupBatchRequest(new BatchLookupRequest(['ips' => $chunk]));
+        return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
+            function (ResponseInterface $response) use ($chunk): array {
+                $status = $response->getStatusCode();
+                $body = Transport::toArray((string) $response->getBody(), $status);
+                $results = is_array($body['results'] ?? null) ? $body['results'] : [];
+                $errors = is_array($body['errors'] ?? null) ? $body['errors'] : [];
+                $answers = [];
+                foreach ($chunk as $ip) {
+                    if (isset($results[$ip]) && is_array($results[$ip])) {
+                        $raw = $results[$ip];
+                        $encoded = json_encode($raw, JSON_THROW_ON_ERROR);
+                        $result = Result::fromWire(
+                            Transport::toModel($encoded, LookupResponse::class, $status),
+                            $raw,
+                        );
+                        $this->cache?->set($ip, $result);
+                        $answers[$ip] = $result;
+                    } elseif (isset($errors[$ip]) && is_array($errors[$ip])) {
+                        $answers[$ip] = Errors::fromEntry(
+                            (int) ($errors[$ip]['status'] ?? 500),
+                            (string) ($errors[$ip]['error'] ?? ''),
+                        );
+                    } else {
+                        $answers[$ip] = new VPNDetectionException(
+                            ErrorKind::ServerError, "the batch answer did not include {$ip}", 200,
+                        );
+                    }
+                }
+                return $answers;
+            },
+            function (mixed $reason) use ($chunk): array {
+                $error = Errors::coerce($reason);
+                $answers = [];
+                foreach ($chunk as $ip) {
+                    $answers[$ip] = $error;
+                }
+                return $answers;
+            },
+        );
     }
 
     /** @param array{retries?: int, concurrency?: int} $options */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
+use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
@@ -55,6 +56,18 @@ final class Errors
             return new VPNDetectionException(ErrorKind::BadRequest, $message, $status);
         }
         return new VPNDetectionException(ErrorKind::ServerError, $message, $status);
+    }
+
+    /**
+     * A per-entry failure inside a successful batch: the status the single lookup
+     * would have answered, and its message, with no headers at all - so a 429
+     * here is a spent allowance, which is the only kind the API puts in an entry.
+     */
+    public static function fromEntry(int $status, string $message): VPNDetectionException
+    {
+        return self::fromResponse(
+            new Response($status, [], json_encode(['error' => $message], JSON_THROW_ON_ERROR)),
+        );
     }
 
     public static function coerce(mixed $reason): VPNDetectionException

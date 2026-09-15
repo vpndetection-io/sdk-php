@@ -98,7 +98,9 @@ final class Stub
         $this->inFlight++;
         $this->peak = max($this->peak, $this->inFlight);
 
-        $outcome = $this->responseFor($path);
+        $outcome = $path === '/batch' && $request->getMethod() === 'POST'
+            ? $this->batchResponse((string) $request->getBody())
+            : $this->responseFor($path);
         $promise = new Promise(function () use (&$promise, $outcome, $request): void {
             $this->inFlight--;
             if (is_string($outcome)) {
@@ -124,6 +126,37 @@ final class Stub
         $this->served[$path] = $n + 1;
         $spec = $specs[min($n, count($specs) - 1)];
         return $spec['reject'] ?? self::response($spec);
+    }
+
+    /**
+     * A POST /batch is answered the way the API answers one: every address the
+     * table knows is a result if its route is a 200 and an entry error otherwise,
+     * and an unknown address is the 400 the API gives a string that is not one.
+     * One call however many addresses, which is what the request counts measure.
+     */
+    private function batchResponse(string $body): Response
+    {
+        $results = [];
+        $errors = [];
+        $decoded = json_decode($body, true);
+        $ips = is_array($decoded) && is_array($decoded['ips'] ?? null) ? $decoded['ips'] : [];
+        foreach ($ips as $ip) {
+            $specs = $this->routes['/' . $ip] ?? null;
+            if ($specs === null) {
+                $errors[$ip] = ['status' => 400, 'error' => 'not a valid IP address'];
+                continue;
+            }
+            $spec = $specs[0];
+            if (($spec['status'] ?? 200) === 200) {
+                $results[$ip] = $spec['body'] ?? null;
+            } else {
+                $errors[$ip] = ['status' => $spec['status'], 'error' => $spec['body']['error'] ?? ''];
+            }
+        }
+        return self::response([
+            'status' => 200,
+            'body' => ['results' => (object) $results, 'errors' => (object) $errors],
+        ]);
     }
 
     /** @param array<string, mixed> $spec */
