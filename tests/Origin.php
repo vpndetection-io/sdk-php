@@ -7,7 +7,8 @@ namespace VPNDetection\Tests;
 use RuntimeException;
 
 /**
- * A real HTTP origin serving the download 302 and the object storage behind it.
+ * A real HTTP origin serving the download 302 and the object storage behind it,
+ * or an API call that stalls part way through its body.
  *
  * The download methods exist to answer what a transport does with a redirect and
  * with a body too large to hold, and a stubbed handler answers neither: Guzzle
@@ -23,7 +24,7 @@ final class Origin
 
     private readonly string $logPath;
 
-    /** @param array{blobBytes?: int, storageStatus?: int, dieAfterBytes?: int} $options */
+    /** @param array{blobBytes?: int, storageStatus?: int, dieAfterBytes?: int, stallSeconds?: int} $options */
     public function __construct(array $options = [])
     {
         $port = self::freePort();
@@ -40,6 +41,9 @@ final class Origin
         ];
         if (isset($options['dieAfterBytes'])) {
             $env['ORIGIN_DIE_AFTER'] = (string) $options['dieAfterBytes'];
+        }
+        if (isset($options['stallSeconds'])) {
+            $env['ORIGIN_STALL_SECONDS'] = (string) $options['stallSeconds'];
         }
 
         $command = [

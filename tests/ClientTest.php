@@ -11,6 +11,7 @@ use VPNDetection\Bogon;
 use VPNDetection\Client;
 use VPNDetection\ErrorKind;
 use VPNDetection\Options;
+use VPNDetection\Result;
 use VPNDetection\VPNDetectionException;
 
 /**
@@ -114,6 +115,35 @@ final class ClientTest extends TestCase
         $client->lookupBatch(self::manyAddresses());
 
         self::assertLessThanOrEqual(2, $stub->peak, "peak in flight was {$stub->peak}");
+    }
+
+    // Chunking to the endpoint's 1000 is the library's job, so a batch has no
+    // cap of its own: 2,500 addresses are three requests, not an error.
+    public function testABatchOfAnySizeIsSplitIntoChunksRatherThanRefused(): void
+    {
+        $addresses = [];
+        $routes = [];
+        for ($i = 0; $i < 2500; $i++) {
+            $ip = sprintf('9.1.%d.%d', intdiv($i, 256), $i % 256);
+            $addresses[] = $ip;
+            $routes[$ip] = Stub::ok(['ip' => $ip, 'is_vpn' => false]);
+        }
+        $stub = new Stub(Stub::lookups($routes));
+        $client = new Client(new Options(cache: false, httpClient: $stub->client));
+
+        $got = $client->lookupBatch($addresses);
+
+        self::assertSame(['/batch', '/batch', '/batch'], $stub->calls);
+        $sizes = array_map(
+            static fn ($request): int => count(json_decode((string) $request->getBody(), true)['ips']),
+            $stub->requests,
+        );
+        self::assertSame([1000, 1000, 500], $sizes);
+        self::assertSame($addresses, array_keys($got));
+        foreach ($addresses as $ip) {
+            self::assertInstanceOf(Result::class, $got[$ip], $ip);
+            self::assertSame($ip, $got[$ip]->ip, "{$ip} should be answered for itself");
+        }
     }
 
     public function testRetriesAreConfigurablePerCall(): void
@@ -399,6 +429,75 @@ final class ClientTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         new Options(timeout: -1);
+    }
+
+    public function testAPerCallTimeoutBelowTheClientsFiresOnAStalledBody(): void
+    {
+        $calls = [
+            'lookup' => static fn (Client $c, array $o): mixed => $c->lookup('9.9.9.9', $o),
+            'myIp' => static fn (Client $c, array $o): mixed => $c->myIp($o),
+            'myEntitlement' => static fn (Client $c, array $o): mixed => $c->myEntitlement($o),
+            'lookupBatch' => static fn (Client $c, array $o): mixed
+                => $c->lookupBatch(['9.9.9.9'], $o)['9.9.9.9'],
+        ];
+
+        foreach ($calls as $name => $call) {
+            // One origin per call, because the built-in server serves one request
+            // at a time. It stalls for longer than either bound, so a regression
+            // fails the timing assertion instead of hanging the suite.
+            $origin = new Origin(['stallSeconds' => 5]);
+            $client = new Client(
+                new Options(baseUrl: $origin->baseUrl, cache: false, retries: 0, timeout: 3.0),
+            );
+            $started = microtime(true);
+            try {
+                $answer = $call($client, ['timeout' => 0.25]);
+            } catch (VPNDetectionException $e) {
+                $answer = $e;
+            } finally {
+                $elapsed = microtime(true) - $started;
+                $origin->stop();
+            }
+
+            self::assertInstanceOf(VPNDetectionException::class, $answer, "{$name} should have timed out");
+            self::assertSame(ErrorKind::Network, $answer->kind, $name);
+            self::assertTrue($answer->isRetryable(), "{$name}: a timeout is worth another attempt");
+            self::assertGreaterThanOrEqual(0.2, $elapsed, "{$name} failed without waiting");
+            self::assertLessThan(1.5, $elapsed, "{$name} waited for the client's 3s, not the call's 0.25s");
+        }
+    }
+
+    public function testAPerCallTimeoutBoundsEveryAttemptAndOnlyThatCall(): void
+    {
+        $stub = new Stub(Stub::lookups(['9.9.9.9' => Stub::transportFailure()]));
+        $client = new Client(new Options(cache: false, retries: 1, timeout: 7.5, httpClient: $stub->client));
+
+        foreach ([['timeout' => 2], []] as $options) {
+            try {
+                $client->lookup('9.9.9.9', $options);
+                self::fail('expected a failure');
+            } catch (VPNDetectionException) {
+            }
+        }
+
+        // The retry keeps the call's bound rather than falling back to the client's.
+        self::assertSame([2.0, 2.0, 7.5, 7.5], array_column($stub->options, RequestOptions::TIMEOUT));
+        self::assertSame([2.0, 2.0, 7.5, 7.5], array_column($stub->options, RequestOptions::CONNECT_TIMEOUT));
+    }
+
+    public function testAPerCallTimeoutThatCannotBoundAnythingIsRefusedBeforeAnyRequest(): void
+    {
+        $stub = new Stub();
+        $client = new Client(new Options(httpClient: $stub->client));
+
+        foreach ([-1, '5'] as $bad) {
+            try {
+                $client->lookupBatch(['9.9.9.9'], ['timeout' => $bad]);
+                self::fail('expected a refusal for ' . var_export($bad, true));
+            } catch (InvalidArgumentException) {
+            }
+        }
+        self::assertSame([], $stub->calls);
     }
 
     private static function addressStub(): Stub

@@ -85,10 +85,10 @@ foreach ($results as $ip => $result) {
 
 Results are keyed by address, in the order you first listed each one, so duplicates in your list collapse into a single entry and one address failing never loses the rest: it carries its error as its value, with the status the API would have given that address on its own.
 
-How many chunks are in flight at once, and how many times a failed chunk is retried, are configurable per call:
+There's no limit on how many addresses you pass. How many chunks are in flight at once, how many times a failed chunk is retried, and how long each attempt may take are configurable per call:
 
 ```php
-$results = $client->lookupBatch($manyIps, ['concurrency' => 4, 'retries' => 4]);
+$results = $client->lookupBatch($manyIps, ['concurrency' => 4, 'retries' => 4, 'timeout' => 10]);
 ```
 
 ### Caching
@@ -156,6 +156,18 @@ try {
 `kind` is one of `bad_request`, `unauthorized`, `forbidden`, `rate_limited`, `quota_exceeded`, `server_error` or `network`.
 
 Note that `rate_limited` and `quota_exceeded` both arrive as HTTP 429 and are not the same thing. A rate limit is when the API faces extreme traffic bursts and so retrying later works; but a spent quota needs your allowance raised or the window to roll over. The library retries rate limits for you, but not if your quota is exceeded.
+
+### Timeouts and retries
+
+Each attempt gives up after 30 seconds, and a transient failure is retried twice. Both can be changed for the client, and for a single call:
+
+```php
+$client = new Client(new Options(timeout: 10, retries: 4));
+
+$result = $client->lookup('45.83.91.1', ['timeout' => 2.5, 'retries' => 0]);
+```
+
+The timeout is in seconds and applies to each attempt, so a retried call can take longer in total. An attempt that runs out of time fails as a retryable `network` error. A database download isn't bound by it, since a large file takes as long as it takes.
 
 ### Database downloads
 

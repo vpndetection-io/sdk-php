@@ -40,9 +40,16 @@ final class Transport
         return $this->sendAsync($request, $retries)->wait();
     }
 
-    public function sendAsync(RequestInterface $request, ?int $retries = null): PromiseInterface
-    {
-        return $this->attempt($request, $retries ?? $this->defaultRetries, 0, 0);
+    /** @param float|null $timeout Replaces the client's bound for every attempt of this call. */
+    public function sendAsync(
+        RequestInterface $request,
+        ?int $retries = null,
+        ?float $timeout = null,
+    ): PromiseInterface {
+        $bound = $timeout === null
+            ? []
+            : [RequestOptions::TIMEOUT => $timeout, RequestOptions::CONNECT_TIMEOUT => $timeout];
+        return $this->attempt($request, $retries ?? $this->defaultRetries, 0, 0, $bound);
     }
 
     /**

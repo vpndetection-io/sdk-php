@@ -22,6 +22,18 @@ file_put_contents(
     FILE_APPEND,
 );
 
+// An API call that sends its headers and the start of a body, then nothing: a
+// deadline that stopped the clock at the headers would never fire here.
+$stall = getenv('ORIGIN_STALL_SECONDS');
+if ($stall !== false) {
+    header('Content-Type: application/json');
+    header('Content-Length: 1024');
+    echo '{"ip":';
+    flush();
+    sleep((int) $stall);
+    exit;
+}
+
 if ($path === '/api/v1/database/download') {
     header('Location: http://' . $_SERVER['HTTP_HOST'] . '/blob', true, 302);
     exit;

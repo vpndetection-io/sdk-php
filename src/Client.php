@@ -82,12 +82,12 @@ final class Client
      * A bogon is answered locally and never reaches the network. Everything else
      * is served, then cached for this instance.
      *
-     * @param array{retries?: int} $options Per-call overrides.
+     * @param array{retries?: int, timeout?: float} $options Per-call overrides.
      * @throws VPNDetectionException
      */
     public function lookup(string $ip, array $options = []): Result
     {
-        self::assertOptions($options, ['retries']);
+        self::assertOptions($options, ['retries', 'timeout']);
         return $this->lookupAsync($ip, $options)->wait();
     }
 
@@ -103,14 +103,16 @@ final class Client
      * this is IS the question: a machine that moves between networks would
      * otherwise be told where it used to be.
      *
-     * @param array{retries?: int} $options Per-call overrides.
+     * @param array{retries?: int, timeout?: float} $options Per-call overrides.
      * @throws VPNDetectionException
      */
     public function myIp(array $options = []): Result
     {
-        self::assertOptions($options, ['retries']);
+        self::assertOptions($options, ['retries', 'timeout']);
         $request = $this->lookupApi->lookupMyIpRequest();
-        return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
+        return $this->transport->sendAsync(
+            $request, $options['retries'] ?? null, self::timeout($options),
+        )->then(
             function (ResponseInterface $response): Result {
                 $body = (string) $response->getBody();
                 $status = $response->getStatusCode();
@@ -141,14 +143,16 @@ final class Client
      * Deliberately NOT cached: the whole point is what has been spent, and a
      * cached answer is a wrong one within seconds of the next request.
      *
-     * @param array{retries?: int} $options Per-call overrides.
+     * @param array{retries?: int, timeout?: float} $options Per-call overrides.
      * @throws VPNDetectionException
      */
     public function myEntitlement(array $options = []): Entitlement
     {
-        self::assertOptions($options, ['retries']);
+        self::assertOptions($options, ['retries', 'timeout']);
         $request = $this->entitlementApi->myEntitlementRequest();
-        return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
+        return $this->transport->sendAsync(
+            $request, $options['retries'] ?? null, self::timeout($options),
+        )->then(
             function (ResponseInterface $response): Entitlement {
                 $body = (string) $response->getBody();
                 $status = $response->getStatusCode();
@@ -170,12 +174,12 @@ final class Client
      * and a chunk that fails as a whole marks every address in it.
      *
      * @param iterable<string> $ips
-     * @param array{retries?: int, concurrency?: int} $options Per-call overrides.
+     * @param array{retries?: int, concurrency?: int, timeout?: float} $options Per-call overrides.
      * @return array<string, Result|VPNDetectionException> Keyed by address, in input order.
      */
     public function lookupBatch(iterable $ips, array $options = []): array
     {
-        self::assertOptions($options, ['retries', 'concurrency']);
+        self::assertOptions($options, ['retries', 'concurrency', 'timeout']);
         $concurrency = $options['concurrency'] ?? $this->concurrency;
         if ($concurrency < 1) {
             throw new InvalidArgumentException('concurrency must be at least 1');
@@ -236,13 +240,15 @@ final class Client
      * had each been looked up alone. Never rejects: the failure is the value.
      *
      * @param list<string> $chunk
-     * @param array{retries?: int, concurrency?: int} $options
+     * @param array{retries?: int, concurrency?: int, timeout?: float} $options
      * @return PromiseInterface Resolving to array<string, Result|VPNDetectionException>.
      */
     private function lookupChunkAsync(array $chunk, array $options): PromiseInterface
     {
         $request = $this->lookupApi->lookupBatchRequest(new BatchLookupRequest(['ips' => $chunk]));
-        return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
+        return $this->transport->sendAsync(
+            $request, $options['retries'] ?? null, self::timeout($options),
+        )->then(
             function (ResponseInterface $response) use ($chunk): array {
                 $status = $response->getStatusCode();
                 $body = Transport::toArray((string) $response->getBody(), $status);
@@ -283,7 +289,7 @@ final class Client
         );
     }
 
-    /** @param array{retries?: int, concurrency?: int} $options */
+    /** @param array{retries?: int, timeout?: float} $options */
     private function lookupAsync(string $ip, array $options): PromiseInterface
     {
         if (Bogon::isBogon($ip)) {
@@ -294,7 +300,9 @@ final class Client
             return Create::promiseFor($hit);
         }
         $request = $this->lookupApi->lookupIpRequest($ip);
-        return $this->transport->sendAsync($request, $options['retries'] ?? null)->then(
+        return $this->transport->sendAsync(
+            $request, $options['retries'] ?? null, self::timeout($options),
+        )->then(
             function (ResponseInterface $response) use ($ip): Result {
                 $body = (string) $response->getBody();
                 $status = $response->getStatusCode();
@@ -326,6 +334,23 @@ final class Client
                 implode(', ', $allowed),
             ));
         }
+        $timeout = $options['timeout'] ?? null;
+        if ($timeout !== null && !is_int($timeout) && !is_float($timeout)) {
+            throw new InvalidArgumentException('timeout must be a number of seconds');
+        }
+        if ($timeout !== null && $timeout < 0) {
+            throw new InvalidArgumentException('timeout cannot be negative');
+        }
+    }
+
+    /**
+     * The per-call bound, in seconds, or null to keep the client's.
+     *
+     * @param array{timeout?: int|float} $options
+     */
+    private static function timeout(array $options): ?float
+    {
+        return isset($options['timeout']) ? (float) $options['timeout'] : null;
     }
 
     private static function userAgent(): string
