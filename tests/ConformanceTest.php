@@ -207,6 +207,34 @@ final class ConformanceTest extends TestCase
         }
     }
 
+    public function testAnUncappedBatchIsChunkedAndAnswersEveryAddressOnce(): void
+    {
+        $case = self::batchCase('uncapped-input-is-chunked');
+        $routes = [];
+        foreach ($case['input'] as $ip) {
+            $routes[$ip] = Stub::ok(['ip' => $ip, 'is_vpn' => false]);
+        }
+        $stub = new Stub(Stub::lookups($routes));
+        $client = new Client(new Options(cache: false, httpClient: $stub->client));
+
+        $got = $client->lookupBatch($case['input']);
+
+        // Chunking to the endpoint's 1000 is the library's job, so a batch has no
+        // cap of its own: never a refusal, and one POST per chunk.
+        self::assertSame(array_fill(0, $case['expect']['httpRequests'], '/batch'), $stub->calls);
+        $sizes = array_map(
+            static fn ($request): int => count(json_decode((string) $request->getBody(), true)['ips']),
+            $stub->requests,
+        );
+        self::assertSame([1000, 1000, 500], $sizes);
+        self::assertSame($case['input'], array_keys($got));
+        self::assertCount($case['expect']['keyCount'], $got);
+        foreach ($case['input'] as $ip) {
+            self::assertInstanceOf(Result::class, $got[$ip], $ip);
+            self::assertSame($ip, $got[$ip]->ip, "{$ip} should be answered for itself");
+        }
+    }
+
     // A per-entry failure carries no headers, so its 429 can only be a spent
     // allowance, and a 500 is the server's; neither is retried per entry, because
     // retries belong to the call and the call succeeded.

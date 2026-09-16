@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
+use Closure;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\RequestOptions;
@@ -40,16 +41,29 @@ final class Transport
         return $this->sendAsync($request, $retries)->wait();
     }
 
-    /** @param float|null $timeout Replaces the client's bound for every attempt of this call. */
+    /**
+     * @param float|null $timeout Replaces the client's bound for every attempt of this call.
+     * @param (Closure(ResponseInterface): VPNDetectionException)|null $classify Reports a response
+     *        of 400 or more, in place of the API's own envelope; what it returns is retried exactly
+     *        when it says it is retryable.
+     */
     public function sendAsync(
         RequestInterface $request,
         ?int $retries = null,
         ?float $timeout = null,
+        ?Closure $classify = null,
     ): PromiseInterface {
         $bound = $timeout === null
             ? []
             : [RequestOptions::TIMEOUT => $timeout, RequestOptions::CONNECT_TIMEOUT => $timeout];
-        return $this->attempt($request, $retries ?? $this->defaultRetries, 0, 0, $bound);
+        return $this->attempt(
+            $request,
+            $retries ?? $this->defaultRetries,
+            0,
+            0,
+            $bound,
+            $classify ?? static fn (ResponseInterface $r): VPNDetectionException => Errors::fromResponse($r),
+        );
     }
 
     /**
@@ -81,7 +95,8 @@ final class Transport
                 RequestOptions::TIMEOUT => 0,
                 RequestOptions::CONNECT_TIMEOUT => $this->timeout,
             ],
-            $errorMessage,
+            static fn (ResponseInterface $r): VPNDetectionException
+                => Errors::fromResponse($r, $errorMessage),
         )->wait();
     }
 
@@ -118,14 +133,17 @@ final class Transport
         return $model;
     }
 
-    /** @param array<string, mixed> $extraOptions */
+    /**
+     * @param array<string, mixed> $extraOptions
+     * @param Closure(ResponseInterface): VPNDetectionException $classify
+     */
     private function attempt(
         RequestInterface $request,
         int $left,
         int $attempt,
         int $delayMs,
-        array $extraOptions = [],
-        ?string $errorMessage = null,
+        array $extraOptions,
+        Closure $classify,
     ): PromiseInterface {
         $options = [
             // Errors are classified here rather than thrown by Guzzle, so the
@@ -149,22 +167,22 @@ final class Transport
 
         return $this->http->sendAsync($request, $options)->then(
             function (ResponseInterface $response) use (
-                $request, $left, $attempt, $extraOptions, $errorMessage,
+                $request, $left, $attempt, $extraOptions, $classify,
             ): mixed {
                 if ($response->getStatusCode() < 400) {
                     return $response;
                 }
-                $error = Errors::fromResponse($response, $errorMessage);
+                $error = $classify($response);
                 if ($left <= 0 || !$error->isRetryable()) {
                     throw $error;
                 }
                 return $this->attempt(
                     $request, $left - 1, $attempt + 1, self::delayFor($error, $attempt),
-                    $extraOptions, $errorMessage,
+                    $extraOptions, $classify,
                 );
             },
             function (mixed $reason) use (
-                $request, $left, $attempt, $extraOptions, $errorMessage,
+                $request, $left, $attempt, $extraOptions, $classify,
             ): PromiseInterface {
                 $error = Errors::coerce($reason);
                 if ($left <= 0 || !$error->isRetryable()) {
@@ -172,7 +190,7 @@ final class Transport
                 }
                 return $this->attempt(
                     $request, $left - 1, $attempt + 1, self::backoffMs($attempt),
-                    $extraOptions, $errorMessage,
+                    $extraOptions, $classify,
                 );
             },
         );

@@ -189,6 +189,27 @@ $bytes = $client->database->downloadBytes('cdn_ip_v1', 'csvgz');
 
 `downloadBytes` holds the whole file in memory, and the catalog runs from `cdn_ip_v1` at 10 KB to `resproxy_ip_90d_v1` at 1.79 GB, so use `download` for anything you have not measured: past your `memory_limit` this is a fatal error, not merely a slow one.
 
+### Sign in with OAuth (device flow)
+
+A program running on the person's own machine can let them sign in with a browser and pick one of their API keys, instead of asking them to paste it:
+
+```php
+$client = new Client();
+
+$device = $client->oauth->deviceAuthorization('your-client-id', [
+    'scope' => 'account.read apikeys.read apikeys.reveal',
+]);
+echo "Open {$device->verificationUri} and enter {$device->userCode}\n";
+
+$token = $client->oauth->pollDeviceToken('your-client-id', $device);
+if ($token->apikey === null) {
+    throw new RuntimeException("no API key came back: none was picked, or it can't be shown again");
+}
+$keyed = new Client(new Options(apiKey: $token->apikey));
+```
+
+A denied sign-in throws `OauthAccessDeniedException` and a code that ran out `OauthExpiredTokenException`. Client IDs are issued on request from support@vpndetection.io, and `$client->oauth->revoke('your-client-id', $token->refreshToken)` signs the machine out again.
+
 ### Absent is not false
 
 A field your plan does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".

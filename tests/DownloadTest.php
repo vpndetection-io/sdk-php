@@ -154,7 +154,7 @@ final class DownloadTest extends TestCase
     // this only fails if the declared length is checked against what arrived.
     public function testATransferThatDiesPartWayLeavesNothingAtTheDestination(): void
     {
-        $client = $this->client(['blobBytes' => 4 * self::MIB, 'dieAfterBytes' => self::MIB], retries: 0);
+        $client = $this->client(['blobBytes' => 4 * self::MIB, 'dieAfterBytes' => self::MIB], retries: 2);
         $path = $this->tmp . '/half-a-dataset.csv.gz';
 
         try {
@@ -166,9 +166,27 @@ final class DownloadTest extends TestCase
 
         self::assertFileDoesNotExist($path);
         self::assertFileDoesNotExist($path . '.part');
+        // Retries are budgeted for the HEADER phase only. Repeating a transfer
+        // whose bytes already reached the destination would append a second copy
+        // to the first, and a doubled file passes every length check there is.
+        self::assertCount(1, $this->origin->requestsTo('/blob'), 'a half-written body was fetched twice');
     }
 
-    /** @param array{blobBytes?: int, storageStatus?: int, dieAfterBytes?: int} $options */
+    // The other side of that rule: object storage failing before any byte of the
+    // body is retried like any 5xx, and the file holds one copy.
+    public function testAStorage5xxBeforeTheBodyIsRetriedWithoutDoublingTheFile(): void
+    {
+        $client = $this->client(['blobBytes' => self::SMALL, 'failFirst' => 1], retries: 2);
+        $path = $this->tmp . '/retried.csv.gz';
+
+        $written = $client->database->download('cdn_ip_v1', 'csvgz', $path);
+
+        self::assertCount(2, $this->origin->requestsTo('/blob'), 'the 503 was not retried');
+        self::assertSame(self::SMALL, $written);
+        self::assertSame('aaa', (string) file_get_contents($path));
+    }
+
+    /** @param array{blobBytes?: int, storageStatus?: int, dieAfterBytes?: int, failFirst?: int} $options */
     private function client(array $options, int $retries = 2): Client
     {
         $this->origin = new Origin($options);

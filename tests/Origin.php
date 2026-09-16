@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace VPNDetection\Tests;
 
+use PHPUnit\Framework\Assert;
 use RuntimeException;
+use VPNDetection\Client;
+use VPNDetection\ErrorKind;
+use VPNDetection\Options;
+use VPNDetection\VPNDetectionException;
 
 /**
  * A real HTTP origin serving the download 302 and the object storage behind it,
@@ -24,7 +29,10 @@ final class Origin
 
     private readonly string $logPath;
 
-    /** @param array{blobBytes?: int, storageStatus?: int, dieAfterBytes?: int, stallSeconds?: int} $options */
+    /**
+     * @param array{blobBytes?: int, storageStatus?: int, dieAfterBytes?: int, failFirst?: int,
+     *     stallSeconds?: int, trickleMs?: int} $options
+     */
     public function __construct(array $options = [])
     {
         $port = self::freePort();
@@ -38,12 +46,16 @@ final class Origin
             'ORIGIN_LOG' => $this->logPath,
             'ORIGIN_BLOB_BYTES' => (string) ($options['blobBytes'] ?? 0),
             'ORIGIN_STORAGE_STATUS' => (string) ($options['storageStatus'] ?? 200),
+            'ORIGIN_FAIL_FIRST' => (string) ($options['failFirst'] ?? 0),
         ];
         if (isset($options['dieAfterBytes'])) {
             $env['ORIGIN_DIE_AFTER'] = (string) $options['dieAfterBytes'];
         }
         if (isset($options['stallSeconds'])) {
             $env['ORIGIN_STALL_SECONDS'] = (string) $options['stallSeconds'];
+        }
+        if (isset($options['trickleMs'])) {
+            $env['ORIGIN_TRICKLE_MS'] = (string) $options['trickleMs'];
         }
 
         $command = [
@@ -57,6 +69,42 @@ final class Origin
         }
         $this->process = $process;
         self::waitForPort($port);
+    }
+
+    /**
+     * One origin per call, because the built-in server serves one request at a
+     * time. It is slower than either bound, so a regression fails the timing
+     * assertion instead of hanging the suite.
+     *
+     * @param array{stallSeconds?: int, trickleMs?: int} $body
+     * @param callable(Client): mixed $call
+     */
+    public static function assertTimesOut(
+        array $body,
+        float $clientTimeout,
+        callable $call,
+        string $name,
+    ): void
+    {
+        $origin = new Origin($body);
+        $client = new Client(
+            new Options(baseUrl: $origin->baseUrl, cache: false, retries: 0, timeout: $clientTimeout),
+        );
+        $started = microtime(true);
+        try {
+            $answer = $call($client);
+        } catch (VPNDetectionException $e) {
+            $answer = $e;
+        } finally {
+            $elapsed = microtime(true) - $started;
+            $origin->stop();
+        }
+
+        Assert::assertInstanceOf(VPNDetectionException::class, $answer, "{$name} should have timed out");
+        Assert::assertSame(ErrorKind::Network, $answer->kind, $name);
+        Assert::assertTrue($answer->isRetryable(), "{$name}: a timeout is worth another attempt");
+        Assert::assertGreaterThanOrEqual(0.2, $elapsed, "{$name} failed without waiting");
+        Assert::assertLessThan(1.5, $elapsed, "{$name} waited past its 0.25s bound");
     }
 
     public function stop(): void

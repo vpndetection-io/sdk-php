@@ -42,6 +42,12 @@ final class Client
     /** The licensed dataset downloads, for keys that carry the `db.download` scope. */
     public readonly DatabaseApi $database;
 
+    /**
+     * Sign a person in on their own machine with the OAuth device flow, so a
+     * program can be handed one of their API keys instead of asking for it.
+     */
+    public readonly OauthApi $oauth;
+
     public function __construct(Options $options = new Options())
     {
         $config = (new Configuration())
@@ -60,6 +66,7 @@ final class Client
             : null;
         $this->concurrency = $options->concurrency;
         $this->database = new DatabaseApi(new WireDatabaseApi($http, $config), $this->transport);
+        $this->oauth = new OauthApi($this->transport, rtrim($options->baseUrl, '/'), self::userAgent());
     }
 
     /**
@@ -87,7 +94,7 @@ final class Client
      */
     public function lookup(string $ip, array $options = []): Result
     {
-        self::assertOptions($options, ['retries', 'timeout']);
+        CallOptions::assert($options, ['retries', 'timeout']);
         return $this->lookupAsync($ip, $options)->wait();
     }
 
@@ -108,10 +115,10 @@ final class Client
      */
     public function myIp(array $options = []): Result
     {
-        self::assertOptions($options, ['retries', 'timeout']);
+        CallOptions::assert($options, ['retries', 'timeout']);
         $request = $this->lookupApi->lookupMyIpRequest();
         return $this->transport->sendAsync(
-            $request, $options['retries'] ?? null, self::timeout($options),
+            $request, $options['retries'] ?? null, CallOptions::timeout($options),
         )->then(
             function (ResponseInterface $response): Result {
                 $body = (string) $response->getBody();
@@ -148,10 +155,10 @@ final class Client
      */
     public function myEntitlement(array $options = []): Entitlement
     {
-        self::assertOptions($options, ['retries', 'timeout']);
+        CallOptions::assert($options, ['retries', 'timeout']);
         $request = $this->entitlementApi->myEntitlementRequest();
         return $this->transport->sendAsync(
-            $request, $options['retries'] ?? null, self::timeout($options),
+            $request, $options['retries'] ?? null, CallOptions::timeout($options),
         )->then(
             function (ResponseInterface $response): Entitlement {
                 $body = (string) $response->getBody();
@@ -179,7 +186,7 @@ final class Client
      */
     public function lookupBatch(iterable $ips, array $options = []): array
     {
-        self::assertOptions($options, ['retries', 'concurrency', 'timeout']);
+        CallOptions::assert($options, ['retries', 'concurrency', 'timeout']);
         $concurrency = $options['concurrency'] ?? $this->concurrency;
         if ($concurrency < 1) {
             throw new InvalidArgumentException('concurrency must be at least 1');
@@ -247,7 +254,7 @@ final class Client
     {
         $request = $this->lookupApi->lookupBatchRequest(new BatchLookupRequest(['ips' => $chunk]));
         return $this->transport->sendAsync(
-            $request, $options['retries'] ?? null, self::timeout($options),
+            $request, $options['retries'] ?? null, CallOptions::timeout($options),
         )->then(
             function (ResponseInterface $response) use ($chunk): array {
                 $status = $response->getStatusCode();
@@ -301,7 +308,7 @@ final class Client
         }
         $request = $this->lookupApi->lookupIpRequest($ip);
         return $this->transport->sendAsync(
-            $request, $options['retries'] ?? null, self::timeout($options),
+            $request, $options['retries'] ?? null, CallOptions::timeout($options),
         )->then(
             function (ResponseInterface $response) use ($ip): Result {
                 $body = (string) $response->getBody();
@@ -314,43 +321,6 @@ final class Client
                 return $result;
             },
         );
-    }
-
-    /**
-     * An option that is accepted and quietly ignored is worse than one that is
-     * rejected, so a misspelled key fails loudly instead of leaving the caller
-     * to wonder why their override did nothing.
-     *
-     * @param array<string, mixed> $options
-     * @param list<string> $allowed
-     */
-    private static function assertOptions(array $options, array $allowed): void
-    {
-        $unknown = array_diff(array_keys($options), $allowed);
-        if ($unknown !== []) {
-            throw new InvalidArgumentException(sprintf(
-                'unknown option(s): %s. Expected any of: %s',
-                implode(', ', $unknown),
-                implode(', ', $allowed),
-            ));
-        }
-        $timeout = $options['timeout'] ?? null;
-        if ($timeout !== null && !is_int($timeout) && !is_float($timeout)) {
-            throw new InvalidArgumentException('timeout must be a number of seconds');
-        }
-        if ($timeout !== null && $timeout < 0) {
-            throw new InvalidArgumentException('timeout cannot be negative');
-        }
-    }
-
-    /**
-     * The per-call bound, in seconds, or null to keep the client's.
-     *
-     * @param array{timeout?: int|float} $options
-     */
-    private static function timeout(array $options): ?float
-    {
-        return isset($options['timeout']) ? (float) $options['timeout'] : null;
     }
 
     private static function userAgent(): string

@@ -6,6 +6,7 @@ namespace VPNDetection\Tests;
 
 use GuzzleHttp\RequestOptions;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use VPNDetection\Bogon;
 use VPNDetection\Client;
@@ -117,35 +118,6 @@ final class ClientTest extends TestCase
         self::assertLessThanOrEqual(2, $stub->peak, "peak in flight was {$stub->peak}");
     }
 
-    // Chunking to the endpoint's 1000 is the library's job, so a batch has no
-    // cap of its own: 2,500 addresses are three requests, not an error.
-    public function testABatchOfAnySizeIsSplitIntoChunksRatherThanRefused(): void
-    {
-        $addresses = [];
-        $routes = [];
-        for ($i = 0; $i < 2500; $i++) {
-            $ip = sprintf('9.1.%d.%d', intdiv($i, 256), $i % 256);
-            $addresses[] = $ip;
-            $routes[$ip] = Stub::ok(['ip' => $ip, 'is_vpn' => false]);
-        }
-        $stub = new Stub(Stub::lookups($routes));
-        $client = new Client(new Options(cache: false, httpClient: $stub->client));
-
-        $got = $client->lookupBatch($addresses);
-
-        self::assertSame(['/batch', '/batch', '/batch'], $stub->calls);
-        $sizes = array_map(
-            static fn ($request): int => count(json_decode((string) $request->getBody(), true)['ips']),
-            $stub->requests,
-        );
-        self::assertSame([1000, 1000, 500], $sizes);
-        self::assertSame($addresses, array_keys($got));
-        foreach ($addresses as $ip) {
-            self::assertInstanceOf(Result::class, $got[$ip], $ip);
-            self::assertSame($ip, $got[$ip]->ip, "{$ip} should be answered for itself");
-        }
-    }
-
     public function testRetriesAreConfigurablePerCall(): void
     {
         $stub = new Stub(Stub::lookups([
@@ -239,6 +211,29 @@ final class ClientTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $client->lookupBatch(['1.1.1.1'], ['concurency' => 4]);
+    }
+
+    // A batch that can put no chunk in flight never finishes, so this has to be
+    // refused before any request rather than discovered by a caller left waiting.
+    public function testAConcurrencyBelowOneIsRefusedBeforeAnyRequest(): void
+    {
+        $stub = self::addressStub();
+        $client = new Client(new Options(cache: false, httpClient: $stub->client));
+
+        foreach ([0, -1] as $bad) {
+            try {
+                $client->lookupBatch(['9.9.9.1', '9.9.9.2'], ['concurrency' => $bad]);
+                self::fail("concurrency {$bad} was accepted");
+            } catch (InvalidArgumentException $e) {
+                self::assertStringContainsString('concurrency', $e->getMessage());
+            }
+            try {
+                new Options(concurrency: $bad);
+                self::fail("a client concurrency of {$bad} was accepted");
+            } catch (InvalidArgumentException) {
+            }
+        }
+        self::assertSame([], $stub->calls);
     }
 
     public function testConcurrencyIsNotAcceptedOnASingleLookup(): void
@@ -431,7 +426,24 @@ final class ClientTest extends TestCase
         new Options(timeout: -1);
     }
 
-    public function testAPerCallTimeoutBelowTheClientsFiresOnAStalledBody(): void
+    /**
+     * A body stalled after the headers, and one trickled a byte every 20 ms so
+     * that no single read ever waits long. A bound that stopped at the headers,
+     * or bounded each read, would outlast both.
+     *
+     * @return array<string, array{array{stallSeconds?: int, trickleMs?: int}}>
+     */
+    public static function slowBodies(): array
+    {
+        return [
+            'stalled' => [['stallSeconds' => 5]],
+            'trickled' => [['trickleMs' => 20]],
+        ];
+    }
+
+    /** @param array{stallSeconds?: int, trickleMs?: int} $body */
+    #[DataProvider('slowBodies')]
+    public function testAPerCallTimeoutBelowTheClientsFiresOnASlowBody(array $body): void
     {
         $calls = [
             'lookup' => static fn (Client $c, array $o): mixed => $c->lookup('9.9.9.9', $o),
@@ -442,29 +454,18 @@ final class ClientTest extends TestCase
         ];
 
         foreach ($calls as $name => $call) {
-            // One origin per call, because the built-in server serves one request
-            // at a time. It stalls for longer than either bound, so a regression
-            // fails the timing assertion instead of hanging the suite.
-            $origin = new Origin(['stallSeconds' => 5]);
-            $client = new Client(
-                new Options(baseUrl: $origin->baseUrl, cache: false, retries: 0, timeout: 3.0),
-            );
-            $started = microtime(true);
-            try {
-                $answer = $call($client, ['timeout' => 0.25]);
-            } catch (VPNDetectionException $e) {
-                $answer = $e;
-            } finally {
-                $elapsed = microtime(true) - $started;
-                $origin->stop();
-            }
-
-            self::assertInstanceOf(VPNDetectionException::class, $answer, "{$name} should have timed out");
-            self::assertSame(ErrorKind::Network, $answer->kind, $name);
-            self::assertTrue($answer->isRetryable(), "{$name}: a timeout is worth another attempt");
-            self::assertGreaterThanOrEqual(0.2, $elapsed, "{$name} failed without waiting");
-            self::assertLessThan(1.5, $elapsed, "{$name} waited for the client's 3s, not the call's 0.25s");
+            $timed = static fn (Client $c): mixed => $call($c, ['timeout' => 0.25]);
+            Origin::assertTimesOut($body, 3.0, $timed, $name);
         }
+    }
+
+    // A per-call value written into something the client shares would pass the
+    // test above and leave every later call on the wrong bound.
+    /** @param array{stallSeconds?: int, trickleMs?: int} $body */
+    #[DataProvider('slowBodies')]
+    public function testWithoutAnOverrideTheClientsOwnTimeoutFiresOnASlowBody(array $body): void
+    {
+        Origin::assertTimesOut($body, 0.25, static fn (Client $c): mixed => $c->lookup('9.9.9.9'), 'lookup');
     }
 
     public function testAPerCallTimeoutBoundsEveryAttemptAndOnlyThatCall(): void

@@ -34,6 +34,20 @@ if ($stall !== false) {
     exit;
 }
 
+// The same, except a byte keeps arriving every few milliseconds, so no single
+// read ever waits long: only a bound on the whole response ends this call.
+$trickle = getenv('ORIGIN_TRICKLE_MS');
+if ($trickle !== false) {
+    header('Content-Type: application/json');
+    header('Content-Length: 1024');
+    for ($i = 0; $i < 1024; $i++) {
+        echo ' ';
+        flush();
+        usleep((int) $trickle * 1000);
+    }
+    exit;
+}
+
 if ($path === '/api/v1/database/download') {
     header('Location: http://' . $_SERVER['HTTP_HOST'] . '/blob', true, 302);
     exit;
@@ -42,6 +56,19 @@ if ($path !== '/blob') {
     http_response_code(404);
     header('Content-Type: application/json');
     echo json_encode(['rc' => 'NOT_FOUND']);
+    exit;
+}
+
+// Fails the first N attempts at the blob before serving it, so a test can watch
+// what a retry does before any byte of the body exists.
+$failFirst = (int) (getenv('ORIGIN_FAIL_FIRST') ?: '0');
+$attemptFile = dirname($log) . '/blob-attempts';
+$attempt = (int) (@file_get_contents($attemptFile) ?: '0');
+file_put_contents($attemptFile, (string) ($attempt + 1));
+if ($attempt < $failFirst) {
+    http_response_code(503);
+    header('Content-Type: application/xml');
+    echo '<Error><Code>SlowDown</Code></Error>';
     exit;
 }
 
