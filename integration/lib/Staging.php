@@ -72,7 +72,7 @@ final class Staging
 
     /**
      * @param array{tier: string, secret: string|null, widens: bool} $rung
-     * @param (callable(array{host: string, path: string, carriedKey: bool}): void)|null $onRequest
+     * @param (callable(array{host: string, path: string, ips: list<string>, carriedKey: bool}): void)|null $onRequest
      */
     public static function clientFor(array $rung, ?callable $onRequest = null): Client
     {
@@ -100,7 +100,7 @@ final class Staging
      * holding on to the request itself is how a key ends up in a public CI log:
      * whether the key was carried is a boolean, and the caller never sees it.
      *
-     * @return array{host: string, path: string, carriedKey: bool}
+     * @return array{host: string, path: string, ips: list<string>, carriedKey: bool}
      */
     public static function factsFor(RequestInterface $request, string $key): array
     {
@@ -114,7 +114,19 @@ final class Staging
                 }
             }
         }
-        return ['host' => $uri->getHost(), 'path' => $uri->getPath(), 'carriedKey' => $carried];
+        // A POST /batch carries its addresses in the body, so the path alone no
+        // longer says what was asked about.
+        $body = $request->getBody();
+        $decoded = json_decode((string) $body, true);
+        if ($body->isSeekable()) {
+            $body->rewind();
+        }
+        return [
+            'host' => $uri->getHost(),
+            'path' => $uri->getPath(),
+            'ips' => is_array($decoded['ips'] ?? null) ? array_values($decoded['ips']) : [],
+            'carriedKey' => $carried,
+        ];
     }
 
     /**

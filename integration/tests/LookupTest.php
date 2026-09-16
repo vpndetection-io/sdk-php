@@ -129,21 +129,21 @@ final class LookupTest extends TestCase
 
     public function testABatchCollapsesDuplicatesAndKeepsBogonsOffTheWire(): void
     {
-        // Distinct paths rather than a call count, so a retry against a wobbling
-        // staging cannot read as a failure to deduplicate.
+        // Distinct requests rather than a call count, so a retry against a
+        // wobbling staging cannot read as a failure to deduplicate.
         $asked = [];
         $client = Staging::clientFor(Tiers::unauth(), static function (array $fact) use (&$asked): void {
-            $asked[$fact['path']] = true;
+            $asked[$fact['path'] . ' ' . implode(',', $fact['ips'])] = true;
         });
 
         $got = $client->lookupBatch([Staging::PROBE, '8.8.8.8', Staging::PROBE, '10.0.0.1', '8.8.8.8']);
 
         self::assertSame([Staging::PROBE, '8.8.8.8', '10.0.0.1'], array_keys($got));
-        $paths = array_keys($asked);
-        $wanted = ['/8.8.8.8', '/' . Staging::PROBE];
-        sort($paths);
-        sort($wanted);
-        self::assertSame($wanted, $paths, 'the batch asked for something other than the two servable addresses');
+        self::assertSame(
+            ['/batch ' . Staging::PROBE . ',8.8.8.8'],
+            array_keys($asked),
+            'the batch asked for something other than the two servable addresses, in one POST /batch',
+        );
         self::assertTrue($got['10.0.0.1']->isBogon);
         foreach ([Staging::PROBE, '8.8.8.8'] as $ip) {
             self::assertInstanceOf(Result::class, $got[$ip], "{$ip} failed");

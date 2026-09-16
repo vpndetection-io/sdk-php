@@ -34,7 +34,7 @@ final class DatabaseTest extends TestCase
     // A real catalog id the max organization holds no license for.
     private const UNLICENSED_ID = 'hosting_ip_v1';
 
-    /** @var list<array{host: string, path: string, carriedKey: bool}> */
+    /** @var list<array{host: string, path: string, ips: list<string>, carriedKey: bool}> */
     private static array $facts = [];
 
     private static ?Client $client = null;
