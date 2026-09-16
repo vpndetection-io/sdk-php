@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.15
+  version: 2026.09.16
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -687,9 +687,11 @@ paths:
       parameters:
         - in: query
           name: limit
+          description: How many attempts to return. Clamped to 1 through 200.
           schema:
             type: integer
             default: 50
+            minimum: 1
             maximum: 200
       responses:
         '200':
@@ -1111,8 +1113,15 @@ paths:
                 $ref: '#/components/schemas/DeviceAuthorization'
         '400':
           description: |
-            `invalid_request`, `invalid_client`, `unauthorized_client`, or
-            `slow_down` when this address has started too many authorizations.
+            `invalid_request`, `unauthorized_client` when the client may not use
+            the device flow, or `slow_down` when this address has started too
+            many authorizations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthError'
+        '401':
+          description: '`invalid_client`: the `client_id` is not registered.'
           content:
             application/json:
               schema:
@@ -1223,6 +1232,17 @@ paths:
           description: |
             An RFC 6749 error. `authorization_pending` and `slow_down` are
             normal answers while polling a device authorization, not failures.
+            `access_denied` means the person refused, and `expired_token` that
+            the device code is no longer valid: it expired, or it was already
+            exchanged or refused. `invalid_grant` means the code, device code or
+            refresh token is not valid for this `client_id`. `slow_down` also
+            answers any grant when this address sends too many requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthError'
+        '401':
+          description: '`invalid_client`: the `client_id` is not registered.'
           content:
             application/json:
               schema:
@@ -2103,9 +2123,16 @@ components:
           type: array
           items:
             type: string
-        client_id_metadata_document_supported:
+        token_endpoint_auth_methods_supported:
+          type: array
+          items:
+            type: string
+          description: Always `none`. Every client is public and has no secret.
+        authorization_response_iss_parameter_supported:
           type: boolean
-          description: A client_id may be an https URL serving your client metadata.
+          description: RFC 9207. A redirect back from the authorization endpoint carries `iss`.
+        service_documentation:
+          type: string
       required:
         - issuer
         - authorization_endpoint
@@ -2141,6 +2168,7 @@ components:
           description: The same page with the code already filled in.
         expires_in:
           type: integer
+          description: Seconds until both codes expire.
         interval:
           type: integer
           description: Seconds between polls.
@@ -2155,18 +2183,24 @@ components:
       properties:
         grant_type:
           type: string
+          description: '`urn:ietf:params:oauth:grant-type:device_code`, `authorization_code` or `refresh_token`.'
         client_id:
           type: string
         device_code:
           type: string
+          description: Required by the device code grant.
         code:
           type: string
+          description: Required by the authorization code grant.
         code_verifier:
           type: string
+          description: Required by the authorization code grant.
         redirect_uri:
           type: string
+          description: 'Authorization code grant: the `redirect_uri` the code was issued against, exactly.'
         refresh_token:
           type: string
+          description: Required by the refresh token grant.
       required:
         - grant_type
         - client_id
@@ -2177,13 +2211,32 @@ components:
           type: string
         token_type:
           type: string
+          description: Always `Bearer`.
         expires_in:
           type: integer
+          description: Seconds until the access token expires.
         refresh_token:
           type: string
+          description: Always returned. A refresh consumes the token it presents, so keep this one.
         scope:
           type: string
           description: What was actually granted, which may be narrower than what was asked for.
+        mslm:apikey_id:
+          type: string
+          description: |
+            Not part of OAuth. The ID of the API key the person picked when they
+            approved, returned by every grant while this authorization may still
+            read that key back. Absent when no key was picked, or when the
+            person's role no longer allows reading keys back.
+        mslm:apikey:
+          type: string
+          description: |
+            Not part of OAuth. The API key itself, so a device ends up holding an
+            ordinary key. Returned by the device code and authorization code
+            grants only, never by a refresh, and only alongside
+            `mslm:apikey_id`. Absent when that key's secret cannot be read back,
+            which is the case for a key created before keys could be shown again
+            in the console; a rotated key can be.
       required:
         - access_token
         - token_type
@@ -2193,8 +2246,10 @@ components:
       properties:
         token:
           type: string
+          description: An access token or a refresh token.
         client_id:
           type: string
+          description: Accepted and not checked.
       required:
         - token
     OauthError:
