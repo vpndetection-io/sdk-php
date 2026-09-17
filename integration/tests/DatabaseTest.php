@@ -84,7 +84,7 @@ final class DatabaseTest extends TestCase
             self::assertContains($dataset->standing, ['expired', 'licensed', 'unlicensed'],
                 "{$dataset->base} carries an undocumented standing");
             // `list` answers the WHOLE catalogue, so an unlicensed family is a normal row
-            // with no licence type at all. Asserting one either way is what tells a null
+            // with no license type at all. Asserting one either way is what tells a null
             // apart from a value this client cannot read.
             if ($dataset->standing === 'unlicensed') {
                 self::assertNull($dataset->licenseType,
