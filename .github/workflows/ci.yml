@@ -17,10 +17,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The floor the library targets, through the newest release. The matrix is
-        # wide because the PHPUnit major that supports 8.1 is not the one that
-        # supports 8.5, so each leg resolves a different test toolchain.
-        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+        # Every version composer.json declares support for, floor first: a floor
+        # no leg runs is a claim rather than a fact. The matrix is wide because
+        # the PHPUnit major that supports 8.2 is not the one that supports 8.5 -
+        # these four legs resolve 11, 12, 13 and 13 - so each leg is a different
+        # test toolchain and not merely a different interpreter.
+        php: ['8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2

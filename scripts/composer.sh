@@ -6,8 +6,8 @@
 # obvious `docker run composer:2` wrong:
 #
 #   1. The version composer resolves FOR decides the dependency set. PHPUnit 13
-#      needs PHP 8.4.1 and PHPUnit 10.5 is the last that runs on 8.1, so
-#      resolving under the composer image's own PHP and then testing on 8.1
+#      needs PHP 8.4.1 and PHPUnit 11 is the last that runs on 8.2, so
+#      resolving under the composer image's own PHP and then testing on 8.2
 #      proves nothing. `config.platform.php` in a per-version COMPOSER_HOME pins
 #      the target without touching the committed composer.json.
 #   2. php:X-cli carries no zip extension, no unzip and no git, so composer
@@ -15,7 +15,7 @@
 #      composer image, which has all three.
 #
 #   ./scripts/composer.sh update
-#   PHP_VERSION=8.1 ./scripts/composer.sh update
+#   PHP_VERSION=8.2 ./scripts/composer.sh update
 #
 # Both the composer home and the download cache live under the HOST's composer
 # directory, so neither lands in the working tree.

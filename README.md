@@ -13,7 +13,7 @@ The library helps you query VPNDetection's APIs for anonymity detection includin
 composer require vpndetection/vpndetection
 ```
 
-Requires PHP 8.1 or newer. Everything is typed, and the tier-gated fields are nullable so an absent answer never reads as a false one.
+Requires PHP 8.2 or newer. Everything is typed, and the tier-gated fields are nullable so an absent answer never reads as a false one.
 
 ## Usage
 
