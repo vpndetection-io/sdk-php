@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.16
+  version: 2026.09.18
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -495,7 +495,7 @@ paths:
         - Database
       summary: List
       description: |
-        Every database this organization may SEE, with where its licence stands.
+        Every database this organization may SEE, with where its license stands.
         Not just the ones you hold: a customer with one grant should be able to
         tell what else is published without asking. `standing` is the
         difference - `licensed`, `expired`, or `unlicensed` for one never
