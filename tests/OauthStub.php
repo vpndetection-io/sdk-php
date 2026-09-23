@@ -34,12 +34,12 @@ final class OauthStub
      */
     public array $requests = [];
 
-    /** @var list<int> Every wait the poll took, in seconds. */
+    /** @var list<float> Every wait the poll took, in seconds. */
     public array $waits = [];
 
     public readonly GuzzleClient $client;
 
-    private int $elapsed = 0;
+    private float $elapsed = 0.0;
     private int $reads = 0;
 
     /** @param list<array<string, mixed>> $replies Each `status` plus `body` (sent as JSON) or `rawBody`. */
@@ -55,9 +55,9 @@ final class OauthStub
             if (++$this->reads > 2 * self::BOUND) {
                 self::trip("read the clock {$this->reads} times");
             }
-            return (float) $this->elapsed;
+            return $this->elapsed;
         };
-        $sleep = function (int $seconds): void {
+        $sleep = function (float $seconds): void {
             if (count($this->waits) === self::BOUND) {
                 self::trip('waited more than ' . self::BOUND . ' times');
             }

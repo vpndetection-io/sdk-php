@@ -58,8 +58,6 @@ final class Options
         if ($retries < 0) {
             throw new InvalidArgumentException('retries cannot be negative');
         }
-        if ($timeout < 0) {
-            throw new InvalidArgumentException('timeout cannot be negative');
-        }
+        CallOptions::assertTimeout($timeout);
     }
 }

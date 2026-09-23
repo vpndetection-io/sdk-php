@@ -155,6 +155,39 @@ final class ClientTest extends TestCase
         self::assertSame([0, 2000], $stub->delays);
     }
 
+    /**
+     * Honored as given, 9223372036854775807 overflowed its milliseconds into a
+     * float and the call died with a raw TypeError, and 9223372036854775 held it
+     * for millennia (4.3.1, measured 2026-09-23). Past 2**31 - 1 ms it waits the
+     * backoff instead, still a rate limit.
+     */
+    public function testARetryAfterPastTheBoundWaitsTheBackoff(): void
+    {
+        $cases = [
+            '2147483' => 2_147_483_000,
+            '2147484' => 250,
+            '9223372036854775' => 250,
+            '9223372036854775807' => 250,
+            '99999999999999999999' => 250,
+        ];
+        foreach ($cases as $retryAfter => $delay) {
+            $stub = new Stub(Stub::lookups([
+                '9.9.9.9' => [
+                    [
+                        'status' => 429,
+                        'headers' => ['Retry-After' => (string) $retryAfter],
+                        'body' => ['error' => 'rate limit exceeded'],
+                    ],
+                    Stub::ok(['ip' => '9.9.9.9', 'is_vpn' => true]),
+                ],
+            ]));
+            $client = new Client(new Options(cache: false, retries: 1, httpClient: $stub->client));
+
+            self::assertTrue($client->lookup('9.9.9.9')->isVpn, "Retry-After: {$retryAfter}");
+            self::assertSame([0, $delay], $stub->delays, "Retry-After: {$retryAfter}");
+        }
+    }
+
     public function testA429WithoutRetryAfterIsASpentAllowanceAndIsNotRetried(): void
     {
         $stub = new Stub(Stub::lookups([
@@ -424,6 +457,34 @@ final class ClientTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         new Options(timeout: -1);
+    }
+
+    /**
+     * Guzzle refused these only once a request was built, so the client and the
+     * call both took them and every call then failed (4.3.1, measured
+     * 2026-09-23). Refused where set, having sent nothing.
+     */
+    public function testATimeoutNoAttemptCanMeetIsRefusedWhereItIsSet(): void
+    {
+        $stub = new Stub(Stub::lookups(['9.9.9.9' => Stub::ok(['ip' => '9.9.9.9', 'is_vpn' => false])]));
+        $client = new Client(new Options(cache: false, httpClient: $stub->client));
+        foreach ([NAN, INF, 0.0005, 9e15, 1e300] as $bad) {
+            foreach (['client' => fn () => new Options(timeout: $bad),
+                'call' => fn () => $client->lookup('9.9.9.9', ['timeout' => $bad])] as $where => $set) {
+                try {
+                    $set();
+                    self::fail("{$where} took timeout {$bad}");
+                } catch (InvalidArgumentException $e) {
+                    self::assertStringContainsString('timeout', $e->getMessage());
+                }
+            }
+        }
+        self::assertCount(0, $stub->calls, 'and not one request was spent finding out');
+
+        foreach ([0, 0.001, 8.9e15] as $good) {
+            new Options(timeout: $good);
+            self::assertFalse($client->lookup('9.9.9.9', ['timeout' => $good])->isVpn, "timeout {$good}");
+        }
     }
 
     /**

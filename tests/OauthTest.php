@@ -171,6 +171,52 @@ final class OauthTest extends TestCase
         }
     }
 
+    // No corpus case: every response there decodes. One member left out per case,
+    // since a body missing several at once passes against a decoder that
+    // defaults any single one of them.
+    public function testAnAnswerMissingAnyOneRequiredMemberIsTheOrdinaryError(): void
+    {
+        $required = [
+            'metadata' => ['issuer', 'authorization_endpoint', 'token_endpoint'],
+            'deviceAuthorization' => ['device_code', 'user_code', 'verification_uri', 'expires_in', 'interval'],
+            'exchangeDeviceCode' => ['access_token', 'token_type', 'expires_in'],
+        ];
+        $args = ['clientId' => 'vpndetection-cli', 'deviceCode' => 'mo_dc_x'];
+        foreach ($required as $operation => $members) {
+            foreach ($members as $member) {
+                $body = self::EVERY_REQUIRED_MEMBER;
+                unset($body[$member]);
+                $stub = new OauthStub([['status' => 200, 'body' => $body]]);
+                // No retries: a server error is retryable, and the stub would answer the retry the same.
+                $client = new Client(new Options(baseUrl: self::BASE_URL, retries: 0, httpClient: $stub->client));
+
+                $outcome = self::settle(static fn (): mixed => self::call($client, $operation, $args));
+
+                $want = ['type' => 'client', 'kind' => 'server_error', 'status' => 200];
+                self::assertOutcome($outcome, $want, "{$operation} without {$member}");
+            }
+        }
+    }
+
+    // No corpus case: a deadline already behind the clock leaves a negative
+    // remainder, which is never the wait.
+    public function testAPollPastItsDeadlineWaitsNothingNeverANegativeTime(): void
+    {
+        $stub = new OauthStub([['status' => 400, 'body' => ['error' => 'authorization_pending']]]);
+        $oauth = self::client($stub)->oauth;
+        $stub->installClock($oauth);
+        $device = self::device([
+            'device_code' => 'mo_dc_poll', 'user_code' => 'BCDF-GHJK',
+            'verification_uri' => 'https://app.vpndetection.io/device', 'expires_in' => -3, 'interval' => 1,
+        ]);
+
+        $outcome = self::settle(static fn (): mixed => $oauth->pollDeviceToken('vpndetection-cli', $device));
+
+        self::assertSame([0.0], $stub->waits);
+        self::assertCount(0, $stub->requests);
+        self::assertOutcome($outcome, ['type' => 'expiredToken', 'status' => null], 'expires_in -3');
+    }
+
     public function testAFailedAnswerIsAnOauthRefusalOnlyWhenItIsOne(): void
     {
         foreach (self::$corpus['errors']['cases'] as $case) {
@@ -212,7 +258,11 @@ final class OauthTest extends TestCase
             $outcome = self::settle(static fn (): mixed => $oauth->pollDeviceToken($case['clientId'], $device));
 
             $name = $case['name'];
-            self::assertSame($case['expect']['waits'], $stub->waits, "{$name}: waits, in seconds");
+            self::assertSame(
+                array_map(floatval(...), $case['expect']['waits']),
+                $stub->waits,
+                "{$name}: waits, in seconds",
+            );
             self::assertCount($case['expect']['requests'], $stub->requests, "{$name}: requests sent");
             $form = [
                 'client_id' => $case['clientId'],

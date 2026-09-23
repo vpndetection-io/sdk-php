@@ -27,6 +27,12 @@ final class Transport
 {
     private const BACKOFF_BASE_MS = 250;
 
+    /**
+     * The longest Retry-After honored, in seconds: 2**31 - 1 ms, about 24.8
+     * days, the same bound as the .NET SDK's. Past it the wait is the backoff.
+     */
+    private const LONGEST_RETRY_AFTER = 2_147_483;
+
     public function __construct(
         private readonly ClientInterface $http,
         private readonly int $defaultRetries,
@@ -198,8 +204,12 @@ final class Transport
 
     private static function delayFor(VPNDetectionException $error, int $attempt): int
     {
+        // Unbounded, the product overflowed into a float and the int return type
+        // threw a raw TypeError, and a smaller one scheduled a wait of millennia.
         $seconds = $error->retryAfterSeconds;
-        return $seconds === null || $seconds <= 0 ? self::backoffMs($attempt) : $seconds * 1000;
+        return $seconds === null || $seconds <= 0 || $seconds > self::LONGEST_RETRY_AFTER
+            ? self::backoffMs($attempt)
+            : $seconds * 1000;
     }
 
     private static function backoffMs(int $attempt): int

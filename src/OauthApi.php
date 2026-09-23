@@ -56,10 +56,13 @@ final class OauthApi
         'mslm:apikey' => ['string', false],
     ];
 
+    /** The longest part of one poll wait handed to time_nanosleep, in seconds. */
+    private const LONGEST_SLEEP = 2_147_483_647;
+
     /** @var Closure(): float Monotonic seconds, for the poll's deadline. */
     private Closure $now;
 
-    /** @var Closure(int): void The poll's wait. Replaced together with `$now` in tests. */
+    /** @var Closure(float): void The poll's wait, in seconds. Replaced together with `$now` in tests. */
     private Closure $sleep;
 
     /** @internal Built by `Client`. */
@@ -69,8 +72,16 @@ final class OauthApi
         private readonly string $userAgent,
     ) {
         $this->now = static fn (): float => hrtime(true) / 1e9;
-        $this->sleep = static function (int $seconds): void {
-            sleep($seconds);
+        // sleep() and usleep() wrap past 2**32 of their unit (measured on 8.3:
+        // sleep(4294967297) returns after 1 s), and (int) of a float past
+        // PHP_INT_MAX is negative, which time_nanosleep refuses with a ValueError.
+        // So the wait goes to time_nanosleep in parts no part of which overflows.
+        $this->sleep = static function (float $seconds): void {
+            for (; $seconds > self::LONGEST_SLEEP; $seconds -= self::LONGEST_SLEEP) {
+                time_nanosleep(self::LONGEST_SLEEP, 0);
+            }
+            $whole = (int) $seconds;
+            time_nanosleep($whole, (int) (($seconds - $whole) * 1e9));
         };
     }
 
@@ -198,7 +209,8 @@ final class OauthApi
      *
      * Waits `$device->interval` seconds (5 when that is below 1) before EVERY
      * request, the first included, and 5 more for the rest of the call each time
-     * the server answers `slow_down`. Ends at the first answer that is neither: a
+     * the server answers `slow_down`, but never past `$device->expiresIn`: a wait
+     * that would end later ends then. Ends at the first answer that is neither: a
      * denial throws `OauthAccessDeniedException`, a code that ran out
      * `OauthExpiredTokenException` - as does outliving `$device->expiresIn`,
      * counted from this call, with no status - and any other failure as it came.
@@ -216,7 +228,11 @@ final class OauthApi
         $interval = $device->interval >= 1 ? $device->interval : 5;
         $deadline = ($this->now)() + $device->expiresIn;
         while (true) {
-            ($this->sleep)($interval);
+            // Never past the deadline: an interval that would end after it, served
+            // that way or widened by slow_down, sleeps only the time left, and the
+            // local expiry follows with no request sent.
+            $left = $deadline - ($this->now)();
+            ($this->sleep)((float) min($interval, max($left, 0.0)));
             if (($this->now)() >= $deadline) {
                 throw new OauthExpiredTokenException('expired_token');
             }
