@@ -298,6 +298,25 @@ final class OauthTest extends TestCase
         self::assertLessThan(2.5, $elapsed);
     }
 
+    // The time left is rarely whole seconds here, so a sleep dropping the fraction
+    // polls again short of the deadline; only such a poll reaches the approval.
+    public function testAPollOnTheRealClockSleepsTheFractionLeftBeforeItsDeadline(): void
+    {
+        $pending = ['status' => 400, 'body' => ['error' => 'authorization_pending']];
+        $stub = new OauthStub([$pending, ['status' => 200, 'body' => self::EVERY_REQUIRED_MEMBER]], 2);
+        $device = new DeviceAuthorization('mo_dc_x', 'BCDF-GHJK', 'https://app.example.test/device', 2, 1);
+        $started = microtime(true);
+
+        $outcome = self::settle(static fn (): mixed
+            => self::client($stub)->oauth->pollDeviceToken('vpndetection-cli', $device));
+
+        $elapsed = microtime(true) - $started;
+        self::assertCount(1, $stub->requests, 'polled again before the deadline');
+        self::assertOutcome($outcome, ['type' => 'expiredToken', 'status' => null], 'expires_in 2');
+        self::assertGreaterThanOrEqual(1.95, $elapsed, 'expired before its deadline');
+        self::assertLessThan(3.5, $elapsed);
+    }
+
     public function testEveryOauthCallTakesAPerCallTimeoutBelowTheClients(): void
     {
         foreach (self::timedCalls() as $name => $call) {
