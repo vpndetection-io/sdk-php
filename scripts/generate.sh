@@ -59,8 +59,7 @@ mkdir -p src/Internal
 cp -R .gen/src/. src/Internal/
 
 # The generated OAuth class is autoloadable by accident and nothing calls it:
-# $client->oauth is the surface. Deprecated for the next major to delete
-# (docs/sdk/deprecation.md, the ledger).
+# $client->oauth is the surface. Deprecated for the next major to delete.
 AUTHORIZATION="src/Internal/Api/AuthorizationApi.php"
 sed -i \
     -e 's|^ \* AuthorizationApi Class Doc Comment$|&\n *\n * @internal Not part of the public API; `VPNDetection\\Client::$oauth` is.\n * @deprecated Since 4.2.0, and removed in the next major. Use `VPNDetection\\Client::$oauth`.|' \
