@@ -1,0 +1,33 @@
+name: Release
+
+# The tag push IS the release here: Packagist reads each tag from this
+# repository, so there is nothing to build or upload. This attaches the
+# version's section of CHANGELOG.md as the tag's GitHub Release, and a re-run
+# edits the release rather than failing on it.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: GitHub Release from CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '/^## /{ if (found) exit; found = ($2 == v); next } found' CHANGELOG.md > notes.md
+          if ! grep -q '^### ' notes.md ; then
+            echo "CHANGELOG.md has no section for ${version}" >&2
+            exit 1
+          fi
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 ; then
+            gh release edit "$GITHUB_REF_NAME" --notes-file notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+          fi
