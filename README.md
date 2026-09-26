@@ -1,4 +1,4 @@
-# [<img src="https://s3.vpndetection.io/vpndetection-public/brand/mark.svg" alt="VPNDetection" width="24"/>](https://vpndetection.io/) VPNDetection PHP Client Library
+# [<img src="https://s3.vpndetection.io/vpndetection-public/brand/mark.svg" alt="VPNDetection" height="28"/>](https://vpndetection.io/) VPNDetection PHP Client Library
 
 [![Packagist](https://img.shields.io/packagist/v/vpndetection/vpndetection.svg)](https://packagist.org/packages/vpndetection/vpndetection)
 [![license](https://img.shields.io/packagist/l/vpndetection/vpndetection.svg)](LICENSE)
