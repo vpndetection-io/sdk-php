@@ -39,10 +39,6 @@ final class OauthTest extends TestCase
         'token_type' => 'Bearer',
     ];
 
-    // In the corpus's production document, but no longer advertised or in the
-    // pinned spec, so it is not a member of OauthMetadata.
-    private const NOT_A_MEMBER = ['client_id_metadata_document_supported'];
-
     /** @var array<string, mixed> */
     private static array $corpus;
 
@@ -133,9 +129,7 @@ final class OauthTest extends TestCase
                 $got = self::call(self::client($stub), $operation, $args);
 
                 foreach ($case['expect']['present'] as $name => $value) {
-                    if (!in_array($name, self::NOT_A_MEMBER, true)) {
-                        self::assertSame($value, $got->{self::camel($name)}, "{$label}: {$name}");
-                    }
+                    self::assertSame($value, $got->{self::camel($name)}, "{$label}: {$name}");
                 }
                 foreach ($case['expect']['absent'] as $name) {
                     self::assertNull($got->{self::camel($name)}, "{$label}: {$name} must be ABSENT");

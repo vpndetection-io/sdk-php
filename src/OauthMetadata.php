@@ -30,6 +30,8 @@ final class OauthMetadata
         public readonly ?array $tokenEndpointAuthMethodsSupported = null,
         public readonly ?bool $authorizationResponseIssParameterSupported = null,
         public readonly ?string $serviceDocumentation = null,
+        // Last, so a caller passing the members by position is not moved.
+        public readonly ?bool $clientIdMetadataDocumentSupported = null,
     ) {
     }
 }

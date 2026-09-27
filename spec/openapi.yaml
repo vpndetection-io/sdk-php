@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.21
+  version: 2026.09.26
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -1136,6 +1136,14 @@ paths:
         The browser entry point for the authorization-code flow. This is a
         redirect target, not something to call from code.
 
+        Any client may sign in without registering first by using a Client ID
+        Metadata Document: make `client_id` an https URL that serves your
+        client's metadata as JSON, naming that same URL as its `client_id`,
+        with `token_endpoint_auth_method` `none` and your `redirect_uris`. An
+        https redirect URI must be on the same origin as the `client_id`; a
+        loopback one (`http://127.0.0.1`, `http://[::1]`, `http://localhost`)
+        matches on any port. Such a client is granted `apikeys.use` at most.
+
         An unknown `client_id` or an unregistered `redirect_uri` is shown to the
         USER and never redirected, because sending an error to an address we
         have not verified belongs to you is how an open redirector works.
@@ -1167,12 +1175,12 @@ paths:
             type: string
         - name: code_challenge_method
           in: query
-          required: false
+          required: true
           schema:
             type: string
             enum:
               - S256
-          description: S256 only. `plain` is refused rather than downgraded.
+          description: S256, named explicitly. `plain`, or no method at all, is refused rather than downgraded.
         - name: scope
           in: query
           required: false
@@ -1189,12 +1197,18 @@ paths:
           required: false
           schema:
             type: string
-          description: RFC 8707. What the token is FOR, so it cannot be replayed elsewhere.
+          description: |
+            RFC 8707. What the token is FOR, so it cannot be replayed elsewhere:
+            this brand's MCP server, the only resource it issues tokens for.
+            Anything else answers `invalid_target`. A client that names none is
+            given that server.
       responses:
         '302':
           description: A redirect to the consent screen, or back to your redirect_uri with an error.
         '400':
           description: Shown to the user. An unverified redirect target is never sent an error.
+        '429':
+          description: Shown to the user. Too many authorizations from one address.
   /oauth/token:
     post:
       operationId: oauthToken
@@ -1210,10 +1224,14 @@ paths:
         `slow_down`, which means widen your interval and keep it widened.
 
         `authorization_code` exchanges a code from `/oauth/authorize`, with the
-        `code_verifier` matching the challenge you sent.
+        `code_verifier` matching the challenge you sent and the same
+        `redirect_uri`. A code works once: presenting it again also revokes
+        what the first exchange issued.
 
         `refresh_token` exchanges a refresh token. The presented token is
         consumed whatever happens next, so store the new one before using it.
+        Presenting a consumed refresh token again ends the whole authorization,
+        since it means the token was copied.
       security: []
       requestBody:
         required: true
@@ -1235,8 +1253,10 @@ paths:
             `access_denied` means the person refused, and `expired_token` that
             the device code is no longer valid: it expired, or it was already
             exchanged or refused. `invalid_grant` means the code, device code or
-            refresh token is not valid for this `client_id`. `slow_down` also
-            answers any grant when this address sends too many requests.
+            refresh token is not valid for this `client_id`. `invalid_target`
+            means `resource` names something other than what was authorized.
+            `slow_down` also answers any grant when this address sends too many
+            requests.
           content:
             application/json:
               schema:
@@ -2123,6 +2143,9 @@ components:
           type: array
           items:
             type: string
+        client_id_metadata_document_supported:
+          type: boolean
+          description: Any client may sign in with an https `client_id` serving its own metadata.
         token_endpoint_auth_methods_supported:
           type: array
           items:
@@ -2197,7 +2220,12 @@ components:
           description: Required by the authorization code grant.
         redirect_uri:
           type: string
-          description: 'Authorization code grant: the `redirect_uri` the code was issued against, exactly.'
+          description: >-
+            Required by the authorization code grant: the `redirect_uri` the code was issued
+            against, exactly.
+        resource:
+          type: string
+          description: 'Authorization code grant, optional: RFC 8707, and it must name what was authorized.'
         refresh_token:
           type: string
           description: Required by the refresh token grant.
@@ -2224,16 +2252,19 @@ components:
         mslm:apikey_id:
           type: string
           description: |
-            Not part of OAuth. The ID of the API key the person picked when they
-            approved, returned by every grant while this authorization may still
-            read that key back. Absent when no key was picked, or when the
-            person's role no longer allows reading keys back.
+            Not part of OAuth, and only for our own clients. The ID of the API
+            key the person picked when they approved, returned by every grant
+            while this authorization may still read that key back. Absent when
+            no key was picked, or when the person's role no longer allows
+            reading keys back.
         mslm:apikey:
           type: string
           description: |
-            Not part of OAuth. The API key itself, so a device ends up holding an
-            ordinary key. Returned by the device code and authorization code
-            grants only, never by a refresh, and only alongside
+            Not part of OAuth, and only for our own clients: a client that signed
+            in with a Client ID Metadata Document never receives a key. The API
+            key itself, so a device ends up holding an ordinary key. Returned by
+            the device code and authorization code grants only, never by a
+            refresh, and only alongside
             `mslm:apikey_id`. Absent when that key's secret cannot be read back,
             which is the case for a key created before keys could be shown again
             in the console; a rotated key can be.
