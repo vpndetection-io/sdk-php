@@ -196,7 +196,11 @@ final class Client
         foreach ($ips as $ip) {
             $seen[$ip] = true;
         }
-        $unique = array_map(strval(...), array_keys($seen));
+        // An IPv4-mapped address is looked up as the IPv4 address it carries, once,
+        // and its answer keyed as the caller passed it.
+        $asked = array_map(strval(...), array_keys($seen));
+        $wire = array_map(Bogon::unmapped(...), $asked);
+        $unique = array_values(array_unique($wire));
 
         $answers = [];
         $pending = [];
@@ -234,8 +238,8 @@ final class Client
         // Reinstated in input order: the callbacks fire in completion order, and
         // a caller iterating the result should see what they passed in.
         $ordered = [];
-        foreach ($unique as $ip) {
-            $ordered[$ip] = $answers[$ip];
+        foreach ($asked as $i => $ip) {
+            $ordered[$ip] = $answers[$wire[$i]];
         }
         return $ordered;
     }
@@ -299,6 +303,8 @@ final class Client
     /** @param array{retries?: int, timeout?: float} $options */
     private function lookupAsync(string $ip, array $options): PromiseInterface
     {
+        // Judged, sent and cached as the IPv4 address an IPv4-mapped one carries.
+        $ip = Bogon::unmapped($ip);
         if (Bogon::isBogon($ip)) {
             return Create::promiseFor(Bogon::result($ip));
         }

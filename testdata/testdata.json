@@ -231,6 +231,50 @@
       "why": "first address past 192.0.2.0/24; a mask one bit too wide claims it"
     }
   ],
+  "ipv4Mapped": [
+    {
+      "ip": "::ffff:8.8.8.8",
+      "carries": "8.8.8.8",
+      "expect": false,
+      "why": "a public IPv4 visitor, as a server listening on :: sees every one: judged, sent and cached as 8.8.8.8, never as a bogon in ::ffff:0:0/96"
+    },
+    {
+      "ip": "::ffff:10.0.0.1",
+      "carries": "10.0.0.1",
+      "expect": true,
+      "why": "RFC 1918, mapped: a bogon for the same reason 10.0.0.1 is"
+    },
+    {
+      "ip": "::ffff:127.0.0.1",
+      "carries": "127.0.0.1",
+      "expect": true,
+      "why": "loopback, mapped: a local client of a server listening on ::"
+    },
+    {
+      "ip": "::ffff:808:808",
+      "carries": "8.8.8.8",
+      "expect": false,
+      "why": "the same address with its IPv4 half in hex"
+    },
+    {
+      "ip": "0:0:0:0:0:ffff:808:808",
+      "carries": "8.8.8.8",
+      "expect": false,
+      "why": "the same address written in full"
+    },
+    {
+      "ip": "::FFFF:8.8.8.8",
+      "carries": "8.8.8.8",
+      "expect": false,
+      "why": "upper-case hex digits"
+    },
+    {
+      "ip": "::8.8.8.8",
+      "carries": "::8.8.8.8",
+      "expect": true,
+      "why": "IPv4-compatible, not mapped: stays IPv6 and inside ::/96"
+    }
+  ],
   "bogonResponse": {
     "why": "A bogon is answered locally in the full max shape. Every flag is present and false, every detail object is present and empty, and is_bogon marks it as computed rather than served.",
     "flagsFalse": [

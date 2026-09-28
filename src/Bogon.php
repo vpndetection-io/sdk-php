@@ -24,6 +24,7 @@ final class Bogon
      */
     public static function isBogon(string $ip): bool
     {
+        $ip = self::unmapped($ip);
         if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
             return false;
         }
@@ -37,6 +38,26 @@ final class Bogon
             }
         }
         return false;
+    }
+
+    /**
+     * The IPv4 address an IPv4-mapped IPv6 address carries, dotted, and any other
+     * string as given. A server listening on `::` sees an IPv4 visitor in the
+     * mapped form, which read whole is inside `::ffff:0:0/96` and so would be
+     * answered as a bogon with no request made.
+     *
+     * @internal What `isBogon` judges and a lookup sends; not part of the API.
+     */
+    public static function unmapped(string $ip): string
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false) {
+            return $ip;
+        }
+        $packed = inet_pton($ip);
+        if ($packed === false || substr($packed, 0, 12) !== "\0\0\0\0\0\0\0\0\0\0\xff\xff") {
+            return $ip;
+        }
+        return (string) inet_ntop(substr($packed, 12));
     }
 
     /**

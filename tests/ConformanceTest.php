@@ -45,6 +45,42 @@ final class ConformanceTest extends TestCase
         }
     }
 
+    /**
+     * A server listening on :: sees an IPv4 visitor as ::ffff:a.b.c.d, which read
+     * whole is inside ::ffff:0:0/96: through 4.4.0 each was answered as a bogon
+     * with no request made.
+     */
+    public function testAnIpv4MappedAddressIsTheIpv4AddressItCarries(): void
+    {
+        foreach (self::$data['ipv4Mapped'] as $case) {
+            ['ip' => $ip, 'carries' => $carries, 'expect' => $bogon] = $case;
+            self::assertSame($bogon, Bogon::isBogon($ip), sprintf('%s (%s)', $ip, $case['why']));
+            $routes = Stub::lookups([$carries => Stub::ok(['ip' => $carries, 'is_vpn' => true])]);
+            $wantSent = $bogon ? [] : [$carries];
+
+            $stub = new Stub($routes);
+            $client = new Client(new Options(httpClient: $stub->client));
+            $result = $client->lookup($ip);
+            self::assertSame($bogon, $result->isBogon, $ip);
+            self::assertSame($carries, $result->ip, $ip);
+            $client->lookup($carries);
+            self::assertSame(array_map(fn (string $a): string => '/' . $a, $wantSent), $stub->calls, $ip);
+
+            $batchStub = new Stub($routes);
+            $uncached = new Client(new Options(httpClient: $batchStub->client, cache: false));
+            $asked = array_values(array_unique([$ip, $carries]));
+            $got = $uncached->lookupBatch($asked);
+            self::assertSame($asked, array_map(strval(...), array_keys($got)), $ip);
+            self::assertInstanceOf(Result::class, $got[$ip], $ip);
+            self::assertSame($carries, $got[$ip]->ip, $ip);
+            $sent = [];
+            foreach ($batchStub->requests as $request) {
+                $sent = [...$sent, ...json_decode((string) $request->getBody(), true)['ips']];
+            }
+            self::assertSame($wantSent, $sent, $ip);
+        }
+    }
+
     public function testABogonIsAnsweredLocallyInTheFullMaxShape(): void
     {
         $stub = new Stub();
