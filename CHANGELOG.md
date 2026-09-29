@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.4.2 - 2026-09-29
+
+### Fixes
+
+- Recognize 26 more reserved ranges as bogons, as the API does ([`3c99a7d`](https://github.com/vpndetection-io/sdk-php/commit/3c99a7dd7a6d594966d10de0608976809cfb9046))
+
 ## 4.4.1 - 2026-09-28
 
 ### Fixes
