@@ -17,8 +17,8 @@ use VPNDetection\TokenResponse;
 use VPNDetection\VPNDetectionException;
 
 /**
- * The OAuth accessor against the shared corpus's oauth section. Nothing here
- * reads oauth.deferred: those operations are not in this release.
+ * The OAuth accessor against the shared corpus's oauth section, the
+ * authorization code flow's vectors under oauth.deferred included.
  */
 final class OauthTest extends TestCase
 {
@@ -63,10 +63,13 @@ final class OauthTest extends TestCase
         $oauth->metadata();
         $oauth->exchangeDeviceCode('vpndetection-cli', 'mo_dc_x');
         $oauth->exchangeRefreshToken('vpndetection-cli', 'mo_rt_x');
+        $oauth->exchangeAuthorizationCode('vpndetection-cli', 'mo_ac_x', str_repeat('v', 43), 'http://127.0.0.1/cb');
         $oauth->revoke('vpndetection-cli', 'mo_rt_x');
         $oauth->pollDeviceToken('vpndetection-cli', $device);
 
-        self::assertCount(6, $stub->requests);
+        self::assertCount(7, $stub->requests);
+        $url = $oauth->authorizationUrl('vpndetection-cli', 'http://127.0.0.1/cb', str_repeat('c', 43));
+        self::assertStringNotContainsString($rule['apiKey'], $url, 'the authorization URL carried the API key');
         foreach ($stub->requests as $request) {
             $label = "{$request['method']} {$request['path']}";
             foreach ($rule['forbiddenHeaders'] as $name) {
@@ -95,7 +98,7 @@ final class OauthTest extends TestCase
         $path = self::$corpus['endpoints']['metadata']['path'];
         self::assertSame(self::BASE_URL . $path, $stub->requests[0]['url'], 'one trailing slash dropped');
 
-        foreach (self::$corpus['forms']['cases'] as $case) {
+        foreach ([...self::$corpus['forms']['cases'], ...self::$corpus['deferred']['forms']] as $case) {
             $stub = new OauthStub([['status' => 200, 'body' => self::EVERY_REQUIRED_MEMBER]]);
             self::call(self::client($stub), $case['operation'], $case['args'], ['timeout' => 5]);
 
@@ -219,9 +222,61 @@ final class OauthTest extends TestCase
         }
     }
 
+    public function testAnAuthorizationUrlIsBuiltExactlyAsTheCorpusSpellsItWithNoRequest(): void
+    {
+        foreach (self::$corpus['deferred']['authorizationUrl'] as $case) {
+            $stub = new OauthStub([['status' => 200, 'body' => self::EVERY_REQUIRED_MEMBER]]);
+            $client = new Client(new Options(baseUrl: $case['baseUrl'], httpClient: $stub->client));
+            $options = array_intersect_key($case, ['scope' => true, 'state' => true, 'resource' => true]);
+
+            $url = $client->oauth->authorizationUrl(
+                $case['clientId'],
+                $case['redirectUri'],
+                $case['codeChallenge'],
+                $options,
+            );
+
+            self::assertSame($case['expect'], $url, $case['name']);
+            self::assertSame([], $stub->requests, $case['name']);
+        }
+    }
+
+    public function testAnAuthorizationUrlLeavesOutAnEmptyOptionAndRefusesAnEmptyValue(): void
+    {
+        $case = self::$corpus['deferred']['authorizationUrl'][0];
+        $oauth = (new Client(new Options(baseUrl: $case['baseUrl'])))->oauth;
+        $args = [$case['clientId'], $case['redirectUri'], $case['codeChallenge']];
+
+        $url = $oauth->authorizationUrl(...[...$args, ['scope' => '', 'state' => '', 'resource' => '']]);
+
+        self::assertSame($case['expect'], $url);
+        $bad = [
+            'empty client_id' => static fn (): mixed => $oauth->authorizationUrl('', $args[1], $args[2]),
+            'not UTF-8' => static fn (): mixed => $oauth->authorizationUrl($args[0], $args[1], "\xff"),
+            'unknown option' => static fn (): mixed => $oauth->authorizationUrl(...[...$args, ['nonce' => 'x']]),
+        ];
+        foreach ($bad as $name => $call) {
+            self::assertInstanceOf(InvalidArgumentException::class, self::settle($call), $name);
+        }
+    }
+
+    public function testAPkcePairIsFreshAndItsChallengeIsTheS256One(): void
+    {
+        $pkce = self::$corpus['deferred']['pkce'];
+        $oauth = (new Client(new Options()))->oauth;
+
+        $first = $oauth->createPkce();
+
+        self::assertSame($pkce['challenge'], $oauth->pkceChallenge($pkce['verifier']));
+        self::assertMatchesRegularExpression('/' . $pkce['generatedVerifierPattern'] . '/', $first->verifier);
+        self::assertSame($oauth->pkceChallenge($first->verifier), $first->challenge);
+        self::assertSame($pkce['method'], $first->method);
+        self::assertNotSame($first->verifier, $oauth->createPkce()->verifier, 'two pairs share a verifier');
+    }
+
     public function testOnlyWhatConsumesNothingIsRetriedAndNeverAnOauthRefusal(): void
     {
-        foreach (self::$corpus['retries']['cases'] as $case) {
+        foreach ([...self::$corpus['retries']['cases'], ...self::$corpus['deferred']['retries']] as $case) {
             $stub = new OauthStub($case['responses']);
             $outcome = self::settle(static fn (): mixed => self::call(
                 self::client($stub),
@@ -390,6 +445,13 @@ final class OauthTest extends TestCase
             'exchangeRefreshToken' => $client->oauth->exchangeRefreshToken(
                 $args['clientId'],
                 $args['refreshToken'],
+                $options,
+            ),
+            'exchangeAuthorizationCode' => $client->oauth->exchangeAuthorizationCode(
+                $args['clientId'],
+                $args['code'],
+                $args['codeVerifier'],
+                $args['redirectUri'],
                 $options,
             ),
             'revoke' => $client->oauth->revoke($args['clientId'], $args['token'], $options),

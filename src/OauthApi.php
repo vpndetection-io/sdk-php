@@ -12,7 +12,8 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Signs a person in on their own machine with the OAuth device flow, so a
  * program can be handed one of their API keys instead of asking them to paste
- * it. Reached as `$client->oauth`.
+ * it, or through a browser redirect with the authorization code flow. Reached
+ * as `$client->oauth`.
  *
  * Every call takes a client ID, issued on request from support@vpndetection.io.
  * None of these requests carries the client's API key, and none needs one. Each
@@ -189,6 +190,103 @@ final class OauthApi
             'refresh_token' => $refreshToken,
             'client_id' => $clientId,
         ], $options);
+    }
+
+    /**
+     * Trade the `code` a sign-in's redirect brought back for tokens.
+     * `$codeVerifier` is the PKCE verifier whose challenge went into the
+     * authorization URL, and `$redirectUri` that URL's, exactly.
+     *
+     * Never retried: the server spends the code on first read, before it checks
+     * the verifier, so a retry could only be refused.
+     *
+     * @param array{timeout?: float} $options
+     * @throws VPNDetectionException
+     */
+    public function exchangeAuthorizationCode(
+        string $clientId,
+        string $code,
+        #[\SensitiveParameter] string $codeVerifier,
+        string $redirectUri,
+        array $options = [],
+    ): TokenResponse {
+        CallOptions::assert($options, ['timeout']);
+        return $this->exchange([
+            'grant_type' => 'authorization_code',
+            'code' => $code,
+            'redirect_uri' => $redirectUri,
+            'client_id' => $clientId,
+            'code_verifier' => $codeVerifier,
+        ], $options);
+    }
+
+    /**
+     * The URL to open in the person's browser for the authorization code flow.
+     * Makes no request. Once they decide, the server redirects to `$redirectUri`
+     * with a `code` for `exchangeAuthorizationCode` (and `state`, when one was
+     * given), or with an `error`.
+     *
+     * Every value is percent-encoded over UTF-8 with only A-Z a-z 0-9 - . _ ~
+     * left literal, so a space is %20 and never +. An option given empty is left
+     * out; a required value that is empty or not UTF-8 is refused.
+     *
+     * @param array{scope?: string, state?: string, resource?: string} $options `state` comes back
+     *        on the redirect unchanged, so the caller can tell the answer is to its own request.
+     * @throws InvalidArgumentException
+     */
+    public function authorizationUrl(
+        string $clientId,
+        string $redirectUri,
+        string $codeChallenge,
+        array $options = [],
+    ): string {
+        CallOptions::assert($options, ['scope', 'state', 'resource']);
+        $params = [
+            'response_type' => 'code',
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256',
+        ];
+        foreach (['client_id', 'redirect_uri', 'code_challenge'] as $name) {
+            if ($params[$name] === '') {
+                throw new InvalidArgumentException("{$name} must not be empty");
+            }
+        }
+        foreach (['scope', 'state', 'resource'] as $name) {
+            if (isset($options[$name]) && !is_string($options[$name])) {
+                throw new InvalidArgumentException("{$name} must be a string");
+            }
+            if (($options[$name] ?? '') !== '') {
+                $params[$name] = $options[$name];
+            }
+        }
+        $query = [];
+        foreach ($params as $name => $value) {
+            if (preg_match('//u', $value) !== 1) {
+                throw new InvalidArgumentException("{$name} is not valid UTF-8");
+            }
+            $query[] = $name . '=' . rawurlencode($value);
+        }
+        return $this->baseUrl . '/oauth/authorize?' . implode('&', $query);
+    }
+
+    /** A fresh PKCE pair for one sign-in, from 32 bytes of `random_bytes`. */
+    public function createPkce(): Pkce
+    {
+        $verifier = self::base64url(random_bytes(32));
+        return new Pkce($verifier, $this->pkceChallenge($verifier));
+    }
+
+    /** The `S256` challenge for a PKCE verifier: its SHA-256, as unpadded base64url. */
+    public function pkceChallenge(#[\SensitiveParameter] string $verifier): string
+    {
+        return self::base64url(hash('sha256', $verifier, true));
+    }
+
+    private static function base64url(string $bytes): string
+    {
+        return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
     }
 
     /**
