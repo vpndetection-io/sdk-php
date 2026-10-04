@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.4.3 - 2026-10-04
+
+### Fixes
+
+- Re-pin the spec to 2026.10.03: metadata needs no license ([`a4b48c2`](https://github.com/vpndetection-io/sdk-php/commit/a4b48c2010d12f7146311d2c342121dbf11bb273))
+
 ## 4.4.2 - 2026-09-29
 
 ### Fixes
