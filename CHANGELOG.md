@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.5.0 - 2026-10-04
+
+### Features
+
+- Add the authorization code sign-in, with PKCE ([`aa8cd99`](https://github.com/vpndetection-io/sdk-php/commit/aa8cd99699c5ffa5e78386fd60a5eb8c52ba6c8c))
+
 ## 4.4.3 - 2026-10-04
 
 ### Fixes
