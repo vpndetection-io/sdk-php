@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.09.26
+  version: 2026.10.03
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -594,7 +594,8 @@ paths:
         `updated` and `entries` without downloading anything.
 
         No `format` parameter - one document describes every format the database
-        is built in.
+        is built in. Needs no license: it answers for every database `list`
+        returns, whatever its `standing`.
       parameters:
         - in: query
           name: id
@@ -610,8 +611,6 @@ paths:
                 $ref: '#/components/schemas/DatabaseMetadata'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/NotLicensed'
         '404':
           $ref: '#/components/responses/UnknownDataset'
         '503':
@@ -2312,7 +2311,7 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
     NotAvailable:
-      description: Licensed, but today's copy has not been published yet
+      description: Today's copy has not been published yet
       content:
         application/json:
           schema:
