@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.5.1 - 2026-10-07
+
+### Fixes
+
+- Retry an answer a call cannot read, as a server_error ([`cf5e56f`](https://github.com/vpndetection-io/sdk-php/commit/cf5e56fbc92ea0efcdfe26e122abd3d61c7e8c52))
+- Read a Retry-After as seconds or an HTTP date, and nothing else ([`3271dfc`](https://github.com/vpndetection-io/sdk-php/commit/3271dfcc833a5d2d58ebc285a7f8a85434fd74d5))
+
 ## 4.5.0 - 2026-10-04
 
 ### Features
