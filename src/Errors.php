@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace VPNDetection;
 
+use DateTimeImmutable;
+use DateTimeZone;
+use Exception;
 use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -16,6 +19,14 @@ use Throwable;
  */
 final class Errors
 {
+    /**
+     * The three forms of HTTP date a recipient accepts (RFC 9110, section 5.6.7):
+     * IMF-fixdate, RFC 850 and asctime, all in GMT.
+     */
+    private const HTTP_DATE = '/^(?:[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} GMT'
+        . '|[A-Z][a-z]{5,8}, \d{2}-[A-Z][a-z]{2}-\d{2} \d{2}:\d{2}:\d{2} GMT'
+        . '|[A-Z][a-z]{2} [A-Z][a-z]{2} [ \d]\d \d{2}:\d{2}:\d{2} \d{4})$/';
+
     /**
      * @param string|null $context Replaces the body as the source of the message, for a response
      *                             whose body must NOT be read: nothing bounds the size of an object
@@ -124,12 +135,20 @@ final class Errors
         if (preg_match('/^\d+$/', $value) === 1) {
             return (int) $value;
         }
-        // The header also permits an HTTP date.
-        $when = strtotime($value);
-        if ($when === false) {
+        // The header also permits an HTTP date, and only that reaches the date
+        // parser, which reads English too: `-1` as a time zone an hour away, `x` as
+        // one eleven hours away, `tomorrow` and `+1 day`, each a wait the server
+        // never asked for. Every form is GMT, asctime's without saying so, so the
+        // zone is given rather than taken from the process's default.
+        if (preg_match(self::HTTP_DATE, $value) !== 1) {
             return null;
         }
-        return max(0, (int) ceil($when - time()));
+        try {
+            $when = (new DateTimeImmutable($value, new DateTimeZone('UTC')))->getTimestamp();
+        } catch (Exception) {
+            return null;
+        }
+        return max(0, $when - time());
     }
 
     private static function describe(mixed $reason): string

@@ -239,6 +239,88 @@ final class ClientTest extends TestCase
     }
 
     /**
+     * The date parser reads English as well as dates, so a value that is neither
+     * a count of seconds nor an HTTP date held the call: `-1` an hour, `x` eleven
+     * hours, `tomorrow` until midnight (4.5.0, measured 2026-10-07). It is a spent
+     * quota, as a word always was.
+     */
+    public function testARetryAfterThatIsNeitherSecondsNorAnHttpDateIsASpentQuota(): void
+    {
+        foreach (['-1', 'x', 'tomorrow', '+1 day', 'noon', 'next week', 'soon', '1e400'] as $retryAfter) {
+            $refused = [
+                'status' => 429,
+                'headers' => ['Retry-After' => $retryAfter],
+                'body' => ['error' => 'rate limit exceeded'],
+            ];
+            $stub = new Stub([
+                '/9.9.9.9' => $refused,
+                '/api/v1/database/download' => [
+                    'status' => 302,
+                    'headers' => ['Location' => 'https://storage.invalid/blob'],
+                ],
+                '/blob' => $refused,
+            ]);
+            $client = new Client(new Options(apiKey: 'k', cache: false, retries: 2, httpClient: $stub->client));
+            $calls = [
+                'API' => static fn () => $client->lookup('9.9.9.9'),
+                'object storage' => static fn () => $client->database->downloadBytes('vpn_ip_v1', 'mmdb'),
+            ];
+            foreach ($calls as $from => $call) {
+                try {
+                    $call();
+                    self::fail("{$from}, Retry-After: {$retryAfter}: answered");
+                } catch (VPNDetectionException $e) {
+                    self::assertSame(ErrorKind::QuotaExceeded, $e->kind, "{$from}, Retry-After: {$retryAfter}");
+                    self::assertNull($e->retryAfterSeconds, "{$from}, Retry-After: {$retryAfter}");
+                }
+            }
+            // One request each, never retried: the lookup, then the link and the blob.
+            self::assertSame(
+                ['/9.9.9.9', '/api/v1/database/download', '/blob'],
+                $stub->calls,
+                "Retry-After: {$retryAfter}",
+            );
+        }
+    }
+
+    /**
+     * Every form RFC 9110 has a recipient accept is a throttle, read as GMT. An
+     * asctime date says no zone, and was read in the process's default one.
+     */
+    public function testEveryFormOfHttpDateIsReadAsGmt(): void
+    {
+        $zone = date_default_timezone_get();
+        date_default_timezone_set('Asia/Karachi');
+        try {
+            $when = time() + 120;
+            $forms = [
+                'IMF-fixdate' => gmdate('D, d M Y H:i:s \G\M\T', $when),
+                'RFC 850' => gmdate('l, d-M-y H:i:s \G\M\T', $when),
+                'asctime' => gmdate('D M ', $when) . sprintf('%2d', (int) gmdate('j', $when))
+                    . gmdate(' H:i:s Y', $when),
+            ];
+            foreach ($forms as $form => $retryAfter) {
+                $stub = new Stub(Stub::lookups(['9.9.9.9' => [
+                    'status' => 429,
+                    'headers' => ['Retry-After' => $retryAfter],
+                    'body' => ['error' => 'rate limit exceeded'],
+                ]]));
+                try {
+                    (new Client(new Options(cache: false, retries: 0, httpClient: $stub->client)))
+                        ->lookup('9.9.9.9');
+                    self::fail("{$form}: answered");
+                } catch (VPNDetectionException $e) {
+                    self::assertSame(ErrorKind::RateLimited, $e->kind, "{$form}: {$retryAfter}");
+                    self::assertGreaterThanOrEqual(115, $e->retryAfterSeconds, "{$form}: {$retryAfter}");
+                    self::assertLessThanOrEqual(120, $e->retryAfterSeconds, "{$form}: {$retryAfter}");
+                }
+            }
+        } finally {
+            date_default_timezone_set($zone);
+        }
+    }
+
+    /**
      * Read after the retried attempt, an answer that was not the shape the models
      * declare escaped as a raw TypeError or InvalidArgumentException, and one that
      * was not JSON at all was never retried (4.5.0, measured 2026-10-07).
