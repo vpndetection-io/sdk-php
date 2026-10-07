@@ -40,15 +40,23 @@ final class DatabaseApi
      */
     public function list(): array
     {
-        $wire = $this->model($this->transport->send($this->api->listDatabasesRequest()), DatabaseList::class);
-        return array_map(Database::fromWire(...), $wire->getDatabases());
+        return $this->transport->read(
+            $this->api->listDatabasesRequest(),
+            static fn (ResponseInterface $r): array => array_map(
+                Database::fromWire(...),
+                self::model($r, DatabaseList::class)->getDatabases(),
+            ),
+        );
     }
 
     /** @throws VPNDetectionException */
     public function metadata(string $id): DatabaseMetadata
     {
-        $response = $this->transport->send($this->api->databaseMetadataRequest($id));
-        return DatabaseMetadata::fromWire($this->model($response, WireDatabaseMetadata::class));
+        return $this->transport->read(
+            $this->api->databaseMetadataRequest($id),
+            static fn (ResponseInterface $r): DatabaseMetadata
+                => DatabaseMetadata::fromWire(self::model($r, WireDatabaseMetadata::class)),
+        );
     }
 
     /**
@@ -59,13 +67,15 @@ final class DatabaseApi
      */
     public function checksums(string $id, string $format): DbChecksums
     {
-        $response = $this->transport->send($this->api->databaseChecksumRequest($id, WireFormat::from($format)));
         // The digests are nested one level down, under `checksums`. Unwrapping a
         // generated response type rather than a hand-written shape is what keeps
         // the depth honest; reading a top-level `sha256` returns nothing against
         // a perfectly healthy API.
-        $wire = $this->model($response, DatabaseChecksumsResponse::class);
-        return DbChecksums::fromWire($wire->getChecksums());
+        return $this->transport->read(
+            $this->api->databaseChecksumRequest($id, WireFormat::from($format)),
+            static fn (ResponseInterface $r): DbChecksums
+                => DbChecksums::fromWire(self::model($r, DatabaseChecksumsResponse::class)->getChecksums()),
+        );
     }
 
     /**
@@ -76,9 +86,13 @@ final class DatabaseApi
      */
     public function downloads(int $limit = 50): array
     {
-        $response = $this->transport->send($this->api->listDownloadsRequest($limit));
-        $wire = $this->model($response, DownloadList::class);
-        return array_map(Download::fromWire(...), $wire->getDownloads());
+        return $this->transport->read(
+            $this->api->listDownloadsRequest($limit),
+            static fn (ResponseInterface $r): array => array_map(
+                Download::fromWire(...),
+                self::model($r, DownloadList::class)->getDownloads(),
+            ),
+        );
     }
 
     /**
@@ -94,15 +108,19 @@ final class DatabaseApi
      */
     public function downloadUrl(string $id, string $format): string
     {
-        $response = $this->transport->send($this->api->downloadDatabaseRequest($id, WireFormat::from($format)));
-        $location = $response->getHeaderLine('Location');
-        if ($response->getStatusCode() === 302 && $location !== '') {
-            return $location;
-        }
-        throw new VPNDetectionException(
-            ErrorKind::ServerError,
-            'expected a redirect to object storage',
-            $response->getStatusCode(),
+        return $this->transport->read(
+            $this->api->downloadDatabaseRequest($id, WireFormat::from($format)),
+            static function (ResponseInterface $r): string {
+                $location = $r->getHeaderLine('Location');
+                if ($r->getStatusCode() === 302 && $location !== '') {
+                    return $location;
+                }
+                throw new VPNDetectionException(
+                    ErrorKind::ServerError,
+                    'expected a redirect to object storage',
+                    $r->getStatusCode(),
+                );
+            },
         );
     }
 
@@ -226,7 +244,7 @@ final class DatabaseApi
      * @param class-string<T> $class
      * @return T
      */
-    private function model(ResponseInterface $response, string $class): object
+    private static function model(ResponseInterface $response, string $class): object
     {
         return Transport::toModel(
             (string) $response->getBody(),

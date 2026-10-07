@@ -238,6 +238,120 @@ final class ClientTest extends TestCase
         self::assertCount(3, $stub->calls);
     }
 
+    /**
+     * Read after the retried attempt, an answer that was not the shape the models
+     * declare escaped as a raw TypeError or InvalidArgumentException, and one that
+     * was not JSON at all was never retried (4.5.0, measured 2026-10-07).
+     */
+    public function testAnAnswerACallCannotReadIsARetriedServerError(): void
+    {
+        $calls = [
+            '/9.9.9.9' => static fn (Client $c) => $c->lookup('9.9.9.9'),
+            '/myip' => static fn (Client $c) => $c->myIp(),
+            '/api/v1/entitlement' => static fn (Client $c) => $c->myEntitlement(),
+            '/api/v1/database/list' => static fn (Client $c) => $c->database->list(),
+            '/api/v1/database/metadata' => static fn (Client $c) => $c->database->metadata('vpn_ip_v1'),
+            '/api/v1/database/checksum' => static fn (Client $c) => $c->database->checksums('vpn_ip_v1', 'mmdb'),
+            '/api/v1/database/downloads' => static fn (Client $c) => $c->database->downloads(),
+            '/api/v1/database/download' => static fn (Client $c) => $c->database->downloadUrl('vpn_ip_v1', 'mmdb'),
+        ];
+        $bodies = [
+            'an HTML page' => ['<html>gateway</html>', 'text/html'],
+            'a cut-off body' => ['{"databases":[', 'application/json'],
+            'an empty body' => ['', 'application/json'],
+            'an array' => ['[]', 'application/json'],
+            'a string' => ['"x"', 'application/json'],
+            'null' => ['null', 'application/json'],
+            'an empty object' => ['{}', 'application/json'],
+            'members of the wrong type' => [
+                '{"databases":{},"checksums":[],"downloads":"x","schema":"x","apikey":"x","plan":"x","usage":"x"}',
+                'application/json',
+            ],
+            'entries without their members' => [
+                '{"databases":[{}],"checksums":{},"downloads":[{}],"apikey":{},"plan":{},"usage":{}}',
+                'application/json',
+            ],
+        ];
+        foreach ($calls as $path => $call) {
+            foreach ($bodies as $name => [$body, $type]) {
+                $stub = new Stub([$path => [
+                    'status' => 200,
+                    'headers' => ['Content-Type' => $type],
+                    'body' => $body,
+                ]]);
+                $client = new Client(new Options(apiKey: 'k', cache: false, retries: 2, httpClient: $stub->client));
+                try {
+                    $call($client);
+                    self::fail("{$path}, {$name}: returned an answer");
+                } catch (VPNDetectionException $e) {
+                    self::assertSame(ErrorKind::ServerError, $e->kind, "{$path}, {$name}");
+                    self::assertSame(200, $e->status, "{$path}, {$name}: the status");
+                }
+                self::assertCount(3, $stub->calls, "{$path}, {$name}: retried like an outage");
+            }
+        }
+    }
+
+    /**
+     * A chunk whose answer could not be read was never retried, and the batch
+     * handed back null for every address in it (4.5.0, measured 2026-10-07).
+     */
+    public function testABatchAnswerItCannotReadIsEveryAddressesRetriedServerError(): void
+    {
+        $bodies = [
+            'an HTML page' => '<html>gateway</html>',
+            'a cut-off body' => '{"results":{',
+            'an empty body' => '',
+            'an array' => '[]',
+            'a string' => '"x"',
+            'null' => 'null',
+            'an empty object' => '{}',
+            'no errors member' => '{"results":{}}',
+            'members of the wrong type' => '{"results":"x","errors":"x"}',
+        ];
+        foreach ($bodies as $name => $body) {
+            $stub = new Stub(['/batch' => ['status' => 200, 'body' => $body]]);
+            $client = new Client(new Options(cache: false, retries: 2, httpClient: $stub->client));
+
+            $answers = $client->lookupBatch(['9.9.9.1', '9.9.9.2']);
+
+            self::assertSame(['9.9.9.1', '9.9.9.2'], array_keys($answers), $name);
+            foreach ($answers as $ip => $answer) {
+                self::assertInstanceOf(VPNDetectionException::class, $answer, "{$name}: {$ip}");
+                self::assertSame(ErrorKind::ServerError, $answer->kind, "{$name}: {$ip}");
+                self::assertSame(200, $answer->status, "{$name}: {$ip}");
+            }
+            self::assertCount(3, $stub->calls, "{$name}: retried like an outage");
+        }
+    }
+
+    public function testABatchEntryItCannotReadFailsThatAddressAlone(): void
+    {
+        $stub = new Stub(['/batch' => Stub::ok([
+            'results' => [
+                '9.9.9.1' => ['ip' => '9.9.9.1', 'is_vpn' => true],
+                '9.9.9.2' => [],
+                '9.9.9.3' => 'x',
+            ],
+            'errors' => (object) [],
+        ])]);
+        $client = new Client(new Options(retries: 2, httpClient: $stub->client));
+
+        $answers = $client->lookupBatch(['9.9.9.1', '9.9.9.2', '9.9.9.3', '9.9.9.4']);
+
+        self::assertInstanceOf(Result::class, $answers['9.9.9.1']);
+        self::assertTrue($answers['9.9.9.1']->isVpn);
+        foreach (['9.9.9.2', '9.9.9.3', '9.9.9.4'] as $ip) {
+            self::assertInstanceOf(VPNDetectionException::class, $answers[$ip], $ip);
+            self::assertSame(ErrorKind::ServerError, $answers[$ip]->kind, $ip);
+            self::assertSame(200, $answers[$ip]->status, $ip);
+        }
+        self::assertCount(1, $stub->calls, 'an entry is never retried on its own');
+        // Only the answer it could read was cached.
+        $client->lookupBatch(['9.9.9.1']);
+        self::assertCount(1, $stub->calls);
+    }
+
     public function testAnUnknownPerCallOptionIsRejectedRatherThanIgnored(): void
     {
         $client = new Client();

@@ -98,7 +98,9 @@ final class Stub
         $this->inFlight++;
         $this->peak = max($this->peak, $this->inFlight);
 
-        $outcome = $path === '/batch' && $request->getMethod() === 'POST'
+        // A `/batch` route in the table is served as it stands, for a test of an
+        // answer the API itself would never give.
+        $outcome = $path === '/batch' && $request->getMethod() === 'POST' && !isset($this->routes[$path])
             ? $this->batchResponse((string) $request->getBody())
             : $this->responseFor($path);
         $promise = new Promise(function () use (&$promise, $outcome, $request): void {

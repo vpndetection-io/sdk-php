@@ -83,10 +83,17 @@ final class Errors
         return new VPNDetectionException(ErrorKind::Network, self::describe($reason));
     }
 
-    public static function malformed(string $detail, ?int $status): VPNDetectionException
-    {
+    public static function malformed(
+        string $detail,
+        ?int $status,
+        ?Throwable $previous = null,
+    ): VPNDetectionException {
         return new VPNDetectionException(
-            ErrorKind::ServerError, sprintf('could not read the API response: %s', $detail), $status,
+            ErrorKind::ServerError,
+            sprintf('could not read the API response: %s', $detail),
+            $status,
+            null,
+            $previous,
         );
     }
 

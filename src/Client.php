@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace VPNDetection;
 
 use Composer\InstalledVersions;
+use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\Each;
@@ -12,6 +13,8 @@ use GuzzleHttp\Promise\PromiseInterface;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use Psr\Http\Message\ResponseInterface;
+use TypeError;
+use ValueError;
 use VPNDetection\Internal\Api\EntitlementApi as WireEntitlementApi;
 use VPNDetection\Internal\Api\DatabaseApi as WireDatabaseApi;
 use VPNDetection\Internal\Api\LookupApi;
@@ -119,15 +122,7 @@ final class Client
         $request = $this->lookupApi->lookupMyIpRequest();
         return $this->transport->sendAsync(
             $request, $options['retries'] ?? null, CallOptions::timeout($options),
-        )->then(
-            function (ResponseInterface $response): Result {
-                $body = (string) $response->getBody();
-                $status = $response->getStatusCode();
-                return Result::fromWire(
-                    Transport::toModel($body, LookupResponse::class, $status),
-                    Transport::toArray($body, $status),
-                );
-            },
+            read: self::result(...),
         )->wait();
     }
 
@@ -159,12 +154,9 @@ final class Client
         $request = $this->entitlementApi->myEntitlementRequest();
         return $this->transport->sendAsync(
             $request, $options['retries'] ?? null, CallOptions::timeout($options),
-        )->then(
-            function (ResponseInterface $response): Entitlement {
-                $body = (string) $response->getBody();
-                $status = $response->getStatusCode();
-                return Entitlement::fromWire(Transport::toModel($body, WireEntitlement::class, $status));
-            },
+            read: static fn (ResponseInterface $r): Entitlement => Entitlement::fromWire(
+                Transport::toModel((string) $r->getBody(), WireEntitlement::class, $r->getStatusCode()),
+            ),
         )->wait();
     }
 
@@ -246,9 +238,10 @@ final class Client
 
     /**
      * One POST /batch, mapped back onto the addresses it was asked about. A
-     * chunk-level failure - the call refused, the transport failing, the retries
-     * exhausted - becomes every address's error, exactly as it would have been
-     * had each been looked up alone. Never rejects: the failure is the value.
+     * chunk-level failure - the call refused, the transport failing, an answer
+     * it cannot read, the retries exhausted - becomes every address's error,
+     * exactly as it would have been had each been looked up alone. Never
+     * rejects: the failure is the value.
      *
      * @param list<string> $chunk
      * @param array{retries?: int, concurrency?: int, timeout?: float} $options
@@ -259,32 +252,12 @@ final class Client
         $request = $this->lookupApi->lookupBatchRequest(new BatchLookupRequest(['ips' => $chunk]));
         return $this->transport->sendAsync(
             $request, $options['retries'] ?? null, CallOptions::timeout($options),
+            read: static fn (ResponseInterface $r): array => self::chunkAnswers($r, $chunk),
         )->then(
-            function (ResponseInterface $response) use ($chunk): array {
-                $status = $response->getStatusCode();
-                $body = Transport::toArray((string) $response->getBody(), $status);
-                $results = is_array($body['results'] ?? null) ? $body['results'] : [];
-                $errors = is_array($body['errors'] ?? null) ? $body['errors'] : [];
-                $answers = [];
-                foreach ($chunk as $ip) {
-                    if (isset($results[$ip]) && is_array($results[$ip])) {
-                        $raw = $results[$ip];
-                        $encoded = json_encode($raw, JSON_THROW_ON_ERROR);
-                        $result = Result::fromWire(
-                            Transport::toModel($encoded, LookupResponse::class, $status),
-                            $raw,
-                        );
-                        $this->cache?->set($ip, $result);
-                        $answers[$ip] = $result;
-                    } elseif (isset($errors[$ip]) && is_array($errors[$ip])) {
-                        $answers[$ip] = Errors::fromEntry(
-                            (int) ($errors[$ip]['status'] ?? 500),
-                            (string) ($errors[$ip]['error'] ?? ''),
-                        );
-                    } else {
-                        $answers[$ip] = new VPNDetectionException(
-                            ErrorKind::ServerError, "the batch answer did not include {$ip}", 200,
-                        );
+            function (array $answers): array {
+                foreach ($answers as $ip => $answer) {
+                    if ($answer instanceof Result) {
+                        $this->cache?->set($ip, $answer);
                     }
                 }
                 return $answers;
@@ -315,18 +288,72 @@ final class Client
         $request = $this->lookupApi->lookupIpRequest($ip);
         return $this->transport->sendAsync(
             $request, $options['retries'] ?? null, CallOptions::timeout($options),
+            read: self::result(...),
         )->then(
-            function (ResponseInterface $response) use ($ip): Result {
-                $body = (string) $response->getBody();
-                $status = $response->getStatusCode();
-                $result = Result::fromWire(
-                    Transport::toModel($body, LookupResponse::class, $status),
-                    Transport::toArray($body, $status),
-                );
+            function (Result $result) use ($ip): Result {
                 $this->cache?->set($ip, $result);
                 return $result;
             },
         );
+    }
+
+    private static function result(ResponseInterface $response): Result
+    {
+        $body = (string) $response->getBody();
+        $status = $response->getStatusCode();
+        return Result::fromWire(
+            Transport::toModel($body, LookupResponse::class, $status),
+            Transport::toArray($body, $status),
+        );
+    }
+
+    /**
+     * A batch answer must carry both of its members: without them it is no answer
+     * for any address, and is retried like an outage. One entry that cannot be read
+     * is that address's error alone, as a per-entry failure from the API is.
+     *
+     * @param list<string> $chunk
+     * @return array<string, Result|VPNDetectionException>
+     */
+    private static function chunkAnswers(ResponseInterface $response, array $chunk): array
+    {
+        $status = $response->getStatusCode();
+        $body = Transport::toArray((string) $response->getBody(), $status);
+        $results = $body['results'] ?? null;
+        $errors = $body['errors'] ?? null;
+        if (!is_array($results) || !is_array($errors)) {
+            throw Errors::malformed('expected the results and errors of a batch', $status);
+        }
+        $answers = [];
+        foreach ($chunk as $ip) {
+            if (array_key_exists($ip, $results)) {
+                $answers[$ip] = self::entryResult($results[$ip], $status);
+            } elseif (isset($errors[$ip]) && is_array($errors[$ip])) {
+                $answers[$ip] = Errors::fromEntry(
+                    (int) ($errors[$ip]['status'] ?? 500),
+                    (string) ($errors[$ip]['error'] ?? ''),
+                );
+            } else {
+                $answers[$ip] = new VPNDetectionException(
+                    ErrorKind::ServerError, "the batch answer did not include {$ip}", $status,
+                );
+            }
+        }
+        return $answers;
+    }
+
+    private static function entryResult(mixed $raw, int $status): Result|VPNDetectionException
+    {
+        try {
+            return Result::fromWire(
+                Transport::toModel(json_encode($raw, JSON_THROW_ON_ERROR), LookupResponse::class, $status),
+                $raw,
+            );
+        } catch (VPNDetectionException $e) {
+            return $e;
+        } catch (Exception | TypeError | ValueError $e) {
+            return Errors::malformed($e->getMessage(), $status, $e);
+        }
     }
 
     private static function userAgent(): string
