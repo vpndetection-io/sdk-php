@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.03
+  version: 2026.10.09
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -976,10 +976,13 @@ paths:
       summary: Rotate
       description: |
         Replaces the secret behind a key, keeping its id, name and settings.
-        The previous secret stops working immediately.
+        The previous secret stops working immediately. The new secret comes
+        back in the answer, so this needs `apikeys.reveal` as well as
+        `apikeys.manage`.
       security:
         - bearerAuth:
             - apikeys.manage
+            - apikeys.reveal
       parameters:
         - $ref: '#/components/parameters/ApikeyIdParam'
       responses:
