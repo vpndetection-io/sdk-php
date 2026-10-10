@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.5.2 - 2026-10-10
+
+### Fixes
+
+- Re-pin the spec to 2026.10.09: rotating a key needs apikeys.reveal ([`3fcc857`](https://github.com/vpndetection-io/sdk-php/commit/3fcc857d7a0aa718274821c84232f4ed531b2167))
+
 ## 4.5.1 - 2026-10-07
 
 ### Fixes
