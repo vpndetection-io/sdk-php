@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.6.0 - 2026-10-13
+
+### Features
+
+- Keep answers in a PSR-16 cache that outlives the client ([`5be7caf`](https://github.com/vpndetection-io/sdk-php/commit/5be7caf48a9cb9a8ef194dd474e07c5f324dfa4e))
+
 ## 4.5.2 - 2026-10-10
 
 ### Fixes
