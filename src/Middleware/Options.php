@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection\Middleware;
 
+use Psr\SimpleCache\CacheInterface;
 use VPNDetection\Client;
 
 /**
@@ -50,6 +51,12 @@ final class Options
         public readonly mixed $skip = null,
         /** @var null|callable(string): void Where warnings go. Defaults to error_log. */
         public readonly mixed $onWarn = null,
+        /**
+         * A PSR-16 cache to keep answers in across requests, such as your
+         * framework's: under PHP-FPM or mod_php the client is built for every
+         * request, and its own cache with it. Ignored when `client` is given.
+         */
+        public readonly ?CacheInterface $cacheStore = null,
     ) {
     }
 }

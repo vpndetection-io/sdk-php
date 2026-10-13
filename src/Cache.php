@@ -13,7 +13,7 @@ namespace VPNDetection;
  * it to the end in O(1). That is the whole LRU: the front of the array is the
  * least recently used entry and eviction is one unset.
  */
-final class Cache
+final class Cache implements AnswerCache
 {
     /** @var array<string, array{0: Result, 1: float}> */
     private array $entries = [];
@@ -24,26 +24,45 @@ final class Cache
     ) {
     }
 
-    public function get(string $key): ?Result
+    public function get(string $ip): ?Result
     {
-        $entry = $this->entries[$key] ?? null;
+        $entry = $this->entries[$ip] ?? null;
         if ($entry === null) {
             return null;
         }
-        unset($this->entries[$key]);
+        unset($this->entries[$ip]);
         if ($entry[1] <= microtime(true)) {
             return null;
         }
-        $this->entries[$key] = $entry;
+        $this->entries[$ip] = $entry;
         return $entry[0];
     }
 
-    public function set(string $key, Result $value): void
+    public function getMany(array $ips): array
     {
-        unset($this->entries[$key]);
-        $this->entries[$key] = [$value, microtime(true) + $this->ttlSeconds];
+        $hits = [];
+        foreach ($ips as $ip) {
+            $hit = $this->get($ip);
+            if ($hit !== null) {
+                $hits[$ip] = $hit;
+            }
+        }
+        return $hits;
+    }
+
+    public function set(string $ip, Result $value): void
+    {
+        unset($this->entries[$ip]);
+        $this->entries[$ip] = [$value, microtime(true) + $this->ttlSeconds];
         while (count($this->entries) > $this->maxSize) {
             unset($this->entries[array_key_first($this->entries)]);
+        }
+    }
+
+    public function setMany(array $values): void
+    {
+        foreach ($values as $ip => $value) {
+            $this->set((string) $ip, $value);
         }
     }
 }

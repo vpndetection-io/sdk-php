@@ -112,7 +112,13 @@ $client = new Client(new Options(cacheMaxSize: 50_000, cacheTtlSeconds: 6 * 60 *
 $clientNoCache = new Client(new Options(cache: false));
 ```
 
-The cache lives on the client instance, so how much it buys you depends on how long that instance lives. A worker, a queue consumer or a long-running server gets the full benefit; a classic one-request-per-process setup starts with an empty cache every time, and there a batch lookup is what saves you round trips.
+The cache lives on the client instance, so how much it buys you depends on how long that instance lives. A worker, a queue consumer or a long-running server gets the full benefit. Under PHP-FPM or mod_php the client is built for every request, so give it a PSR-16 cache that outlives the request, such as your framework's:
+
+```php
+$client = new Client(new Options(apiKey: $key, cacheStore: $cache));
+```
+
+Entries are keyed by a hash of your API key, the base URL and the address, so two keys never share an answer, and they live `cacheTtlSeconds`. The store's own eviction takes the place of `cacheMaxSize`, and a store that fails is a miss, never a failed lookup. `vpndetection/symfony` and `vpndetection/laravel` wire the framework's cache for you.
 
 ### Private and reserved addresses
 

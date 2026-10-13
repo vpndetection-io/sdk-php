@@ -505,6 +505,103 @@ final class ClientTest extends TestCase
         self::assertCount(2, $stub->calls);
     }
 
+    // Under PHP-FPM every request builds its own client, so a store is the only
+    // cache a second request can see: here, two clients stand for two requests.
+    public function testAStoreSharesAnswersBetweenClients(): void
+    {
+        $stub = self::addressStub();
+        $store = new ArrayStore();
+        $first = new Client(new Options(apiKey: 'k', cacheStore: $store, httpClient: $stub->client));
+        $second = new Client(new Options(apiKey: 'k', cacheStore: $store, httpClient: $stub->client));
+
+        $answer = $first->lookup('9.9.9.1');
+        $again = $second->lookup('9.9.9.1');
+
+        self::assertCount(1, $stub->calls);
+        self::assertSame($answer->raw, $again->raw);
+        self::assertSame('9.9.9.1', $again->ip);
+        self::assertFalse($again->isVpn);
+        self::assertSame([3600], $store->ttls);
+    }
+
+    // Two keys can be on different plans, entitled to different fields.
+    public function testAStoreKeepsTwoKeysApart(): void
+    {
+        $stub = self::addressStub();
+        $store = new ArrayStore();
+        (new Client(new Options(apiKey: 'a', cacheStore: $store, httpClient: $stub->client)))->lookup('9.9.9.1');
+        (new Client(new Options(apiKey: 'b', cacheStore: $store, httpClient: $stub->client)))->lookup('9.9.9.1');
+        (new Client(new Options(cacheStore: $store, httpClient: $stub->client)))->lookup('9.9.9.1');
+
+        self::assertCount(3, $stub->calls);
+        self::assertCount(3, $store->values);
+    }
+
+    public function testAStoreKeyIsPortableAndHoldsNothingInTheClear(): void
+    {
+        $stub = self::addressStub();
+        $store = new ArrayStore();
+        (new Client(new Options(apiKey: 'secret-key', cacheStore: $store, httpClient: $stub->client)))
+            ->lookup('9.9.9.1');
+
+        $key = (string) array_key_first($store->values);
+        self::assertMatchesRegularExpression('/^[A-Za-z0-9_.]{1,64}$/', $key);
+        self::assertStringNotContainsString('secret-key', $key);
+        self::assertStringNotContainsString('9.9.9.1', $key);
+    }
+
+    public function testABatchReadsTheStoreOnceAndFillsIt(): void
+    {
+        $stub = self::addressStub();
+        $store = new ArrayStore();
+        (new Client(new Options(apiKey: 'k', cacheStore: $store, httpClient: $stub->client)))->lookup('9.9.9.1');
+
+        $batch = (new Client(new Options(apiKey: 'k', cacheStore: $store, httpClient: $stub->client)))
+            ->lookupBatch(['9.9.9.1', '9.9.9.2', '9.9.9.3', '10.0.0.1']);
+
+        self::assertSame(['/9.9.9.1', '/batch'], $stub->calls);
+        self::assertSame(['9.9.9.2', '9.9.9.3'], json_decode((string) $stub->requests[1]->getBody(), true)['ips']);
+        self::assertSame(2, $store->reads, 'one read for the lookup, one for the whole batch');
+        self::assertSame('9.9.9.1', $batch['9.9.9.1']->ip);
+
+        (new Client(new Options(apiKey: 'k', cacheStore: $store, httpClient: $stub->client)))->lookup('9.9.9.3');
+        self::assertCount(2, $stub->calls);
+    }
+
+    public function testAFailingStoreIsAMissAndNeverAFailedLookup(): void
+    {
+        $stub = self::addressStub();
+        $store = new ArrayStore();
+        $store->failing = true;
+        $client = new Client(new Options(cacheStore: $store, httpClient: $stub->client));
+
+        self::assertSame('9.9.9.1', $client->lookup('9.9.9.1')->ip);
+        self::assertSame('9.9.9.2', $client->lookupBatch(['9.9.9.2'])['9.9.9.2']->ip);
+        self::assertCount(2, $stub->calls);
+    }
+
+    // An entry another release wrote, or one the store mangled, is a miss.
+    public function testAnEntryTheClientCannotReadIsAMiss(): void
+    {
+        $stub = self::addressStub();
+        $store = new ArrayStore();
+        (new Client(new Options(cacheStore: $store, httpClient: $stub->client)))->lookup('9.9.9.1');
+        foreach ([['ip' => '9.9.9.1'], 'garbage', ['is_vpn' => 'no']] as $bad) {
+            $store->values[(string) array_key_first($store->values)] = $bad;
+            self::assertSame(
+                '9.9.9.1',
+                (new Client(new Options(cacheStore: $store, httpClient: $stub->client)))->lookup('9.9.9.1')->ip,
+            );
+        }
+        self::assertCount(4, $stub->calls);
+    }
+
+    public function testAStoreWithTheCacheOffIsRefused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new Options(cache: false, cacheStore: new ArrayStore());
+    }
+
     // The database responses nest their payload, and a hand-written unwrap shape
     // is a claim nothing can check. `checksums` shipped broken in another SDK for
     // exactly that reason: it read a top-level `sha256` that is not there, and

@@ -39,6 +39,7 @@ final class Core
             baseUrl: $options->baseUrl ?? Client::DEFAULT_BASE_URL,
             retries: $options->retries,
             timeout: $options->timeout,
+            cacheStore: $options->cacheStore,
         ));
     }
 

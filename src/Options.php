@@ -6,6 +6,7 @@ namespace VPNDetection;
 
 use GuzzleHttp\ClientInterface;
 use InvalidArgumentException;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * How a client behaves. Build one with named arguments and pass only what you
@@ -45,9 +46,23 @@ final class Options
          * PSR-18 has no asynchronous half.
          */
         public readonly ?ClientInterface $httpClient = null,
+        /**
+         * A PSR-16 cache to keep answers in instead of this client's memory, such
+         * as your framework's. Under PHP-FPM or mod_php a client lasts one request,
+         * and so does a cache of its own.
+         *
+         * Entries are keyed by a hash of the API key, the base URL and the address,
+         * so two keys never share an answer, and live `cacheTtlSeconds`; the
+         * store's own eviction takes the place of `cacheMaxSize`. A store that
+         * fails is a miss, never a failed lookup.
+         */
+        public readonly ?CacheInterface $cacheStore = null,
     ) {
         if ($cacheMaxSize < 1) {
             throw new InvalidArgumentException('cacheMaxSize must be at least 1; pass cache: false to disable');
+        }
+        if ($cacheStore !== null && !$cache) {
+            throw new InvalidArgumentException('cacheStore needs cache: true; leave it out to cache nothing');
         }
         if ($cacheTtlSeconds <= 0) {
             throw new InvalidArgumentException('cacheTtlSeconds must be positive');

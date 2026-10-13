@@ -27,7 +27,9 @@ use VPNDetection\Internal\Model\LookupResponse;
  * A client for the VPNDetection API.
  *
  * The cache is per instance, so an answer is never shared between two clients
- * holding different API keys and therefore entitled to different fields.
+ * holding different API keys and therefore entitled to different fields. A
+ * PSR-16 store given as `cacheStore` is shared, and keys its entries by the API
+ * key as well.
  */
 final class Client
 {
@@ -39,7 +41,7 @@ final class Client
     private readonly LookupApi $lookupApi;
     private readonly WireEntitlementApi $entitlementApi;
     private readonly Transport $transport;
-    private readonly ?Cache $cache;
+    private readonly ?AnswerCache $cache;
     private readonly int $concurrency;
 
     /** The licensed dataset downloads, for keys that carry the `db.download` scope. */
@@ -64,9 +66,15 @@ final class Client
         $this->lookupApi = new LookupApi($http, $config);
         $this->entitlementApi = new WireEntitlementApi($http, $config);
         $this->transport = new Transport($http, $options->retries, $options->timeout);
-        $this->cache = $options->cache
-            ? new Cache($options->cacheMaxSize, $options->cacheTtlSeconds)
-            : null;
+        $this->cache = match (true) {
+            !$options->cache => null,
+            $options->cacheStore !== null => new StoreCache(
+                $options->cacheStore,
+                $options->cacheTtlSeconds,
+                ($options->apiKey ?? '') . "\0" . rtrim($options->baseUrl, '/'),
+            ),
+            default => new Cache($options->cacheMaxSize, $options->cacheTtlSeconds),
+        };
         $this->concurrency = $options->concurrency;
         $this->database = new DatabaseApi(new WireDatabaseApi($http, $config), $this->transport);
         $this->oauth = new OauthApi($this->transport, rtrim($options->baseUrl, '/'), self::userAgent());
@@ -195,15 +203,20 @@ final class Client
         $unique = array_values(array_unique($wire));
 
         $answers = [];
-        $pending = [];
+        $routable = [];
         foreach ($unique as $ip) {
             if (Bogon::isBogon($ip)) {
                 $answers[$ip] = Bogon::result($ip);
                 continue;
             }
-            $hit = $this->cache?->get($ip);
-            if ($hit !== null) {
-                $answers[$ip] = $hit;
+            $routable[] = $ip;
+        }
+        // One read for the whole batch, which a store across the network needs.
+        $hits = $this->cache?->getMany($routable) ?? [];
+        $pending = [];
+        foreach ($routable as $ip) {
+            if (isset($hits[$ip])) {
+                $answers[$ip] = $hits[$ip];
                 continue;
             }
             $pending[] = $ip;
@@ -255,11 +268,10 @@ final class Client
             read: static fn (ResponseInterface $r): array => self::chunkAnswers($r, $chunk),
         )->then(
             function (array $answers): array {
-                foreach ($answers as $ip => $answer) {
-                    if ($answer instanceof Result) {
-                        $this->cache?->set($ip, $answer);
-                    }
-                }
+                $this->cache?->setMany(array_filter(
+                    $answers,
+                    static fn (Result|VPNDetectionException $answer): bool => $answer instanceof Result,
+                ));
                 return $answers;
             },
             function (mixed $reason) use ($chunk): array {
