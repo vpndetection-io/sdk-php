@@ -98,7 +98,7 @@ final class OauthApi
             'Accept' => 'application/json',
             'User-Agent' => $this->userAgent,
         ]);
-        $m = self::members($this->send($request, null, $options), self::METADATA);
+        $m = $this->fetch($request, self::METADATA, $options);
         return new OauthMetadata(
             issuer: $m['issuer'],
             authorizationEndpoint: $m['authorization_endpoint'],
@@ -139,8 +139,7 @@ final class OauthApi
                 $form[$name] = $options[$name];
             }
         }
-        $response = $this->send($this->form('/oauth/device_authorization', $form), null, $options);
-        $m = self::members($response, self::DEVICE_AUTHORIZATION);
+        $m = $this->fetch($this->form('/oauth/device_authorization', $form), self::DEVICE_AUTHORIZATION, $options);
         return new DeviceAuthorization(
             deviceCode: $m['device_code'],
             userCode: $m['user_code'],
@@ -397,6 +396,28 @@ final class OauthApi
             // RFC 3986 encoding sends a `+` in a value as %2B, where a raw one would arrive as a space.
             http_build_query($fields, '', '&', PHP_QUERY_RFC3986),
         );
+    }
+
+    /**
+     * A call that consumes nothing, under the client's retries. Each attempt is
+     * the request AND the read of its answer, so a 2xx without the members the
+     * call returns is retried like a 5xx, its status kept: read after the
+     * transport had spent the retries, an HTML 200 was one request (4.6.0,
+     * measured 2026-10-15).
+     *
+     * @param array<string, array{string, bool}> $members
+     * @param array{timeout?: float} $options
+     * @return array<string, mixed>
+     */
+    private function fetch(Request $request, array $members, array $options): array
+    {
+        return $this->transport->sendAsync(
+            $request,
+            null,
+            CallOptions::timeout($options),
+            self::refusal(...),
+            static fn (ResponseInterface $response): array => self::members($response, $members),
+        )->wait();
     }
 
     /** @param array{timeout?: float} $options */

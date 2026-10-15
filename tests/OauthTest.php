@@ -195,6 +195,38 @@ final class OauthTest extends TestCase
         }
     }
 
+    // Discovery and device authorization take the client's retries, so a 2xx they
+    // cannot read is sent again like a 5xx; an exchange spends what it presents and
+    // is sent once. Either way it is the ordinary error with the status kept.
+    public function testAnUnreadable2xxIsRetriedWhereTheCallTakesTheClientsRetries(): void
+    {
+        $withoutIssuer = self::EVERY_REQUIRED_MEMBER;
+        unset($withoutIssuer['issuer'], $withoutIssuer['device_code'], $withoutIssuer['access_token']);
+        $replies = [
+            'HTML' => ['status' => 200, 'rawBody' => '<html><body>502 Bad Gateway</body></html>'],
+            'empty' => ['status' => 200, 'rawBody' => ''],
+            'null' => ['status' => 200, 'rawBody' => 'null'],
+            'a list' => ['status' => 200, 'rawBody' => '[]'],
+            'an empty object' => ['status' => 200, 'rawBody' => '{}'],
+            'cut off' => ['status' => 200, 'rawBody' => '{"issuer": "https://'],
+            'a required member missing' => ['status' => 200, 'body' => $withoutIssuer],
+        ];
+        $sends = ['metadata' => 3, 'deviceAuthorization' => 3, 'exchangeDeviceCode' => 1, 'exchangeRefreshToken' => 1];
+        $args = ['clientId' => 'vpndetection-cli', 'deviceCode' => 'mo_dc_x', 'refreshToken' => 'mo_rt_x'];
+        foreach ($sends as $operation => $sent) {
+            foreach ($replies as $name => $reply) {
+                $stub = new OauthStub([$reply]);
+                $client = new Client(new Options(baseUrl: self::BASE_URL, retries: 2, httpClient: $stub->client));
+
+                $outcome = self::settle(static fn (): mixed => self::call($client, $operation, $args));
+
+                self::assertCount($sent, $stub->requests, "{$operation}, {$name}: requests");
+                $want = ['type' => 'client', 'kind' => 'server_error', 'status' => 200];
+                self::assertOutcome($outcome, $want, "{$operation}, {$name}");
+            }
+        }
+    }
+
     // No corpus case: a deadline already behind the clock leaves a negative
     // remainder, which is never the wait.
     public function testAPollPastItsDeadlineWaitsNothingNeverANegativeTime(): void
