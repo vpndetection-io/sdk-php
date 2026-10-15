@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.6.1 - 2026-10-15
+
+### Fixes
+
+- Retry an unreadable answer to OAuth discovery and device authorization ([`4a2c426`](https://github.com/vpndetection-io/sdk-php/commit/4a2c4263221f9a6f1d02c855ea9aa0283040a362))
+
 ## 4.6.0 - 2026-10-13
 
 ### Features
