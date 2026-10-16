@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.09
+  version: 2026.10.15
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -544,7 +544,7 @@ paths:
             $ref: '#/components/schemas/DatabaseFormat'
           description: |
             Not every database is built in every format. The `_provider`
-            catalogues are keyed by provider id rather than by IP range, so no
+            catalogs are keyed by provider id rather than by IP range, so no
             MMDB exists for them.
       responses:
         '302':
@@ -891,7 +891,7 @@ paths:
       summary: Members
       description: |
         Read-only. Adding or removing a member is an invitation flow with email
-        in the middle rather than a POST, and modelling it as one here would
+        in the middle rather than a POST, and modeling it as one here would
         promise something this API does not do.
       security:
         - bearerAuth:
@@ -1478,7 +1478,7 @@ components:
             valid server response. `scrape` - the operator published the address
             through its own API, client or configuration. `registry` - public
             registration or naming records attribute it to the operator.
-            `infer` - the address was extrapolated from confirmed neighbours in
+            `infer` - the address was extrapolated from confirmed neighbors in
             the same block.
           example: scan
     ClassDetail:
@@ -1582,7 +1582,7 @@ components:
           description: |
             Size of the published file, or null when it has not been published
             yet. int64 because it is not hypothetical: resproxy_ip_14d's MMDB is
-            4.58 GB, so a 32-bit field cannot carry the catalogue and `list`
+            4.58 GB, so a 32-bit field cannot carry the catalog and `list`
             throws for every caller rather than for that one entry.
       required:
         - format
@@ -2028,7 +2028,7 @@ components:
           type: string
         key_prefix:
           type: string
-          description: The leading, non-secret part, so a key is recognisable without storing it.
+          description: The leading, non-secret part, so a key is recognizable without storing it.
         created:
           type: string
           format: date-time
@@ -2068,7 +2068,7 @@ components:
       properties:
         name:
           type: string
-          description: A label you will recognise later. Shown wherever the key is listed.
+          description: A label you will recognize later. Shown wherever the key is listed.
         allowed_scopes:
           type: array
           items:
