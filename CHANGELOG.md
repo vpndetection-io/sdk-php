@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.6.2 - 2026-10-16
+
+### Fixes
+
+- Re-pin the spec to 2026.10.15: descriptions in US spelling ([`f8a63c2`](https://github.com/vpndetection-io/sdk-php/commit/f8a63c2975e950821760ceca97efdfc006ec10bb))
+
 ## 4.6.1 - 2026-10-15
 
 ### Fixes
