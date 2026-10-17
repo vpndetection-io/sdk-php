@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.7.0 - 2026-10-17
+
+### Features
+
+- Re-pin the spec to 2026.10.16: dynamic client registration ([`15c20a9`](https://github.com/vpndetection-io/sdk-php/commit/15c20a94f59ba8ad287518135fb868f8e548ece4))
+
 ## 4.6.2 - 2026-10-16
 
 ### Fixes
