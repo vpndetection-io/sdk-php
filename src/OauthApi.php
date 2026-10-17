@@ -36,6 +36,7 @@ final class OauthApi
         'token_endpoint_auth_methods_supported' => ['list', false],
         'authorization_response_iss_parameter_supported' => ['bool', false],
         'client_id_metadata_document_supported' => ['bool', false],
+        'registration_endpoint' => ['string', false],
         'service_documentation' => ['string', false],
     ];
 
@@ -114,6 +115,7 @@ final class OauthApi
                 $m['authorization_response_iss_parameter_supported'] ?? null,
             serviceDocumentation: $m['service_documentation'] ?? null,
             clientIdMetadataDocumentSupported: $m['client_id_metadata_document_supported'] ?? null,
+            registrationEndpoint: $m['registration_endpoint'] ?? null,
         );
     }
 

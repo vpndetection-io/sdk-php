@@ -32,6 +32,7 @@ final class OauthMetadata
         public readonly ?string $serviceDocumentation = null,
         // Last, so a caller passing the members by position is not moved.
         public readonly ?bool $clientIdMetadataDocumentSupported = null,
+        public readonly ?string $registrationEndpoint = null,
     ) {
     }
 }

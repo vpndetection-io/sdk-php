@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.15
+  version: 2026.10.16
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -1128,6 +1128,56 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OauthError'
+  /oauth/register:
+    post:
+      operationId: oauthRegister
+      tags:
+        - Authorization
+      summary: Register
+      description: |
+        RFC 7591 dynamic client registration, for a client that cannot use a
+        Client ID Metadata Document. Post your client's metadata as JSON, then
+        use the `client_id` in the answer at `/oauth/authorize` and
+        `/oauth/token`. Nothing is kept until a person approves your client, so
+        registering again costs nothing and leaves nothing to clean up.
+
+        Each redirect URI must be https on a public host name, or http on a
+        loopback address (`127.0.0.1`, `[::1]`, `localhost`), which then
+        matches on any port. A custom URI scheme is refused: use a loopback
+        redirect instead. So is a host on one of our own domains.
+
+        `client_name` is shown to the person as your client's own claim, with
+        where its redirect goes beside it. A name that renders blank, or mixes
+        Latin letters with Cyrillic or Greek ones, is shown as an unnamed
+        application.
+
+        The client is public whatever you ask for: `token_endpoint_auth_method`
+        comes back `none`, there is no client secret, and every authorization
+        proves itself with PKCE. It may be granted `apikeys.use` at most.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRegistrationRequest'
+      responses:
+        '201':
+          description: The client, as registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientRegistration'
+        '400':
+          description: |
+            `invalid_redirect_uri` names the redirect URI refused and why, and
+            `invalid_client_metadata` anything else, such as a client that
+            does not use the authorization code flow. `slow_down` means this
+            address registered too many clients in the last minute.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthError'
   /oauth/authorize:
     get:
       operationId: oauthAuthorize
@@ -1144,13 +1194,18 @@ paths:
         with `token_endpoint_auth_method` `none` and your `redirect_uris`. An
         https redirect URI must be on the same origin as the `client_id`; a
         loopback one (`http://127.0.0.1`, `http://[::1]`, `http://localhost`)
-        matches on any port. Such a client is granted `apikeys.use` at most.
+        matches on any port. Such a client is granted `apikeys.use` at most. A
+        client registered at `/oauth/register` uses the `client_id` it was
+        given and one of the `redirect_uris` it registered.
 
         An unknown `client_id` or an unregistered `redirect_uri` is shown to the
-        USER and never redirected, because sending an error to an address we
-        have not verified belongs to you is how an open redirector works.
-        Everything else comes back to your `redirect_uri` with `error`, your
-        `state`, and `iss`.
+        person and never redirected, because sending an error to an address we
+        have not verified belongs to you is how an open redirector works. Any
+        other error in the request is shown to the person too: anyone can make a
+        client, so its `redirect_uri` is verified only as its own (RFC 9700
+        section 4.11.2). Only the person's answer comes back to your
+        `redirect_uri`: a `code`, or `error` `access_denied`, each with your
+        `state` and `iss`.
       security: []
       parameters:
         - name: client_id
@@ -1206,9 +1261,9 @@ paths:
             given that server.
       responses:
         '302':
-          description: A redirect to the consent screen, or back to your redirect_uri with an error.
+          description: A redirect to the consent screen.
         '400':
-          description: Shown to the user. An unverified redirect target is never sent an error.
+          description: Shown to the person. No error in the request is sent to your redirect_uri.
         '429':
           description: Shown to the user. Too many authorizations from one address.
   /oauth/token:
@@ -2148,6 +2203,9 @@ components:
         client_id_metadata_document_supported:
           type: boolean
           description: Any client may sign in with an https `client_id` serving its own metadata.
+        registration_endpoint:
+          type: string
+          description: RFC 7591 dynamic client registration, for a client that cannot serve its own metadata.
         token_endpoint_auth_methods_supported:
           type: array
           items:
@@ -2263,7 +2321,8 @@ components:
           type: string
           description: |
             Not part of OAuth, and only for our own clients: a client that signed
-            in with a Client ID Metadata Document never receives a key. The API
+            in with a Client ID Metadata Document or registered itself never
+            receives a key. The API
             key itself, so a device ends up holding an ordinary key. Returned by
             the device code and authorization code grants only, never by a
             refresh, and only alongside
@@ -2274,6 +2333,70 @@ components:
         - access_token
         - token_type
         - expires_in
+    ClientRegistrationRequest:
+      type: object
+      properties:
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: One to ten, each matched exactly, apart from a loopback one's port.
+        client_name:
+          type: string
+          description: >-
+            Shown to the person as your client's own claim, marked unverified, beside where its
+            redirect goes.
+        grant_types:
+          type: array
+          items:
+            type: string
+          description: Must include `authorization_code` when given.
+        response_types:
+          type: array
+          items:
+            type: string
+          description: Must include `code` when given.
+        token_endpoint_auth_method:
+          type: string
+          description: Read as `none`, whatever is sent.
+      required:
+        - redirect_uris
+    ClientRegistration:
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_id_issued_at:
+          type: integer
+          description: Unix seconds.
+        client_name:
+          type: string
+          description: As the person will see it.
+        redirect_uris:
+          type: array
+          items:
+            type: string
+        grant_types:
+          type: array
+          items:
+            type: string
+          description: '`authorization_code` and `refresh_token`.'
+        response_types:
+          type: array
+          items:
+            type: string
+        token_endpoint_auth_method:
+          type: string
+          description: Always `none`.
+        scope:
+          type: string
+          description: 'The most this client may be granted: `apikeys.use`.'
+      required:
+        - client_id
+        - client_id_issued_at
+        - client_name
+        - redirect_uris
+        - token_endpoint_auth_method
     RevokeRequest:
       type: object
       properties:
