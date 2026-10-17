@@ -40,7 +40,7 @@ $client = new Client(new Options(apiKey: getenv('VPNDETECTION_API_KEY')));
 
 $result = $client->lookup('45.83.91.1');
 $result->isVpn;             // true
-$result->vpn->provider;     // 'mullvad'
+$result->vpn->provider;     // 'nordvpn'
 $result->isHosting;         // true
 $result->hosting->provider; // 'M247'
 ```
