@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.16
+  version: 2026.10.18
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -100,6 +100,7 @@ paths:
                     is_resproxy: false
                     is_dcproxy: false
                     is_mobproxy: false
+                    is_pubproxy: false
                     vpn: {}
                     hosting:
                       provider: cloudflare
@@ -120,6 +121,7 @@ paths:
                     is_resproxy: false
                     is_dcproxy: false
                     is_mobproxy: false
+                    is_pubproxy: false
                     vpn:
                       provider: mullvad
                       last_seen: '2026-09-02'
@@ -135,6 +137,7 @@ paths:
                     resproxy: {}
                     dcproxy: {}
                     mobproxy: {}
+                    pubproxy: {}
                 bogon:
                   summary: A private address on the max plan, answered without a lookup
                   value:
@@ -147,6 +150,7 @@ paths:
                     is_resproxy: false
                     is_dcproxy: false
                     is_mobproxy: false
+                    is_pubproxy: false
                     vpn: {}
                     hosting: {}
                     relay: {}
@@ -155,6 +159,7 @@ paths:
                     resproxy: {}
                     dcproxy: {}
                     mobproxy: {}
+                    pubproxy: {}
         '400':
           description: The path segment is not a valid IP address.
           content:
@@ -1394,7 +1399,9 @@ components:
           description: Whether the address belongs to a hosting or cloud provider. Starter and above.
         is_relay:
           type: boolean
-          description: Whether the address is a privacy relay egress. Starter and above.
+          description: >-
+            Whether the address is privacy relay or enterprise web gateway egress, such as iCloud
+            Private Relay or Zscaler. Starter and above.
         is_tor:
           type: boolean
           description: Whether the address is a Tor node. Starter and above.
@@ -1410,6 +1417,11 @@ components:
         is_mobproxy:
           type: boolean
           description: Whether the address was seen in a mobile proxy pool. Scale and above.
+        is_pubproxy:
+          type: boolean
+          description: >-
+            Whether a public proxy, one anyone can connect through, listens on the address or sends
+            its traffic out from it. Scale and above.
         vpn:
           allOf:
             - $ref: '#/components/schemas/VpnDetail'
@@ -1445,6 +1457,10 @@ components:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
           description: Detail for `is_mobproxy`. Empty when false. Max only.
+        pubproxy:
+          allOf:
+            - $ref: '#/components/schemas/PubproxyDetail'
+          description: Detail for `is_pubproxy`. Empty when false. Max only.
     BatchLookupRequest:
       type: object
       required:
@@ -1592,6 +1608,46 @@ components:
           type: integer
           description: How many distinct proxy networks this address was seen in.
           example: 2
+    PubproxyDetail:
+      type: object
+      description: |
+        The address in Public Proxy IP, open proxies anyone can connect
+        through, over a rolling 90 day window. It covers both ends of a proxy:
+        the address it listens on and the address its traffic leaves from.
+        Every key is present when the object is populated; the object is `{}`
+        when `is_pubproxy` is false.
+      properties:
+        entry:
+          type: boolean
+          description: Whether a public proxy listens on this address.
+          example: true
+        exit:
+          type: boolean
+          description: Whether a public proxy's traffic leaves from this address.
+          example: false
+        protocols:
+          type: array
+          items:
+            type: string
+          description: |
+            The protocols of the proxies listening on or leaving from this
+            address: `http`, `https` (an HTTP proxy that also tunnels HTTPS),
+            `socks4` or `socks5`. Empty where only the address is known.
+          example:
+            - http
+            - https
+        last_seen:
+          type: string
+          format: date
+          description: The most recent date within the window a proxy on this address was seen.
+          example: '2026-10-17'
+        last_usable:
+          type: string
+          description: |
+            The most recent date within the window a request through a proxy on
+            this address was answered, as YYYY-MM-DD, or an empty string when
+            none was.
+          example: '2026-10-17'
     LookupError:
       type: object
       description: Every non-2xx response carries this shape.

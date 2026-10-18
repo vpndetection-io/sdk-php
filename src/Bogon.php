@@ -81,6 +81,7 @@ final class Bogon
             isResproxy: false,
             isDcproxy: false,
             isMobproxy: false,
+            isPubproxy: false,
             vpn: new VpnDetail(),
             hosting: new ClassDetail(),
             relay: new ClassDetail(),
@@ -89,6 +90,7 @@ final class Bogon
             resproxy: new ProxyDetail(),
             dcproxy: new ProxyDetail(),
             mobproxy: new ProxyDetail(),
+            pubproxy: new PubproxyDetail(),
             raw: [],
         );
     }

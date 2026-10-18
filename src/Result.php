@@ -33,6 +33,7 @@ final class Result
         public readonly ?bool $isResproxy = null,
         public readonly ?bool $isDcproxy = null,
         public readonly ?bool $isMobproxy = null,
+        public readonly ?bool $isPubproxy = null,
         public readonly ?VpnDetail $vpn = null,
         public readonly ?ClassDetail $hosting = null,
         public readonly ?ClassDetail $relay = null,
@@ -41,6 +42,7 @@ final class Result
         public readonly ?ProxyDetail $resproxy = null,
         public readonly ?ProxyDetail $dcproxy = null,
         public readonly ?ProxyDetail $mobproxy = null,
+        public readonly ?PubproxyDetail $pubproxy = null,
         /**
          * The response exactly as it came off the wire, with its original names.
          *
@@ -73,6 +75,7 @@ final class Result
             isResproxy: $w->getIsResproxy(),
             isDcproxy: $w->getIsDcproxy(),
             isMobproxy: $w->getIsMobproxy(),
+            isPubproxy: $w->getIsPubproxy(),
             vpn: $w->getVpn() === null ? null : VpnDetail::fromWire($w->getVpn()),
             hosting: $w->getHosting() === null ? null : ClassDetail::fromWire($w->getHosting()),
             relay: $w->getRelay() === null ? null : ClassDetail::fromWire($w->getRelay()),
@@ -81,6 +84,7 @@ final class Result
             resproxy: $w->getResproxy() === null ? null : ProxyDetail::fromWire($w->getResproxy()),
             dcproxy: $w->getDcproxy() === null ? null : ProxyDetail::fromWire($w->getDcproxy()),
             mobproxy: $w->getMobproxy() === null ? null : ProxyDetail::fromWire($w->getMobproxy()),
+            pubproxy: $w->getPubproxy() === null ? null : PubproxyDetail::fromWire($w->getPubproxy()),
             raw: $raw,
         );
     }

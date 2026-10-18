@@ -128,7 +128,7 @@ final class ConformanceTest extends TestCase
                 self::assertNotNull($detail, "{$name}: {$key} must be present");
                 self::assertTrue($detail->isEmpty(), "{$name}: {$key} must be empty");
             }
-            foreach (['vpn', 'hosting', 'dcproxy'] as $key) {
+            foreach (['vpn', 'hosting', 'dcproxy', 'pubproxy'] as $key) {
                 if (isset($case['expect'][$key])) {
                     self::assertSame(
                         self::sorted($case['expect'][$key]),

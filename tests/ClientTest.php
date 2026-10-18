@@ -55,9 +55,9 @@ final class ClientTest extends TestCase
         $flags = [
             'is_hosting' => 'isHosting', 'is_relay' => 'isRelay', 'is_tor' => 'isTor',
             'is_cdn' => 'isCdn', 'is_resproxy' => 'isResproxy', 'is_dcproxy' => 'isDcproxy',
-            'is_mobproxy' => 'isMobproxy',
+            'is_mobproxy' => 'isMobproxy', 'is_pubproxy' => 'isPubproxy',
         ];
-        $details = ['vpn', 'hosting', 'relay', 'tor', 'cdn', 'resproxy', 'dcproxy', 'mobproxy'];
+        $details = ['vpn', 'hosting', 'relay', 'tor', 'cdn', 'resproxy', 'dcproxy', 'mobproxy', 'pubproxy'];
 
         $body = ['ip' => '9.9.9.1', 'is_vpn' => false];
         foreach (array_keys($flags) as $wire) {
