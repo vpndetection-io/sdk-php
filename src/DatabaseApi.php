@@ -9,6 +9,7 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 use Throwable;
 use VPNDetection\Internal\Api\DatabaseApi as WireDatabaseApi;
@@ -183,7 +184,11 @@ final class DatabaseApi
     public function downloadBytes(string $id, string $format): string
     {
         $response = $this->fetchDatabaseFile($id, $format);
-        $bytes = (string) $response->getBody();
+        $body = $response->getBody();
+        $bytes = '';
+        while (($chunk = self::readChunk($response, $body, strlen($bytes))) !== '') {
+            $bytes .= $chunk;
+        }
         self::assertWholeTransfer($response, strlen($bytes));
         return $bytes;
     }
@@ -205,7 +210,7 @@ final class DatabaseApi
         $body = $response->getBody();
         $written = 0;
         while (true) {
-            $chunk = $body->read(self::CHUNK_BYTES);
+            $chunk = self::readChunk($response, $body, $written);
             if ($chunk === '') {
                 break;
             }
@@ -222,6 +227,23 @@ final class DatabaseApi
         }
         self::assertWholeTransfer($response, $written);
         return $written;
+    }
+
+    // Guzzle from 8.2.1 raises a short body itself, as a plain RuntimeException
+    // from read(), where earlier releases end it as an EOF for
+    // assertWholeTransfer to catch. Either way it is the same retryable failure.
+    private static function readChunk(ResponseInterface $response, StreamInterface $body, int $written): string
+    {
+        try {
+            return $body->read(self::CHUNK_BYTES);
+        } catch (RuntimeException $e) {
+            throw new VPNDetectionException(
+                ErrorKind::Network,
+                sprintf('the transfer ended after %d of %s bytes', $written, $response->getHeaderLine('Content-Length')),
+                $response->getStatusCode(),
+                previous: $e,
+            );
+        }
     }
 
     // A transfer that dies mid-body reaches PHP as a plain EOF, so a short read

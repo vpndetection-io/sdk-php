@@ -172,6 +172,22 @@ final class DownloadTest extends TestCase
         self::assertCount(1, $this->origin->requestsTo('/blob'), 'a half-written body was fetched twice');
     }
 
+    // Guzzle from 8.2.1 raises the short body itself, from the stream, and that
+    // must surface as the same network error rather than its RuntimeException.
+    public function testDownloadBytesOfATransferThatDiesPartWayIsANetworkError(): void
+    {
+        $client = $this->client(['blobBytes' => 4 * self::MIB, 'dieAfterBytes' => self::MIB], retries: 2);
+
+        try {
+            $client->database->downloadBytes('cdn_ip_v1', 'csvgz');
+            self::fail('a truncated transfer was returned as a whole one');
+        } catch (VPNDetectionException $e) {
+            self::assertSame(ErrorKind::Network, $e->kind);
+            self::assertSame(200, $e->status);
+        }
+        self::assertCount(1, $this->origin->requestsTo('/blob'), 'a half-read body was fetched twice');
+    }
+
     // The other side of that rule: object storage failing before any byte of the
     // body is retried like any 5xx, and the file holds one copy.
     public function testAStorage5xxBeforeTheBodyIsRetriedWithoutDoublingTheFile(): void
