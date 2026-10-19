@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.9.0 - 2026-10-19
+
+### Features
+
+- Re-pin the spec to 2026.10.19: num_ports and num_proxies in the pubproxy detail ([`37e7e86`](https://github.com/vpndetection-io/sdk-php/commit/37e7e86d0d6b7e1c6453640307948c1c61b598f1))
+
+### Fixes
+
+- Fail a transfer Guzzle cuts short as a network error ([`19dabdb`](https://github.com/vpndetection-io/sdk-php/commit/19dabdb819dca022a6a27b13d59420fd803ba821))
+
 ## 4.8.0 - 2026-10-18
 
 ### Features
