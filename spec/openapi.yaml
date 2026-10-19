@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.18
+  version: 2026.10.19
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -1612,10 +1612,10 @@ components:
       type: object
       description: |
         The address in Public Proxy IP, open proxies anyone can connect
-        through, over a rolling 90 day window. It covers both ends of a proxy:
-        the address it listens on and the address its traffic leaves from.
-        Every key is present when the object is populated; the object is `{}`
-        when `is_pubproxy` is false.
+        through, measured over a rolling 90 day window. An address is either
+        end of a proxy, or both: where it listens, and where its traffic
+        leaves from. Every key is present when the object is populated; the
+        object is `{}` when `is_pubproxy` is false.
       properties:
         entry:
           type: boolean
@@ -1636,6 +1636,18 @@ components:
           example:
             - http
             - https
+        num_ports:
+          type: integer
+          description: |
+            How many distinct ports a public proxy listens on at this address;
+            0 when it is only an exit, or its port is not known.
+          example: 1
+        num_proxies:
+          type: integer
+          description: |
+            How many distinct public proxies' traffic left from this address;
+            0 when it is only an entry.
+          example: 0
         last_seen:
           type: string
           format: date
@@ -2424,7 +2436,8 @@ components:
           type: string
         client_id_issued_at:
           type: integer
-          description: Unix seconds.
+          format: int64
+          description: Unix seconds. 64-bit, since 32 bits run out on 2038-01-19.
         client_name:
           type: string
           description: As the person will see it.

@@ -30,6 +30,16 @@ final class PubproxyDetail
          * @var list<string>|null
          */
         public readonly ?array $protocols = null,
+        /**
+         * How many distinct ports a public proxy listens on at this address; 0 when
+         * it is only an exit, or its port is not known.
+         */
+        public readonly ?int $numPorts = null,
+        /**
+         * How many distinct public proxies' traffic left from this address; 0 when
+         * it is only an entry.
+         */
+        public readonly ?int $numProxies = null,
         /** The most recent date within the window a proxy on this address was seen. */
         public readonly ?DateTimeImmutable $lastSeen = null,
         /**
@@ -44,6 +54,7 @@ final class PubproxyDetail
     public function isEmpty(): bool
     {
         return $this->entry === null && $this->exit === null && $this->protocols === null
+            && $this->numPorts === null && $this->numProxies === null
             && $this->lastSeen === null && $this->lastUsable === null;
     }
 
@@ -55,6 +66,8 @@ final class PubproxyDetail
             entry: $w->getEntry(),
             exit: $w->getExit(),
             protocols: $protocols === null ? null : array_values($protocols),
+            numPorts: $w->getNumPorts(),
+            numProxies: $w->getNumProxies(),
             lastSeen: Dates::immutable($w->getLastSeen()),
             lastUsable: $w->getLastUsable(),
         );
