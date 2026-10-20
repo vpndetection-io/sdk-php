@@ -625,6 +625,7 @@ final class ClientTest extends TestCase
                     'license_type' => 'standard',
                     'in_term' => true,
                     'standing' => 'licensed',
+                    'open' => false,
                     'versions' => [[
                         'id' => 'vpn_ip_extended_v1',
                         'version' => 1,
@@ -634,10 +635,11 @@ final class ClientTest extends TestCase
             ]),
             '/api/v1/database/downloads' => Stub::ok([
                 'downloads' => [[
-                    'dataset_id' => 'vpn_ip_extended_v1',
+                    'dataset_id' => 'tor_ip_v1',
                     'format' => 'mmdb',
                     'outcome' => 'ok',
                     'bytes' => 1234,
+                    'open' => true,
                     'created' => '2026-09-02T10:11:12Z',
                 ]],
             ]),
@@ -659,6 +661,7 @@ final class ClientTest extends TestCase
         self::assertCount(1, $databases);
         self::assertSame('vpn_ip', $databases[0]->base);
         self::assertSame('licensed', $databases[0]->standing);
+        self::assertFalse($databases[0]->open);
         // An unlicensed family carries no license_type at all. The wrapper used to
         // declare this non-null, so any catalog containing one threw on decode.
         self::assertSame('standard', $databases[0]->licenseType);
@@ -667,6 +670,7 @@ final class ClientTest extends TestCase
 
         $downloads = $client->database->downloads();
         self::assertSame('ok', $downloads[0]->outcome);
+        self::assertTrue($downloads[0]->open, 'a Tor IP download is of an Open database');
         self::assertSame('2026-09-02', $downloads[0]->created->format('Y-m-d'));
 
         $metadata = $client->database->metadata('vpn_ip_extended_v1');

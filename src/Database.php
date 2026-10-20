@@ -39,6 +39,12 @@ final class Database
          * @var list<DatabaseVersion>
          */
         public readonly array $versions,
+        /**
+         * An Open database: free under CC BY-SA 4.0, so credit VPNDetection and
+         * share what you build from it under the same license. Every
+         * organization holds a `standard` license to it from the start.
+         */
+        public readonly bool $open = false,
     ) {
     }
 
@@ -55,6 +61,7 @@ final class Database
             inTerm: $w->getInTerm(),
             standing: $w->getStanding()->value,
             versions: array_map(DatabaseVersion::fromWire(...), $w->getVersions()),
+            open: $w->getOpen(),
         );
     }
 }

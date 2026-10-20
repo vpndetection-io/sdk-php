@@ -11,9 +11,8 @@ use VPNDetection\Internal\Model\VpnDetail as WireVpnDetail;
  * What is known about the VPN attribution.
  *
  * Every property is populated when the object is populated, empty values
- * included; the whole object is EMPTY when `isVpn` is false. `confidence` and
- * `method` are max only, so on a lower plan they are null on an otherwise
- * populated object.
+ * included; the whole object is EMPTY when `isVpn` is false. `method` is
+ * deprecated: no plan is answered with it since 2026-10-20, so it is null.
  */
 final class VpnDetail
 {
@@ -22,9 +21,12 @@ final class VpnDetail
         public readonly ?string $provider = null,
         /** The most recent date this address was observed as VPN infrastructure. */
         public readonly ?DateTimeImmutable $lastSeen = null,
-        /** How strongly the attribution is supported. Max only. */
+        /** How strongly the attribution is supported. */
         public readonly ?string $confidence = null,
-        /** How the address was attributed to the provider. Max only. */
+        /**
+         * @deprecated No plan is answered with it since 2026-10-20, so it is
+         * always null; read `confidence` instead. It goes in the next major.
+         */
         public readonly ?string $method = null,
     ) {
     }

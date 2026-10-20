@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.19
+  version: 2026.10.20
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -47,8 +47,8 @@ paths:
       summary: Lookup
       description: |
         Answers what is known about a single IPv4 or IPv6 address. Which fields
-        come back is decided by the plan behind the presented key; with no key
-        the answer is `ip` and `is_vpn`.
+        come back is decided by the presented key; with no key the answer is
+        `ip` and `is_vpn`.
       parameters:
         - in: path
           name: ip
@@ -71,48 +71,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/LookupResponse'
               examples:
+                keyless:
+                  summary: No API key
+                  value:
+                    ip: 146.70.116.130
+                    is_vpn: true
                 free:
-                  summary: No API key, or a key on the free plan
+                  summary: A key on the free plan
                   value:
-                    ip: 1.1.1.1
-                    is_vpn: false
-                starter:
-                  summary: A key on the starter plan
-                  value:
-                    ip: 1.1.1.1
-                    is_vpn: false
-                    is_hosting: true
+                    ip: 146.70.116.130
+                    is_vpn: true
                     is_relay: false
                     is_tor: false
-                    is_cdn: false
-                    vpn: {}
-                scale:
-                  summary: >-
-                    A key on the scale plan, which adds the classification detail objects and the
-                    proxy FLAGS - the proxy detail stays on max
-                  value:
-                    ip: 1.1.1.1
-                    is_vpn: false
-                    is_hosting: true
-                    is_relay: false
-                    is_tor: false
-                    is_cdn: false
-                    is_resproxy: false
-                    is_dcproxy: false
-                    is_mobproxy: false
-                    is_pubproxy: false
-                    vpn: {}
-                    hosting:
-                      provider: cloudflare
-                      confidence: high
-                      last_seen: '2026-09-02'
                     relay: {}
                     tor: {}
-                    cdn: {}
-                max:
-                  summary: A key on the max plan, address found in the VPN dataset
+                    location:
+                      continent: EU
+                      continent_name: Europe
+                      country: AT
+                      country_name: Austria
+                      timezone: Europe/Vienna
+                      currency_code: EUR
+                      currency_name: Euro
+                      currency_symbol: €
+                      flag_emoji: 🇦🇹
+                      flag_unicode: U+1F1E6 U+1F1F9
+                    asn:
+                      asn: 9009
+                      name: M247 Europe SRL
+                      domain: m247global.com
+                      type: hosting
+                      prefix: 146.70.116.0/24
+                paid:
+                  summary: A key on any paid plan, address found in the VPN dataset
                   value:
-                    ip: 146.70.22.220
+                    ip: 146.70.116.130
                     is_vpn: true
                     is_hosting: true
                     is_relay: false
@@ -126,7 +119,6 @@ paths:
                       provider: mullvad
                       last_seen: '2026-09-02'
                       confidence: high
-                      method: scan
                     hosting:
                       provider: m247
                       confidence: high
@@ -138,8 +130,25 @@ paths:
                     dcproxy: {}
                     mobproxy: {}
                     pubproxy: {}
+                    location:
+                      continent: EU
+                      continent_name: Europe
+                      country: AT
+                      country_name: Austria
+                      timezone: Europe/Vienna
+                      currency_code: EUR
+                      currency_name: Euro
+                      currency_symbol: €
+                      flag_emoji: 🇦🇹
+                      flag_unicode: U+1F1E6 U+1F1F9
+                    asn:
+                      asn: 9009
+                      name: M247 Europe SRL
+                      domain: m247global.com
+                      type: hosting
+                      prefix: 146.70.116.0/24
                 bogon:
-                  summary: A private address on the max plan, answered without a lookup
+                  summary: A private address on a paid plan, answered without a lookup
                   value:
                     ip: 192.168.1.1
                     is_vpn: false
@@ -160,6 +169,23 @@ paths:
                     dcproxy: {}
                     mobproxy: {}
                     pubproxy: {}
+                    location:
+                      continent: ''
+                      continent_name: ''
+                      country: ''
+                      country_name: ''
+                      timezone: ''
+                      currency_code: ''
+                      currency_name: ''
+                      currency_symbol: ''
+                      flag_emoji: ''
+                      flag_unicode: ''
+                    asn:
+                      asn: 0
+                      name: ''
+                      domain: ''
+                      type: ''
+                      prefix: ''
         '400':
           description: The path segment is not a valid IP address.
           content:
@@ -246,9 +272,9 @@ paths:
       summary: My IP
       description: |
         Answers what is known about the address this request came from, which is
-        the same answer `GET /{ip}` gives for that address: the plan behind the
-        presented key decides which fields come back, and the request counts
-        against the same allowance.
+        the same answer `GET /{ip}` gives for that address: the presented key
+        decides which fields come back, and the request counts against the same
+        allowance.
 
         The address is the one our edge observed, so a request through a proxy
         or a VPN reports the exit it left through rather than the machine that
@@ -263,8 +289,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/LookupResponse'
               examples:
-                free:
-                  summary: No API key, or a key on the free plan
+                keyless:
+                  summary: No API key
                   value:
                     ip: 45.83.91.1
                     is_vpn: true
@@ -372,8 +398,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/BatchLookupResponse'
               examples:
-                free:
-                  summary: No API key, or a key on the free plan
+                keyless:
+                  summary: No API key
                   value:
                     results:
                       1.1.1.1:
@@ -401,17 +427,33 @@ paths:
                         status: 429
                         error: daily limit for unauthenticated requests exceeded; use an API key
                 quotaExceeded:
-                  summary: A key on the starter plan whose allowance ran out after the first entry
+                  summary: A key on the free plan whose allowance ran out after the first entry
                   value:
                     results:
-                      1.1.1.1:
-                        ip: 1.1.1.1
-                        is_vpn: false
-                        is_hosting: true
+                      146.70.116.130:
+                        ip: 146.70.116.130
+                        is_vpn: true
                         is_relay: false
                         is_tor: false
-                        is_cdn: false
-                        vpn: {}
+                        relay: {}
+                        tor: {}
+                        location:
+                          continent: EU
+                          continent_name: Europe
+                          country: AT
+                          country_name: Austria
+                          timezone: Europe/Vienna
+                          currency_code: EUR
+                          currency_name: Euro
+                          currency_symbol: €
+                          flag_emoji: 🇦🇹
+                          flag_unicode: U+1F1E6 U+1F1F9
+                        asn:
+                          asn: 9009
+                          name: M247 Europe SRL
+                          domain: m247global.com
+                          type: hosting
+                          prefix: 146.70.116.0/24
                     errors:
                       8.8.8.8:
                         status: 429
@@ -1396,71 +1438,75 @@ components:
             `true`.
         is_hosting:
           type: boolean
-          description: Whether the address belongs to a hosting or cloud provider. Starter and above.
+          description: Whether the address belongs to a hosting or cloud provider. Paid plans.
         is_relay:
           type: boolean
           description: >-
             Whether the address is privacy relay or enterprise web gateway egress, such as iCloud
-            Private Relay or Zscaler. Starter and above.
+            Private Relay or Zscaler. Free and paid plans.
         is_tor:
           type: boolean
-          description: Whether the address is a Tor node. Starter and above.
+          description: Whether the address is a Tor node. Free and paid plans.
         is_cdn:
           type: boolean
-          description: Whether the address belongs to a CDN. Starter and above.
+          description: Whether the address belongs to a CDN. Paid plans.
         is_resproxy:
           type: boolean
-          description: Whether the address was seen in a residential proxy pool. Scale and above.
+          description: Whether the address was seen in a residential proxy pool. Paid plans.
         is_dcproxy:
           type: boolean
-          description: Whether the address was seen in a datacenter proxy pool. Scale and above.
+          description: Whether the address was seen in a datacenter proxy pool. Paid plans.
         is_mobproxy:
           type: boolean
-          description: Whether the address was seen in a mobile proxy pool. Scale and above.
+          description: Whether the address was seen in a mobile proxy pool. Paid plans.
         is_pubproxy:
           type: boolean
           description: >-
             Whether a public proxy, one anyone can connect through, listens on the address or sends
-            its traffic out from it. Scale and above.
+            its traffic out from it. Paid plans.
         vpn:
           allOf:
             - $ref: '#/components/schemas/VpnDetail'
           description: |
-            Detail for `is_vpn`. Empty when `is_vpn` is false. Starter and above.
+            Detail for `is_vpn`. Empty when `is_vpn` is false. Paid plans.
         hosting:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
-          description: Detail for `is_hosting`. Empty when false. Scale and above.
+          description: Detail for `is_hosting`. Empty when false. Paid plans.
         relay:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
-          description: Detail for `is_relay`. Empty when false. Scale and above.
+          description: Detail for `is_relay`. Empty when false. Free and paid plans.
         tor:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
           description: |
-            Detail for `is_tor`. Empty when false. Scale and above. The tor
+            Detail for `is_tor`. Empty when false. Free and paid plans. The tor
             dataset carries no provider, so `provider` is always an empty string.
         cdn:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
-          description: Detail for `is_cdn`. Empty when false. Scale and above.
+          description: Detail for `is_cdn`. Empty when false. Paid plans.
         resproxy:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
-          description: Detail for `is_resproxy`. Empty when false. Max only.
+          description: Detail for `is_resproxy`. Empty when false. Paid plans.
         dcproxy:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
-          description: Detail for `is_dcproxy`. Empty when false. Max only.
+          description: Detail for `is_dcproxy`. Empty when false. Paid plans.
         mobproxy:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
-          description: Detail for `is_mobproxy`. Empty when false. Max only.
+          description: Detail for `is_mobproxy`. Empty when false. Paid plans.
         pubproxy:
           allOf:
             - $ref: '#/components/schemas/PubproxyDetail'
-          description: Detail for `is_pubproxy`. Empty when false. Max only.
+          description: Detail for `is_pubproxy`. Empty when false. Paid plans.
+        location:
+          $ref: '#/components/schemas/Location'
+        asn:
+          $ref: '#/components/schemas/Asn'
     BatchLookupRequest:
       type: object
       required:
@@ -1523,8 +1569,7 @@ components:
       description: |
         What is known about the VPN attribution. Every key is present when the
         object is populated, empty values included; the object is `{}` when
-        `is_vpn` is false. `confidence` and `method` are max only, so on a lower
-        plan they are absent from a populated object rather than empty.
+        `is_vpn` is false.
       properties:
         provider:
           type: string
@@ -1537,21 +1582,15 @@ components:
           example: '2026-09-02'
         confidence:
           type: string
-          description: How strongly the attribution is supported. Max only.
+          description: How strongly the attribution is supported.
           example: high
         method:
           type: string
+          deprecated: true
           description: |
-            The class of evidence the attribution rests on, one of four values.
-            Max only.
-
-            `scan` - we spoke the VPN protocol to the address ourselves and got a
-            valid server response. `scrape` - the operator published the address
-            through its own API, client or configuration. `registry` - public
-            registration or naming records attribute it to the operator.
-            `infer` - the address was extrapolated from confirmed neighbors in
-            the same block.
-          example: scan
+            Never returned since 2026-10-20: no plan is answered with the class of
+            evidence an attribution rests on. Declared so that a client typed
+            against it keeps compiling; read `confidence` instead.
     ClassDetail:
       type: object
       description: |
@@ -1660,6 +1699,98 @@ components:
             this address was answered, as YYYY-MM-DD, or an empty string when
             none was.
           example: '2026-10-17'
+    Location:
+      type: object
+      description: |
+        Where the address is, to the country: the fields of our IP Country
+        database. Free and paid plans. Each field is present whenever the
+        object is, so an address in no country, or a private one, answers
+        empty strings.
+      required:
+        - continent
+        - continent_name
+        - country
+        - country_name
+        - timezone
+        - currency_code
+        - currency_name
+        - currency_symbol
+        - flag_emoji
+        - flag_unicode
+      properties:
+        continent:
+          type: string
+          description: 'Continent code: AF, AN (Antarctica), AS, EU, NA, OC or SA.'
+          example: EU
+        continent_name:
+          type: string
+          description: Continent name.
+          example: Europe
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code.
+          example: AT
+        country_name:
+          type: string
+          description: Country name.
+          example: Austria
+        timezone:
+          type: string
+          description: IANA timezone of the address.
+          example: Europe/Vienna
+        currency_code:
+          type: string
+          description: ISO 4217 code of the country's currency, where there is one.
+          example: EUR
+        currency_name:
+          type: string
+          description: Name of the country's currency, where there is one.
+          example: Euro
+        currency_symbol:
+          type: string
+          description: Symbol of the country's currency, where known.
+          example: €
+        flag_emoji:
+          type: string
+          description: The country's flag, as an emoji.
+          example: 🇦🇹
+        flag_unicode:
+          type: string
+          description: The Unicode code points of the flag emoji.
+          example: U+1F1E6 U+1F1F9
+    Asn:
+      type: object
+      description: |
+        The autonomous system that announces the address. Free and paid plans.
+        Each field is present whenever the object is: `asn` is 0 and the rest
+        empty where no announcement covers the address.
+      required:
+        - asn
+        - name
+        - domain
+        - type
+        - prefix
+      properties:
+        asn:
+          type: integer
+          description: The AS number, 0 when no announcement covers the address.
+          example: 9009
+        name:
+          type: string
+          description: Name of the organization that operates the AS.
+          example: M247 Europe SRL
+        domain:
+          type: string
+          description: The AS operator's own registrable domain.
+          example: m247global.com
+        type:
+          type: string
+          description: 'The kind of network the AS runs: isp, hosting, education, government or business.'
+          example: hosting
+        prefix:
+          type: string
+          description: The announced BGP prefix that covers the address, the most specific when several do.
+          example: 146.70.116.0/24
     LookupError:
       type: object
       description: Every non-2xx response carries this shape.
@@ -1769,6 +1900,14 @@ components:
           description: False when the license has lapsed; downloads are refused.
         standing:
           $ref: '#/components/schemas/Standing'
+        open:
+          type: boolean
+          description: |
+            An Open database: free under CC BY-SA 4.0 (credit VPNDetection,
+            https://vpndetection.io, and share what you build from it under the
+            same license). Every organization holds a `standard` license to it
+            from the start, which `standing` and `license_type` report like any
+            other.
         versions:
           type: array
           description: |
@@ -1787,6 +1926,7 @@ components:
         - notice_due_at
         - in_term
         - standing
+        - open
         - versions
     DatabaseVersion:
       type: object
@@ -1835,6 +1975,9 @@ components:
         sample:
           type: boolean
           description: The evaluation sample rather than the database itself.
+        open:
+          type: boolean
+          description: A download of an Open database.
         bytes:
           type: integer
           format: int64
@@ -1867,6 +2010,7 @@ components:
         - format
         - outcome
         - sample
+        - open
         - bytes
         - http_status
         - apikey_id

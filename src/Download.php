@@ -17,6 +17,8 @@ final class Download
         public readonly string $outcome,
         public readonly ?int $bytes,
         public readonly DateTimeImmutable $created,
+        /** Whether the dataset is an Open one, free under CC BY-SA 4.0. */
+        public readonly bool $open = false,
     ) {
     }
 
@@ -29,6 +31,7 @@ final class Download
             outcome: $w->getOutcome(),
             bytes: $w->getBytes(),
             created: Dates::required($w->getCreated()),
+            open: $w->getOpen(),
         );
     }
 }
