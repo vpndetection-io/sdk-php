@@ -21,9 +21,10 @@ final class Tiers
 {
     /**
      * Ascending, one rung per plan tier. `widens` is what the rung promises
-     * against whichever observable rung sits below it: a paid tier serves
-     * strictly more than the tier under it, while a free key and no key at all
-     * are the same entitlement reached two ways.
+     * against whichever observable rung sits below it: the first paid tier
+     * serves strictly more than a free key; every paid plan answers the same
+     * fields, so a higher paid tier only keeps what the one under it serves,
+     * and a free key keeps what no key does.
      *
      * Field COUNTS are deliberately absent. Pinning "starter answers seven
      * fields" turns a pricing change into a red SDK build; the relation between
@@ -35,8 +36,8 @@ final class Tiers
         ['tier' => 'unauth', 'secret' => null, 'widens' => false],
         ['tier' => 'free', 'secret' => 'VPNDETECTION_STAGING_KEY_FREE', 'widens' => false],
         ['tier' => 'starter', 'secret' => 'VPNDETECTION_STAGING_KEY_STARTER', 'widens' => true],
-        ['tier' => 'scale', 'secret' => 'VPNDETECTION_STAGING_KEY_SCALE', 'widens' => true],
-        ['tier' => 'max', 'secret' => 'VPNDETECTION_STAGING_KEY_MAX', 'widens' => true],
+        ['tier' => 'scale', 'secret' => 'VPNDETECTION_STAGING_KEY_SCALE', 'widens' => false],
+        ['tier' => 'max', 'secret' => 'VPNDETECTION_STAGING_KEY_MAX', 'widens' => false],
     ];
 
     /** @return array{tier: string, secret: string|null, widens: bool} */
