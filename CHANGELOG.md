@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.10.0 - 2026-10-20
+
+### Features
+
+- Read open on databases and downloads, and mark vpn.method deprecated ([`7727a32`](https://github.com/vpndetection-io/sdk-php/commit/7727a322b5ba997f446afa6e37d6ab8e16ca6fcf))
+- Add Location and Asn to lookup results, a bogon's included ([`ff2c5ac`](https://github.com/vpndetection-io/sdk-php/commit/ff2c5acf193e3992167c897f61b06832f5b867e5))
+
 ## 4.9.0 - 2026-10-19
 
 ### Features
