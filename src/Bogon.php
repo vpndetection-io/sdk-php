@@ -62,7 +62,8 @@ final class Bogon
 
     /**
      * The answer a bogon gets, in the full shape the API serves at its widest
-     * plan: every flag present and false, every detail object present and empty.
+     * plan: every flag present and false, every detail object present and empty,
+     * and a location and AS of empty strings and AS 0.
      *
      * `isBogon` is set so a caller can always tell a locally computed answer from
      * a served one. Note this is deliberately the WIDEST shape regardless of your
@@ -92,6 +93,8 @@ final class Bogon
             mobproxy: new ProxyDetail(),
             pubproxy: new PubproxyDetail(),
             raw: [],
+            location: new Location(),
+            asn: new Asn(),
         );
     }
 

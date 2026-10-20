@@ -49,6 +49,10 @@ final class Result
          * @var array<string, mixed>
          */
         public readonly array $raw = [],
+        /** Where the address is. Every keyed answer carries it, free and paid. */
+        public readonly ?Location $location = null,
+        /** The AS announcing the address. Every keyed answer carries it, free and paid. */
+        public readonly ?Asn $asn = null,
     ) {
     }
 
@@ -86,6 +90,8 @@ final class Result
             mobproxy: $w->getMobproxy() === null ? null : ProxyDetail::fromWire($w->getMobproxy()),
             pubproxy: $w->getPubproxy() === null ? null : PubproxyDetail::fromWire($w->getPubproxy()),
             raw: $raw,
+            location: $w->getLocation() === null ? null : Location::fromWire($w->getLocation()),
+            asn: $w->getAsn() === null ? null : Asn::fromWire($w->getAsn()),
         );
     }
 }

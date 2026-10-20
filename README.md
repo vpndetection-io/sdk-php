@@ -17,7 +17,7 @@ Requires PHP 8.2 or newer. Everything is typed, and the tier-gated fields are nu
 
 ## Usage
 
-**No API key needed to start.** The free tier answers `ip` and `is_vpn`, and allows 1000 requests per day per source address.
+**No API key needed to start.** Without a key, a lookup answers `ip` and `is_vpn`, up to 1000 a day per source address.
 
 ```php
 use VPNDetection\Client;
@@ -30,7 +30,7 @@ echo $result->isVpn ? 'yes' : 'no';   // yes
 
 ### With an API key
 
-An API key raises your quota, and raises your features on a paid plan. Create one in the [console](https://app.vpndetection.io), then pass it in:
+A free key adds Tor and relay detection, where the address is and the AS that announces it. Every paid plan answers every field, the same on each, and the plans differ only in how many lookups they include. Create a key in the [console](https://app.vpndetection.io), then pass it in:
 
 ```php
 use VPNDetection\Client;
@@ -39,10 +39,11 @@ use VPNDetection\Options;
 $client = new Client(new Options(apiKey: getenv('VPNDETECTION_API_KEY')));
 
 $result = $client->lookup('45.83.91.1');
-$result->isVpn;             // true
-$result->vpn->provider;     // 'nordvpn'
-$result->isHosting;         // true
-$result->hosting->provider; // 'M247'
+$result->isVpn;               // true
+$result->location->country;   // the ISO 3166 country code
+$result->asn->name;           // who runs the announcing network
+$result->vpn->provider;       // 'nordvpn', on a paid plan
+$result->isHosting;           // true, on a paid plan
 ```
 
 ### Your own address
@@ -236,7 +237,7 @@ Check that `state` came back as you sent it before you exchange `code`, which wo
 
 ### Absent is not false
 
-A field your plan does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
+Without a key only `ip` and `is_vpn` come back, and a free key adds Tor, relay, `location` and `asn`. A field your key does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
 
 ```php
 $result->isHosting ?? false;   // when you only want the flag

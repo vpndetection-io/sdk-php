@@ -81,7 +81,7 @@ final class ConformanceTest extends TestCase
         }
     }
 
-    public function testABogonIsAnsweredLocallyInTheFullMaxShape(): void
+    public function testABogonIsAnsweredLocallyInTheWidestShape(): void
     {
         $stub = new Stub();
         $client = new Client(new Options(httpClient: $stub->client));
@@ -96,6 +96,14 @@ final class ConformanceTest extends TestCase
             $detail = $result->{$object};
             self::assertNotNull($detail, "{$object} must be present");
             self::assertTrue($detail->isEmpty(), "{$object} must be empty");
+        }
+        foreach (['location', 'asn'] as $object) {
+            self::assertNotNull($result->{$object}, "{$object} must be present");
+            self::assertSame(
+                self::sorted(self::$data['bogonResponse'][$object]),
+                self::sorted(self::asWire($result->{$object})),
+                $object,
+            );
         }
         self::assertSame([], $stub->calls, 'a bogon must not reach the network');
     }
@@ -128,7 +136,7 @@ final class ConformanceTest extends TestCase
                 self::assertNotNull($detail, "{$name}: {$key} must be present");
                 self::assertTrue($detail->isEmpty(), "{$name}: {$key} must be empty");
             }
-            foreach (['vpn', 'hosting', 'dcproxy', 'pubproxy'] as $key) {
+            foreach (['vpn', 'hosting', 'dcproxy', 'pubproxy', 'location', 'asn'] as $key) {
                 if (isset($case['expect'][$key])) {
                     self::assertSame(
                         self::sorted($case['expect'][$key]),
