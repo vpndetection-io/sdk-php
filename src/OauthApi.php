@@ -59,6 +59,17 @@ final class OauthApi
         'mslm:apikey' => ['string', false],
     ];
 
+    private const CLIENT_REGISTRATION = [
+        'client_id' => ['string', true],
+        'client_id_issued_at' => ['int', true],
+        'client_name' => ['string', true],
+        'redirect_uris' => ['list', true],
+        'grant_types' => ['list', false],
+        'response_types' => ['list', false],
+        'token_endpoint_auth_method' => ['string', true],
+        'scope' => ['string', false],
+    ];
+
     /** The longest part of one poll wait handed to time_nanosleep, in seconds. */
     private const LONGEST_SLEEP = 2_147_483_647;
 
@@ -270,6 +281,64 @@ final class OauthApi
             $query[] = $name . '=' . rawurlencode($value);
         }
         return $this->baseUrl . '/oauth/authorize?' . implode('&', $query);
+    }
+
+    /**
+     * Register a client for the authorization code flow, for an app that cannot
+     * serve a Client ID Metadata Document, and get its `clientId`.
+     *
+     * Each redirect URI must be https on a public host name, or http on a
+     * loopback address, which then matches on any port; the server refuses any
+     * other with an `OauthException` coded `invalid_redirect_uri`. Nothing is
+     * kept until a person approves the client, so registering again costs
+     * nothing, and this is retried like a lookup.
+     *
+     * @param list<string> $redirectUris At least one; an empty one, or one that
+     *        is not UTF-8, is refused before anything is sent.
+     * @param array{clientName?: string, timeout?: float} $options `clientName` is shown to the
+     *        person as the client's own claim, and left out when empty.
+     * @throws VPNDetectionException
+     */
+    public function register(array $redirectUris, array $options = []): ClientRegistration
+    {
+        CallOptions::assert($options, ['clientName', 'timeout']);
+        if ($redirectUris === [] || !array_is_list($redirectUris)) {
+            throw new InvalidArgumentException('redirectUris must list at least one URI');
+        }
+        foreach ($redirectUris as $i => $uri) {
+            if (!is_string($uri) || $uri === '' || preg_match('//u', $uri) !== 1) {
+                throw new InvalidArgumentException("redirectUris[{$i}] must be a non-empty UTF-8 string");
+            }
+        }
+        $body = ['redirect_uris' => $redirectUris];
+        $name = $options['clientName'] ?? '';
+        if (!is_string($name) || preg_match('//u', $name) !== 1) {
+            throw new InvalidArgumentException('clientName must be a UTF-8 string');
+        }
+        if ($name !== '') {
+            $body['client_name'] = $name;
+        }
+        $request = new Request(
+            'POST',
+            $this->baseUrl . '/oauth/register',
+            [
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'User-Agent' => $this->userAgent,
+            ],
+            json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        );
+        $m = $this->fetch($request, self::CLIENT_REGISTRATION, $options);
+        return new ClientRegistration(
+            clientId: $m['client_id'],
+            clientIdIssuedAt: $m['client_id_issued_at'],
+            clientName: $m['client_name'],
+            redirectUris: $m['redirect_uris'],
+            tokenEndpointAuthMethod: $m['token_endpoint_auth_method'],
+            grantTypes: $m['grant_types'] ?? null,
+            responseTypes: $m['response_types'] ?? null,
+            scope: $m['scope'] ?? null,
+        );
     }
 
     /** A fresh PKCE pair for one sign-in, from 32 bytes of `random_bytes`. */

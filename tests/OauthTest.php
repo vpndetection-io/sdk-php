@@ -37,6 +37,11 @@ final class OauthTest extends TestCase
         'interval' => 5,
         'access_token' => 'mo_at_x',
         'token_type' => 'Bearer',
+        'client_id' => 'dcr_x',
+        'client_id_issued_at' => 1792304178,
+        'client_name' => 'Example CLI',
+        'redirect_uris' => ['http://127.0.0.1/cb'],
+        'token_endpoint_auth_method' => 'none',
     ];
 
     /** @var array<string, mixed> */
@@ -66,8 +71,9 @@ final class OauthTest extends TestCase
         $oauth->exchangeAuthorizationCode('vpndetection-cli', 'mo_ac_x', str_repeat('v', 43), 'http://127.0.0.1/cb');
         $oauth->revoke('vpndetection-cli', 'mo_rt_x');
         $oauth->pollDeviceToken('vpndetection-cli', $device);
+        $oauth->register(['http://127.0.0.1/cb'], ['clientName' => 'Example CLI']);
 
-        self::assertCount(7, $stub->requests);
+        self::assertCount(8, $stub->requests);
         $url = $oauth->authorizationUrl('vpndetection-cli', 'http://127.0.0.1/cb', str_repeat('c', 43));
         self::assertStringNotContainsString($rule['apiKey'], $url, 'the authorization URL carried the API key');
         foreach ($stub->requests as $request) {
@@ -304,6 +310,71 @@ final class OauthTest extends TestCase
         self::assertSame($oauth->pkceChallenge($first->verifier), $first->challenge);
         self::assertSame($pkce['method'], $first->method);
         self::assertNotSame($first->verifier, $oauth->createPkce()->verifier, 'two pairs share a verifier');
+    }
+
+    public function testRegisterPostsExactlyItsJsonBodyAndRefusesAnEmptyUriUnsent(): void
+    {
+        $register = self::$corpus['register'];
+        foreach ($register['bodies']['cases'] as $case) {
+            $stub = new OauthStub([['status' => 201, 'body' => self::EVERY_REQUIRED_MEMBER]]);
+            $client = new Client(new Options(baseUrl: self::BASE_URL . '///', httpClient: $stub->client));
+            $options = ['timeout' => 5.0] + (isset($case['args']['clientName']) ? ['clientName' => $case['args']['clientName']] : []);
+            $client->oauth->register($case['args']['redirectUris'], $options);
+
+            self::assertCount(1, $stub->requests, $case['name']);
+            $request = $stub->requests[0];
+            self::assertEndpoint($request, $register['endpoint'], $case['name']);
+            self::assertSame(self::BASE_URL . $register['endpoint']['path'], $request['url'], $case['name']);
+            self::assertStringStartsWith($register['contentType'], $request['headers']['content-type'][0] ?? '', $case['name']);
+            self::assertSame($case['body'], json_decode($request['body'], true, 512, JSON_THROW_ON_ERROR), $case['name']);
+        }
+        $refused = [
+            ...array_map(static fn (array $case): array => $case['args']['redirectUris'], $register['refusals']['cases']),
+            ["http://127.0.0.1/cb\xff"],
+            ['a' => 'http://127.0.0.1/cb'],
+        ];
+        foreach ($refused as $uris) {
+            $stub = new OauthStub([['status' => 201, 'body' => self::EVERY_REQUIRED_MEMBER]]);
+            $outcome = self::settle(static fn (): mixed => self::client($stub)->oauth->register($uris));
+            self::assertInstanceOf(InvalidArgumentException::class, $outcome, json_encode($uris, JSON_INVALID_UTF8_SUBSTITUTE));
+            self::assertCount(0, $stub->requests);
+        }
+    }
+
+    public function testRegisterDecodesOnPresenceAndAnythingUnreadableIsAServerError(): void
+    {
+        $register = self::$corpus['register'];
+        $uris = ['http://127.0.0.1/cb'];
+        foreach ($register['responses']['cases'] as $case) {
+            $got = self::client(new OauthStub([$case]))->oauth->register($uris);
+            foreach ($case['expect']['present'] as $name => $value) {
+                self::assertSame($value, $got->{self::camel($name)}, "{$case['name']}: {$name}");
+            }
+            foreach ($case['expect']['absent'] as $name) {
+                self::assertNull($got->{self::camel($name)}, "{$case['name']}: {$name} must be ABSENT");
+            }
+        }
+        foreach ($register['unreadable']['cases'] as $case) {
+            $stub = new OauthStub([$case]);
+            $client = new Client(new Options(baseUrl: self::BASE_URL, httpClient: $stub->client, retries: 0));
+            $outcome = self::settle(static fn (): mixed => $client->oauth->register($uris));
+            self::assertOutcome($outcome, ['type' => 'client', 'kind' => 'server_error', 'status' => $case['status']], $case['name']);
+            self::assertCount(1, $stub->requests, $case['name']);
+        }
+        foreach ($register['errors'] as $case) {
+            $outcome = self::settle(static fn (): mixed => self::client(new OauthStub([$case]))->oauth->register($uris));
+            self::assertOutcome($outcome, $case['expect'], $case['name']);
+        }
+        foreach ($register['retries'] as $case) {
+            $stub = new OauthStub($case['responses']);
+            $outcome = self::settle(static fn (): mixed => self::client($stub)->oauth->register($case['args']['redirectUris']));
+            self::assertCount($case['expect']['requests'], $stub->requests, "{$case['name']}: requests sent");
+            if ($case['expect']['outcome'] === 'ok') {
+                self::assertNotInstanceOf(Throwable::class, $outcome, $case['name']);
+                continue;
+            }
+            self::assertOutcome($outcome, ['type' => $case['expect']['outcome']] + $case['expect'], $case['name']);
+        }
     }
 
     public function testOnlyWhatConsumesNothingIsRetriedAndNeverAnOauthRefusal(): void
