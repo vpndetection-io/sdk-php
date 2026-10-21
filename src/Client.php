@@ -330,16 +330,19 @@ final class Client
     private static function chunkAnswers(ResponseInterface $response, array $chunk): array
     {
         $status = $response->getStatusCode();
-        $body = Transport::toArray((string) $response->getBody(), $status);
+        $text = (string) $response->getBody();
+        $body = Transport::toArray($text, $status);
         $results = $body['results'] ?? null;
         $errors = $body['errors'] ?? null;
         if (!is_array($results) || !is_array($errors)) {
             throw Errors::malformed('expected the results and errors of a batch', $status);
         }
+        // Each entry is checked as decoded with objects, where `{}` is not `[]`.
+        $entries = (array) json_decode($text, false)->results;
         $answers = [];
         foreach ($chunk as $ip) {
             if (array_key_exists($ip, $results)) {
-                $answers[$ip] = self::entryResult($results[$ip], $status);
+                $answers[$ip] = self::entryResult($entries[$ip], $results[$ip], $status);
             } elseif (isset($errors[$ip]) && is_array($errors[$ip])) {
                 $answers[$ip] = Errors::fromEntry(
                     (int) ($errors[$ip]['status'] ?? 500),
@@ -354,13 +357,10 @@ final class Client
         return $answers;
     }
 
-    private static function entryResult(mixed $raw, int $status): Result|VPNDetectionException
+    private static function entryResult(mixed $entry, mixed $raw, int $status): Result|VPNDetectionException
     {
         try {
-            return Result::fromWire(
-                Transport::toModel(json_encode($raw, JSON_THROW_ON_ERROR), LookupResponse::class, $status),
-                $raw,
-            );
+            return Result::fromWire(Transport::fromDecoded($entry, LookupResponse::class, $status), $raw);
         } catch (VPNDetectionException $e) {
             return $e;
         } catch (Exception | TypeError | ValueError $e) {

@@ -110,10 +110,10 @@ final class ConformanceTest extends TestCase
 
     public function testLookupPreservesAbsentVersusFalseAcrossEveryPlanShape(): void
     {
-        foreach (self::$data['lookup'] as $case) {
+        foreach (self::$data['lookup'] as $i => $case) {
             $ip = $case['body']['ip'];
             $stub = new Stub(Stub::lookups([
-                $ip => ['status' => $case['status'], 'body' => $case['body']],
+                $ip => ['status' => $case['status'], 'body' => self::wire('lookup', $i)],
             ]));
             $client = new Client(new Options(httpClient: $stub->client));
             $result = $client->lookup($ip);
@@ -343,6 +343,16 @@ final class ConformanceTest extends TestCase
             }
         }
         self::fail("no batch fixture named {$name}");
+    }
+
+    /**
+     * A case's body decoded with objects, as it goes on the wire: decoded into
+     * arrays, a detail served as `{}` would be sent as the list `[]`.
+     */
+    private static function wire(string $section, int $i): object
+    {
+        $raw = json_decode((string) file_get_contents(__DIR__ . '/../testdata/testdata.json'), false, 512, JSON_THROW_ON_ERROR);
+        return $raw->{$section}[$i]->body;
     }
 
     private static function camel(string $wire): string

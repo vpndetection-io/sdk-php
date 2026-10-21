@@ -96,7 +96,7 @@ final class StoreCache implements AnswerCache
     {
         try {
             return Result::fromWire(
-                Transport::toModel(json_encode($raw, JSON_THROW_ON_ERROR), LookupResponse::class),
+                Transport::toModel(json_encode($raw, JSON_THROW_ON_ERROR), LookupResponse::class, stored: true),
                 $raw,
             );
         } catch (Throwable) {

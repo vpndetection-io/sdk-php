@@ -84,11 +84,18 @@ final class MiddlewareTest extends TestCase
 
     public function testCorpusConditions(): void
     {
-        foreach (self::corpus()['conditions'] as $case) {
+        // Decoded with objects too, so a detail served as `{}` is not sent as `[]`.
+        $wire = json_decode(
+            (string) file_get_contents(__DIR__ . '/../testdata/testdata.json'),
+            false,
+            512,
+            JSON_THROW_ON_ERROR
+        )->middleware->conditions;
+        foreach (self::corpus()['conditions'] as $i => $case) {
             $why = "{$case['name']}: {$case['why']}";
             $result = isset($case['bogon'])
                 ? (new Client(new Options()))->lookup($case['bogon'])
-                : self::client(self::serving($case['body']))->lookup($case['body']['ip']);
+                : self::client(self::serving((array) $wire[$i]->body))->lookup($case['body']['ip']);
 
             /** @var array<mixed> $condition */
             $condition = self::toIdiom($case['condition']);

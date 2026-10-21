@@ -64,7 +64,8 @@ final class ClientTest extends TestCase
             $body[$wire] = false;
         }
         foreach ($details as $wire) {
-            $body[$wire] = [];
+            // An empty PHP array goes on the wire as `[]`, a list, not `{}`.
+            $body[$wire] = new \stdClass();
         }
         $present = self::lookupOnce($body);
         foreach ($flags as $wire => $property) {
@@ -638,8 +639,13 @@ final class ClientTest extends TestCase
                     'dataset_id' => 'tor_ip_v1',
                     'format' => 'mmdb',
                     'outcome' => 'ok',
-                    'bytes' => 1234,
+                    'sample' => false,
                     'open' => true,
+                    'bytes' => 1234,
+                    'http_status' => 200,
+                    'apikey_id' => null,
+                    'client_ip' => null,
+                    'user_agent' => null,
                     'created' => '2026-09-02T10:11:12Z',
                 ]],
             ]),
