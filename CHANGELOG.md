@@ -2,6 +2,17 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.11.0 - 2026-10-21
+
+### Features
+
+- Add oauth->register: dynamic client registration (RFC 7591) ([`fbed057`](https://github.com/vpndetection-io/sdk-php/commit/fbed057d9ee322eed720b38767b672155cfd67ad))
+
+### Fixes
+
+- Refuse an answer whose member has the wrong type or is not a real date ([`13b13eb`](https://github.com/vpndetection-io/sdk-php/commit/13b13eb847147d2305766a15d00f7b7d84af526c))
+- Trim the API key, refuse a control character in it, and read no impossible date ([`3e8bd18`](https://github.com/vpndetection-io/sdk-php/commit/3e8bd18287c23a5159f329e00cf80653a6e7041f))
+
 ## 4.10.0 - 2026-10-20
 
 ### Features
