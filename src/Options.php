@@ -73,6 +73,11 @@ final class Options
         if ($retries < 0) {
             throw new InvalidArgumentException('retries cannot be negative');
         }
+        // Guzzle refuses such a header, so every call failed with its raw
+        // InvalidArgumentException and nothing sent (4.10.0).
+        if ($apiKey !== null && preg_match('/[\x00-\x1F\x7F]/', trim($apiKey)) === 1) {
+            throw new InvalidArgumentException('apiKey must not contain a control character');
+        }
         CallOptions::assertTimeout($timeout);
     }
 }

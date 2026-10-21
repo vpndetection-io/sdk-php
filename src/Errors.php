@@ -118,8 +118,9 @@ final class Errors
         if (!is_array($decoded)) {
             return null;
         }
+        // An empty `error` says nothing, and hid an `rc` beside it until 4.11.0.
         foreach (['error', 'rc'] as $key) {
-            if (isset($decoded[$key]) && is_string($decoded[$key])) {
+            if (isset($decoded[$key]) && is_string($decoded[$key]) && $decoded[$key] !== '') {
                 return $decoded[$key];
             }
         }
@@ -146,6 +147,12 @@ final class Errors
         try {
             $when = (new DateTimeImmutable($value, new DateTimeZone('UTC')))->getTimestamp();
         } catch (Exception) {
+            return null;
+        }
+        // A day its month lacks (31 Nov, 30 Feb) parses as the next month's, with
+        // a warning, and was waited out as that day until 4.11.0.
+        $errors = DateTimeImmutable::getLastErrors();
+        if ($errors !== false && $errors['warning_count'] > 0) {
             return null;
         }
         return max(0, $when - time());

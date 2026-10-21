@@ -285,6 +285,78 @@ final class ClientTest extends TestCase
     }
 
     /**
+     * A day its month lacks parses as the next month's, so a 429 dated 31
+     * November was waited out until 1 December (4.10.0). It is a spent quota,
+     * as any other date that is none.
+     */
+    public function testARetryAfterNamingADayThatDoesNotExistIsASpentQuota(): void
+    {
+        foreach ([
+            'Sun, 31 Nov 2099 08:49:37 GMT',
+            'Mon, 30 Feb 2099 08:49:37 GMT',
+            'Sunday, 31-Nov-99 08:49:37 GMT',
+            'Sun Nov 31 08:49:37 2099',
+        ] as $retryAfter) {
+            $stub = new Stub(['/9.9.9.9' => [
+                'status' => 429,
+                'headers' => ['Retry-After' => $retryAfter],
+                'body' => ['error' => 'rate limit exceeded'],
+            ]]);
+            $client = new Client(new Options(apiKey: 'k', cache: false, retries: 2, httpClient: $stub->client));
+            try {
+                $client->lookup('9.9.9.9');
+                self::fail("Retry-After: {$retryAfter}: answered");
+            } catch (VPNDetectionException $e) {
+                self::assertSame(ErrorKind::QuotaExceeded, $e->kind, "Retry-After: {$retryAfter}");
+            }
+            self::assertCount(1, $stub->calls, "Retry-After: {$retryAfter}");
+        }
+    }
+
+    /** An empty `error` said nothing and hid the `rc` beside it (4.10.0). */
+    public function testAnEmptyErrorLeavesTheRcAsTheMessage(): void
+    {
+        $stub = new Stub(['/9.9.9.9' => ['status' => 429, 'body' => ['error' => '', 'rc' => 'QUOTA_EXCEEDED']]]);
+        $client = new Client(new Options(apiKey: 'k', cache: false, httpClient: $stub->client));
+        try {
+            $client->lookup('9.9.9.9');
+            self::fail('answered');
+        } catch (VPNDetectionException $e) {
+            self::assertSame('QUOTA_EXCEEDED', $e->getMessage());
+        }
+    }
+
+    /**
+     * A key of blanks alone went out as `Authorization: Bearer` and the blanks,
+     * which reads as a wrong key rather than none, and a padded one padded
+     * (4.10.0).
+     */
+    public function testTheKeyIsTrimmedAndBlanksAloneAreNoKey(): void
+    {
+        foreach (['   ' => '', "\t" => '', " k\t" => 'Bearer k', "k\n" => 'Bearer k'] as $key => $sent) {
+            $stub = new Stub(['/9.9.9.9' => Stub::ok(['ip' => '9.9.9.9', 'is_vpn' => false])]);
+            (new Client(new Options(apiKey: $key, cache: false, httpClient: $stub->client)))->lookup('9.9.9.9');
+            self::assertSame($sent, $stub->requests[0]->getHeaderLine('Authorization'), json_encode($key));
+        }
+    }
+
+    /**
+     * Guzzle refuses a header holding a control character, so every call failed
+     * with its raw InvalidArgumentException and nothing sent (4.10.0).
+     */
+    public function testAKeyHoldingAControlCharacterIsRefusedWhereItIsSet(): void
+    {
+        foreach (["k\x01ey", "k\r\nX-Injected: 1", "k\x00ey", "k\x7Fey"] as $key) {
+            try {
+                new Options(apiKey: $key);
+                self::fail(json_encode($key) . ': accepted');
+            } catch (InvalidArgumentException $e) {
+                self::assertStringContainsString('control character', $e->getMessage());
+            }
+        }
+    }
+
+    /**
      * Every form RFC 9110 has a recipient accept is a throttle, read as GMT. An
      * asctime date says no zone, and was read in the process's default one.
      */
