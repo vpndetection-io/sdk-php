@@ -17,9 +17,11 @@ PHP_VERSION="${PHP_VERSION:-8.3}"
 
 ./scripts/composer.sh update --no-interaction --no-progress
 
+# The key is passed by name, so its value never reaches docker's command line,
+# which any user on the box can read with ps.
 docker run --rm \
     -v "$PWD:/app" -w /app \
     -e "VPNDETECTION_LIVE=${VPNDETECTION_LIVE:-}" \
-    -e "VPNDETECTION_API_KEY=${VPNDETECTION_API_KEY:-}" \
+    -e VPNDETECTION_API_KEY \
     "php:${PHP_VERSION}-cli" \
     php vendor/bin/phpunit "$@"
