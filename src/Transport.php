@@ -308,9 +308,11 @@ final class Transport
      * nothing reads a checksum answer's `id` or `format`, so through 4.10.0 an
      * answer without them came back as one.
      *
-     * Only those two rules of the generated listInvalidProperties() are kept: its
-     * enum checks cover `license_type`, `outcome` and `tier`, which this client
-     * hands out as strings, so a value the API adds would fail every call.
+     * Only those two rules of the generated listInvalidProperties() are kept. Its
+     * enum checks would add nothing: the generated setters already refuse a
+     * `license_type`, `outcome` or `tier` outside the pinned spec's values while
+     * ObjectSerializer::deserialize() runs, before this does, so a value the API
+     * adds fails the call as a retried server_error until a release re-pins.
      */
     private static function unmet(mixed $value, string $type, string $at): ?string
     {
