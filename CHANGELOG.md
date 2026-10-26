@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.11.1 - 2026-10-26
+
+### Fixes
+
+- Re-pin the spec to 2026.10.25: Retry-After on myip's 429 ([`08ac4d2`](https://github.com/vpndetection-io/sdk-php/commit/08ac4d29ac49404d3c2aaa8430b7af551f93eb8f))
+
 ## 4.11.0 - 2026-10-21
 
 ### Features
