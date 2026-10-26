@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.20
+  version: 2026.10.25
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -322,20 +322,33 @@ paths:
                 error: source address not allowed for this API key
         '429':
           description: |
-            Either the request rate was too high, or an allowance is spent.
-            The two are told apart by the message, not the status.
+            Either a transient rate limit or a spent allowance. `Retry-After` is
+            present for the former and absent for the latter, and is the only
+            way to tell them apart.
+          headers:
+            Retry-After:
+              description: |
+                Seconds to wait before retrying. Present ONLY when the rejection
+                is a transient rate limit; its absence means an allowance is
+                spent and retrying will not help.
+              required: false
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LookupError'
               examples:
                 rateLimited:
+                  summary: Transient, sent with Retry-After
                   value:
                     error: rate limit exceeded
-                keylessDaily:
+                keylessDailyLimit:
+                  summary: Keyless daily cap spent, no Retry-After
                   value:
                     error: daily limit for unauthenticated requests exceeded; use an API key
                 quotaExceeded:
+                  summary: Plan allowance spent, no Retry-After
                   value:
                     error: request allowance exceeded; raise or remove your overage limit
         '500':
