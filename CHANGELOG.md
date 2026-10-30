@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.11.2 - 2026-10-30
+
+### Fixes
+
+- Read a lowercase t or z in a date-time, and refuse a final newline ([`71f7fab`](https://github.com/vpndetection-io/sdk-php/commit/71f7fab3c21eed3044e52593ab0a21fadbe9761d))
+
 ## 4.11.1 - 2026-10-26
 
 ### Fixes
