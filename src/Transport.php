@@ -39,13 +39,15 @@ final class Transport
 
     /**
      * RFC 3339's full-date, the spec's `date`, and its date-time, the spec's
-     * `date-time`, in the upper case the API sends. Anything else reaches the
+     * `date-time`, its `T` and `Z` in either case. Anything else reaches the
      * generated deserializer's `new DateTime()`, which reads `x` as the current
-     * time eleven hours west and `tomorrow` as midnight.
+     * time eleven hours west and `tomorrow` as midnight. `\z`, since `$` also
+     * matches before a final newline: through 4.11.1 one came back as a date, and
+     * a lowercase `t` or `z`, which RFC 3339 allows, failed the call.
      */
-    private const DATE = '/^(\d{4})-(\d{2})-(\d{2})$/';
+    private const DATE = '/\A([0-9]{4})-([0-9]{2})-([0-9]{2})\z/';
 
-    private const DATE_TIME = '/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/';
+    private const DATE_TIME = '/\A([0-9]{4})-([0-9]{2})-([0-9]{2})[Tt]([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.[0-9]+)?(?:[Zz]|[+-]([0-9]{2}):([0-9]{2}))\z/';
 
     public function __construct(
         private readonly ClientInterface $http,

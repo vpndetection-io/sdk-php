@@ -97,6 +97,8 @@ final class AnswerTypesTest extends TestCase
             'vpn.last_seen "tomorrow"' => $lookup(['vpn' => ['last_seen' => 'tomorrow']]),
             'vpn.last_seen 30 February' => $lookup(['vpn' => ['last_seen' => '2026-02-30']]),
             'vpn.last_seen with a time' => $lookup(['vpn' => ['last_seen' => '2026-10-20T10:00:00Z']]),
+            'vpn.last_seen ending in a newline' => $lookup(['vpn' => ['last_seen' => "2026-10-20\n"]]),
+            'vpn.last_seen in another script\'s digits' => $lookup(['vpn' => ['last_seen' => '٢٠٢٦-10-20']]),
         ];
     }
 
@@ -167,6 +169,15 @@ final class AnswerTypesTest extends TestCase
             'entitlement: window_start 30 February' => [
                 '/api/v1/entitlement', $usage(['window_start' => '2026-02-30T07:00:00Z']), $entitlement,
             ],
+            'entitlement: window_start ending in a newline' => [
+                '/api/v1/entitlement', $usage(['window_start' => "2026-09-04T07:00:00Z\n"]), $entitlement,
+            ],
+            'downloads: created ending in a newline' => ['/api/v1/database/downloads', ['downloads' => [
+                array_replace(self::DOWNLOAD, ['created' => "2026-09-02T10:11:12Z\n"]),
+            ]], $downloads],
+            'metadata: updated ending in a newline' => [
+                '/api/v1/database/metadata', array_replace(self::METADATA, ['updated' => "2026-09-02\n"]), $metadata,
+            ],
             'entitlement: org_id absent' => ['/api/v1/entitlement', array_diff_key(self::ENTITLEMENT, ['org_id' => 1]), $entitlement],
         ];
     }
@@ -206,6 +217,31 @@ final class AnswerTypesTest extends TestCase
         self::assertSame('s256', $client->database->checksums('vpn_ip_extended_v1', 'mmdb')->sha256);
         self::assertSame(1234, $client->database->downloads()[0]->bytes);
         self::assertCount(6, $stub->calls, 'each sent once');
+    }
+
+    /** RFC 3339 lets a date-time's T and Z be lowercase; through 4.11.1 one failed the call. */
+    public function testALowercaseTOrZInADateTimeReads(): void
+    {
+        foreach (['2026-09-04t10:00:00Z', '2026-09-04T10:00:00z', '2026-09-04t10:00:00.5z'] as $value) {
+            $stub = new Stub([
+                '/api/v1/entitlement' => Stub::ok(array_replace_recursive(self::ENTITLEMENT, [
+                    'apikey' => ['expires' => $value], 'usage' => ['window_start' => $value, 'window_end' => $value],
+                ])),
+                '/api/v1/database/list' => Stub::ok(['databases' => [array_replace(self::DATABASE, ['starts' => $value])]]),
+                '/api/v1/database/downloads' => Stub::ok(['downloads' => [array_replace(self::DOWNLOAD, ['created' => $value])]]),
+            ]);
+            $client = new Client(new Options(apiKey: 'k', retries: 0, httpClient: $stub->client));
+            $want = str_contains($value, '.') ? '2026-09-04 10:00:00.500000' : '2026-09-04 10:00:00.000000';
+            $utc = static fn (?\DateTimeInterface $d): ?string => $d === null
+                ? null : \DateTimeImmutable::createFromInterface($d)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u');
+
+            $entitlement = $client->myEntitlement();
+            self::assertSame($want, $utc($entitlement->usage->windowStart), $value);
+            self::assertSame($want, $utc($entitlement->apikey->expires), $value);
+            self::assertSame($want, $utc($client->database->list()[0]->starts), $value);
+            self::assertSame($want, $utc($client->database->downloads()[0]->created), $value);
+            self::assertCount(3, $stub->calls, "{$value}: each read at once");
+        }
     }
 
     public function testABatchEntryOfTheWrongTypeFailsThatAddressAlone(): void
