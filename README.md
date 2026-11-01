@@ -36,7 +36,7 @@ A free key adds Tor and relay detection, where the address is and the AS that an
 use VPNDetection\Client;
 use VPNDetection\Options;
 
-$client = new Client(new Options(apiKey: getenv('VPNDETECTION_API_KEY')));
+$client = new Client(new Options(apiKey: getenv('VPNDETECTION_API_KEY') ?: null));
 
 $result = $client->lookup('45.83.91.1');
 $result->isVpn;               // true
