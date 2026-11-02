@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.10.25
+  version: 2026.11.02
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -248,9 +248,13 @@ paths:
                   value:
                     error: daily limit for unauthenticated requests exceeded; use an API key
                 quotaExceeded:
-                  summary: Plan allowance spent, no Retry-After
+                  summary: Free plan's monthly allowance spent, no Retry-After
                   value:
-                    error: request allowance exceeded; raise or remove your overage limit
+                    error: monthly request allowance spent; upgrade your plan for more lookups
+                overageCapReached:
+                  summary: Paid plan's overage cap reached, no Retry-After
+                  value:
+                    error: overage cap reached; raise or remove it in Billing
         '500':
           description: The VPN dataset could not be consulted.
           content:
@@ -348,9 +352,13 @@ paths:
                   value:
                     error: daily limit for unauthenticated requests exceeded; use an API key
                 quotaExceeded:
-                  summary: Plan allowance spent, no Retry-After
+                  summary: Free plan's monthly allowance spent, no Retry-After
                   value:
-                    error: request allowance exceeded; raise or remove your overage limit
+                    error: monthly request allowance spent; upgrade your plan for more lookups
+                overageCapReached:
+                  summary: Paid plan's overage cap reached, no Retry-After
+                  value:
+                    error: overage cap reached; raise or remove it in Billing
         '500':
           description: The VPN dataset could not be consulted.
           content:
@@ -470,7 +478,15 @@ paths:
                     errors:
                       8.8.8.8:
                         status: 429
-                        error: request allowance exceeded; raise or remove your overage limit
+                        error: monthly request allowance spent; upgrade your plan for more lookups
+                overageCapReached:
+                  summary: A key on a paid plan whose overage cap was already reached
+                  value:
+                    results: {}
+                    errors:
+                      8.8.8.8:
+                        status: 429
+                        error: overage cap reached; raise or remove it in Billing
                 lookupFailed:
                   summary: The VPN dataset could not be consulted, which fails every entry
                   value:
