@@ -11,7 +11,7 @@ use VPNDetection\Internal\Model\Database as WireDatabase;
  * One dataset FAMILY your organization is licensed for.
  *
  * A license is held against the family, while a download names one version, so
- * the ids you pass to `download`, `downloadBytes`, `downloadUrl` and `checksums`
+ * the IDs you pass to `download`, `downloadBytes`, `downloadUrl` and `checksums`
  * come from `versions` rather than from here.
  */
 final class Database

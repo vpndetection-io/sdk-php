@@ -10,7 +10,7 @@ use VPNDetection\Internal\Model\DatabaseVersion as WireDatabaseVersion;
 final class DatabaseVersion
 {
     public function __construct(
-        /** The versioned dataset id, e.g. `vpn_ip_v1`. This is what a download takes. */
+        /** The versioned dataset ID, e.g. `vpn_ip_v1`. This is what a download takes. */
         public readonly string $id,
         public readonly int $version,
         public readonly ?string $summary,

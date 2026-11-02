@@ -10,7 +10,7 @@ use VPNDetection\Internal\Model\EntitlementApikey as WireEntitlementApikey;
 /**
  * The credential itself.
  *
- * The key is never echoed back - only its id, which is what the console shows
+ * The key is never echoed back - only its ID, which is what the console shows
  * and what you can act on.
  */
 final class EntitlementApikey
