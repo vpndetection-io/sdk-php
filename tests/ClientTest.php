@@ -737,8 +737,8 @@ final class ClientTest extends TestCase
                 'format' => 'mmdb',
                 'checksums' => ['md5' => 'm', 'sha1' => 's1', 'sha256' => 's256', 'sha512' => 's512'],
             ]),
-            // A license is held against the FAMILY, and the ids a download takes
-            // hang off `versions`. Reading an id from the top level is how this
+            // A license is held against the FAMILY, and the IDs a download takes
+            // hang off `versions`. Reading an ID from the top level is how this
             // endpoint came to answer objects whose every typed field was null.
             '/api/v1/database/list' => Stub::ok([
                 'databases' => [[

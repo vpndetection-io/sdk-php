@@ -61,7 +61,7 @@ final class Errors
             return new VPNDetectionException(ErrorKind::Forbidden, $message, $status);
         }
         // Any other 4xx is a CLIENT error. Falling through to the server_error
-        // default would make it retryable, so a bad dataset id would be retried
+        // default would make it retryable, so a bad dataset ID would be retried
         // twice before failing. Only 5xx and transport failures are worth a retry.
         if ($status < 500) {
             return new VPNDetectionException(ErrorKind::BadRequest, $message, $status);

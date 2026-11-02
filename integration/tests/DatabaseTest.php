@@ -19,7 +19,7 @@ use VPNDetection\VPNDetectionException;
  *
  * The transfer is budgeted before it starts. `metadata` publishes a size per
  * format, and that size is checked against the ceiling below FIRST, so a mistaken
- * dataset id can never quietly pull one of the gigabyte datasets through CI.
+ * dataset ID can never quietly pull one of the gigabyte datasets through CI.
  */
 final class DatabaseTest extends TestCase
 {
@@ -31,7 +31,7 @@ final class DatabaseTest extends TestCase
     // tripping it means the suite is pointed somewhere unintended, which is
     // exactly when a transfer must not go ahead.
     private const CEILING = 8 * 1024 * 1024;
-    // A real catalog id the max organization holds no license for.
+    // A real catalog ID the max organization holds no license for.
     private const UNLICENSED_ID = 'hosting_ip_v1';
 
     /** @var list<array{host: string, path: string, ips: list<string>, carriedKey: bool}> */
@@ -65,7 +65,7 @@ final class DatabaseTest extends TestCase
     }
 
     /**
-     * A license covers a dataset FAMILY, and the ids a download takes hang off
+     * A license covers a dataset FAMILY, and the IDs a download takes hang off
      * `versions`. This is the endpoint that did not match its own schema until
      * 2026-09-04. PHP is loud about that where the other bindings are quiet: the
      * generated getters are typed, so a required field the payload does not
