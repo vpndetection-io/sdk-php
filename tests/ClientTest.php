@@ -538,6 +538,56 @@ final class ClientTest extends TestCase
         self::assertSame([], $stub->calls);
     }
 
+    /**
+     * Through 4.11.2 a per-call `retries` of -1 was read as none, anything but an
+     * int failed the call as a raw TypeError, a NaN or fractional `concurrency`
+     * was taken, and a bogon, a cache hit or a bogon-only batch answered any of
+     * them. Each is refused where it is set, before anything can answer.
+     */
+    public function testABadPerCallRetryCountOrConcurrencyIsRefusedBeforeAnythingAnswers(): void
+    {
+        $stub = self::addressStub();
+        $client = new Client(new Options(httpClient: $stub->client));
+        $client->lookup('9.9.9.1');
+        self::assertCount(1, $stub->calls);
+
+        $bad = [-1, NAN, INF, 1.5, 2.0, '2', 'x', '', [], true, new \stdClass()];
+        $calls = [
+            'lookup' => static fn (array $o): mixed => $client->lookup('9.9.9.2', $o),
+            'a bogon' => static fn (array $o): mixed => $client->lookup('127.0.0.1', $o),
+            'a cache hit' => static fn (array $o): mixed => $client->lookup('9.9.9.1', $o),
+            'myIp' => static fn (array $o): mixed => $client->myIp($o),
+            'myEntitlement' => static fn (array $o): mixed => $client->myEntitlement($o),
+            'lookupBatch' => static fn (array $o): mixed => $client->lookupBatch(['9.9.9.3', '9.9.9.4'], $o),
+            'a bogon-only batch' => static fn (array $o): mixed => $client->lookupBatch(['10.0.0.1'], $o),
+        ];
+        $batches = ['lookupBatch', 'a bogon-only batch'];
+        foreach ($calls as $name => $call) {
+            foreach ($bad as $value) {
+                $options = [['retries' => $value]];
+                if (in_array($name, $batches, true)) {
+                    $options[] = ['concurrency' => $value];
+                }
+                foreach ($options as $option) {
+                    $label = $name . ' ' . key($option) . ' ' . var_export($value, true);
+                    try {
+                        $call($option);
+                        self::fail("{$label} was accepted");
+                    } catch (InvalidArgumentException $e) {
+                        self::assertStringContainsString((string) key($option), $e->getMessage(), $label);
+                    }
+                }
+            }
+        }
+        self::assertCount(1, $stub->calls);
+
+        // An int in range, and null for unset, still read.
+        self::assertInstanceOf(Result::class, $client->lookup('9.9.9.5', ['retries' => 0]));
+        self::assertInstanceOf(Result::class, $client->lookup('9.9.9.6', ['retries' => null]));
+        self::assertCount(2, $client->lookupBatch(['9.9.9.7', '9.9.9.8'], ['retries' => 1, 'concurrency' => 1]));
+        self::assertCount(2, $client->lookupBatch(['9.9.9.9', '9.9.9.10'], ['concurrency' => null]));
+    }
+
     public function testConcurrencyIsNotAcceptedOnASingleLookup(): void
     {
         $client = new Client();

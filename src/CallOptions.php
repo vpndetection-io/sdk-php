@@ -34,6 +34,15 @@ final class CallOptions
                 implode(', ', $allowed),
             ));
         }
+        // Refused here, before a bogon or a cache hit can answer: past this, a
+        // negative count read as none and anything but an int failed the call
+        // as a raw TypeError, while a NaN or fractional concurrency was taken.
+        if (isset($options['retries']) && (!is_int($options['retries']) || $options['retries'] < 0)) {
+            throw new InvalidArgumentException('retries must be a whole number from 0');
+        }
+        if (isset($options['concurrency']) && (!is_int($options['concurrency']) || $options['concurrency'] < 1)) {
+            throw new InvalidArgumentException('concurrency must be a whole number from 1');
+        }
         $timeout = $options['timeout'] ?? null;
         if ($timeout !== null && !is_int($timeout) && !is_float($timeout)) {
             throw new InvalidArgumentException('timeout must be a number of seconds');

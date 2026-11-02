@@ -10,7 +10,6 @@ use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\Each;
 use GuzzleHttp\Promise\PromiseInterface;
-use InvalidArgumentException;
 use OutOfBoundsException;
 use Psr\Http\Message\ResponseInterface;
 use TypeError;
@@ -192,9 +191,6 @@ final class Client
     {
         CallOptions::assert($options, ['retries', 'concurrency', 'timeout']);
         $concurrency = $options['concurrency'] ?? $this->concurrency;
-        if ($concurrency < 1) {
-            throw new InvalidArgumentException('concurrency must be at least 1');
-        }
 
         $seen = [];
         foreach ($ips as $ip) {
