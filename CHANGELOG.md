@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.11.3 - 2026-11-02
+
+### Fixes
+
+- Refuse a bad per-call retry count or batch concurrency where it is set ([`c21d772`](https://github.com/vpndetection-io/sdk-php/commit/c21d772b2c6069266e81417a9c242363b1b43540))
+
 ## 4.11.2 - 2026-10-30
 
 ### Fixes
