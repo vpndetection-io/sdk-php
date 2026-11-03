@@ -37,7 +37,7 @@ use VPNDetection\Internal\ObjectSerializer;
 /**
  * Database Class Doc Comment
  *
- * @description One database FAMILY, with your organization&#39;s license beside it. A license covers the family, while a download names a specific version, so the ids you pass to the download and checksum endpoints come from &#x60;versions&#x60;.
+ * @description One database FAMILY, with your organization&#39;s license beside it. A license covers the family, while a download names a specific version, so the IDs you pass to the download and checksum endpoints come from &#x60;versions&#x60;.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech

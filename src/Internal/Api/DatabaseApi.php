@@ -816,8 +816,8 @@ class DatabaseApi
      *
      * Download
      *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
+     * @param  string $id Dataset ID, e.g. vpn_ip_extended_v1 (required)
+     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider ID rather than by IP range, so no MMDB exists for them. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -839,8 +839,8 @@ class DatabaseApi
      *
      * Download
      *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
+     * @param  string $id Dataset ID, e.g. vpn_ip_extended_v1 (required)
+     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider ID rather than by IP range, so no MMDB exists for them. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -932,8 +932,8 @@ class DatabaseApi
      *
      * Download
      *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
+     * @param  string $id Dataset ID, e.g. vpn_ip_extended_v1 (required)
+     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider ID rather than by IP range, so no MMDB exists for them. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -958,8 +958,8 @@ class DatabaseApi
      *
      * Download
      *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
+     * @param  string $id Dataset ID, e.g. vpn_ip_extended_v1 (required)
+     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider ID rather than by IP range, so no MMDB exists for them. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -1000,8 +1000,8 @@ class DatabaseApi
     /**
      * Create request for operation 'downloadDatabase'
      *
-     * @param  string $id Dataset id, e.g. vpn_ip_extended_v1 (required)
-     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider id rather than by IP range, so no MMDB exists for them. (required)
+     * @param  string $id Dataset ID, e.g. vpn_ip_extended_v1 (required)
+     * @param  \VPNDetection\Internal\Model\DatabaseFormat $format Not every database is built in every format. The &#x60;_provider&#x60; catalogs are keyed by provider ID rather than by IP range, so no MMDB exists for them. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['downloadDatabase'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException

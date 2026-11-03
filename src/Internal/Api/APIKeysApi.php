@@ -731,7 +731,7 @@ class APIKeysApi
      *
      * Reveal
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -752,7 +752,7 @@ class APIKeysApi
      *
      * Reveal
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -878,7 +878,7 @@ class APIKeysApi
      *
      * Reveal
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -902,7 +902,7 @@ class APIKeysApi
      *
      * Reveal
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -955,7 +955,7 @@ class APIKeysApi
     /**
      * Create request for operation 'accountRevealApikey'
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevealApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -1029,7 +1029,7 @@ class APIKeysApi
      *
      * Revoke
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -1050,7 +1050,7 @@ class APIKeysApi
      *
      * Revoke
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -1176,7 +1176,7 @@ class APIKeysApi
      *
      * Revoke
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -1200,7 +1200,7 @@ class APIKeysApi
      *
      * Revoke
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -1253,7 +1253,7 @@ class APIKeysApi
     /**
      * Create request for operation 'accountRevokeApikey'
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRevokeApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -1327,7 +1327,7 @@ class APIKeysApi
      *
      * Rotate
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -1348,7 +1348,7 @@ class APIKeysApi
      *
      * Rotate
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
      *
      * @throws ApiException on non-2xx response or if the response body is not in the expected format
@@ -1474,7 +1474,7 @@ class APIKeysApi
      *
      * Rotate
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -1498,7 +1498,7 @@ class APIKeysApi
      *
      * Rotate
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException
@@ -1551,7 +1551,7 @@ class APIKeysApi
     /**
      * Create request for operation 'accountRotateApikey'
      *
-     * @param  string $id The key&#39;s id, as returned by the list endpoint. Never the key itself. (required)
+     * @param  string $id The key&#39;s ID, as returned by the list endpoint. Never the key itself. (required)
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['accountRotateApikey'] to see the possible values for this operation
      *
      * @throws InvalidArgumentException

@@ -314,7 +314,7 @@ class DatabaseVersion implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets id
      *
-     * @param string $id The versioned database id, e.g. `vpn_ip_v1`. Pass this to download.
+     * @param string $id The versioned database ID, e.g. `vpn_ip_v1`. Pass this to download.
      *
      * @return $this
      */

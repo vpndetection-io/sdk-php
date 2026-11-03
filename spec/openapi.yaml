@@ -612,7 +612,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Dataset id, e.g. vpn_ip_extended_v1
+          description: Dataset ID, e.g. vpn_ip_extended_v1
         - in: query
           name: format
           required: true
@@ -620,7 +620,7 @@ paths:
             $ref: '#/components/schemas/DatabaseFormat'
           description: |
             Not every database is built in every format. The `_provider`
-            catalogs are keyed by provider id rather than by IP range, so no
+            catalogs are keyed by provider ID rather than by IP range, so no
             MMDB exists for them.
       responses:
         '302':
@@ -1051,7 +1051,7 @@ paths:
         - API keys
       summary: Rotate
       description: |
-        Replaces the secret behind a key, keeping its id, name and settings.
+        Replaces the secret behind a key, keeping its ID, name and settings.
         The previous secret stops working immediately. The new secret comes
         back in the answer, so this needs `apikeys.reveal` as well as
         `apikeys.manage`.
@@ -1874,7 +1874,7 @@ components:
       type: object
       description: |
         One database FAMILY, with your organization's license beside it. A license covers
-        the family, while a download names a specific version, so the ids you
+        the family, while a download names a specific version, so the IDs you
         pass to the download and checksum endpoints come from `versions`.
       properties:
         base:
@@ -1962,7 +1962,7 @@ components:
       properties:
         id:
           type: string
-          description: The versioned database id, e.g. `vpn_ip_v1`. Pass this to download.
+          description: The versioned database ID, e.g. `vpn_ip_v1`. Pass this to download.
           example: vpn_ip_v1
         version:
           type: integer
@@ -2144,7 +2144,7 @@ components:
     EntitlementApikey:
       type: object
       description: |
-        The credential itself. The key is never echoed - only its id, which is
+        The credential itself. The key is never echoed - only its ID, which is
         what the console shows and what you can act on.
       required:
         - id
@@ -2715,7 +2715,7 @@ components:
       name: id
       in: path
       required: true
-      description: The key's id, as returned by the list endpoint. Never the key itself.
+      description: The key's ID, as returned by the list endpoint. Never the key itself.
       schema:
         type: string
         format: uuid

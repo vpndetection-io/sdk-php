@@ -37,7 +37,7 @@ use VPNDetection\Internal\ObjectSerializer;
 /**
  * EntitlementApikey Class Doc Comment
  *
- * @description The credential itself. The key is never echoed - only its id, which is what the console shows and what you can act on.
+ * @description The credential itself. The key is never echoed - only its ID, which is what the console shows and what you can act on.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
