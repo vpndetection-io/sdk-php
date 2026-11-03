@@ -5,7 +5,7 @@
 
 The official PHP client library for the [VPNDetection](https://vpndetection.io) API.
 
-The library helps you query VPNDetection's APIs for anonymity detection including VPNs, residential proxies, Tor nodes, hosting servers, CDNs, relays and more.
+It tells you whether an IP address is a VPN, residential proxy, Tor node, relay or hosting server.
 
 ## Getting Started
 
