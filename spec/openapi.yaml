@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.03
+  version: 2026.11.05
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -212,14 +212,21 @@ paths:
                     error: API key expired
         '403':
           description: |
-            The key restricts which source addresses may use it, and this
-            request did not come from one of them.
+            The key restricts which source addresses may use it and this
+            request came from none of them, or the key was sent over plain
+            HTTP, where anyone on the network path could read it. Rotate a key
+            that was.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LookupError'
-              example:
-                error: source address not allowed for this API key
+              examples:
+                sourceNotAllowed:
+                  value:
+                    error: source address not allowed for this API key
+                plainHttp:
+                  value:
+                    error: API key sent over plain HTTP; use https://
         '429':
           description: |
             Either a transient rate limit or a spent allowance. `Retry-After` is
@@ -316,14 +323,21 @@ paths:
                     error: API key expired
         '403':
           description: |
-            The key restricts which source addresses may use it, and this
-            request did not come from one of them.
+            The key restricts which source addresses may use it and this
+            request came from none of them, or the key was sent over plain
+            HTTP, where anyone on the network path could read it. Rotate a key
+            that was.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LookupError'
-              example:
-                error: source address not allowed for this API key
+              examples:
+                sourceNotAllowed:
+                  value:
+                    error: source address not allowed for this API key
+                plainHttp:
+                  value:
+                    error: API key sent over plain HTTP; use https://
         '429':
           description: |
             Either a transient rate limit or a spent allowance. `Retry-After` is
@@ -526,14 +540,21 @@ paths:
                     error: API key expired
         '403':
           description: |
-            The key restricts which source addresses may use it, and this
-            request did not come from one of them.
+            The key restricts which source addresses may use it and this
+            request came from none of them, or the key was sent over plain
+            HTTP, where anyone on the network path could read it. Rotate a key
+            that was.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LookupError'
-              example:
-                error: source address not allowed for this API key
+              examples:
+                sourceNotAllowed:
+                  value:
+                    error: source address not allowed for this API key
+                plainHttp:
+                  value:
+                    error: API key sent over plain HTTP; use https://
         '413':
           description: The body is larger than any batch of 1000 addresses can be.
           content:
@@ -622,6 +643,17 @@ paths:
             Not every database is built in every format. The `_provider`
             catalogs are keyed by provider ID rather than by IP range, so no
             MMDB exists for them.
+        - in: query
+          name: build
+          required: false
+          schema:
+            type: string
+            pattern: ^[0-9]{8}\.[a-z0-9]{6}$
+            example: 20261105.0t53s5
+          description: |
+            One build of the database, by the name a `database.updated` webhook
+            gives it, so the file is the one whose `sha256` the webhook carries.
+            Without it, the build that is live.
       responses:
         '302':
           description: Follow the Location header to object storage
@@ -630,7 +662,9 @@ paths:
               schema:
                 type: string
         '400':
-          description: The database is not built in the requested format
+          description: >-
+            The database is not built in the requested format (`INVALID_FORMAT`), or `build` is not
+            a build's name (`INVALID_BUILD`)
           content:
             application/json:
               schema:
@@ -645,6 +679,14 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: No such database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '410':
+          description: >-
+            The build named in `build` is no longer kept (`BUILD_GONE`); builds are kept 7 days.
+            Download without `build` for the live one
           content:
             application/json:
               schema:
@@ -1656,23 +1698,30 @@ components:
         first_seen:
           type: string
           format: date
-          description: The earliest date within the window this address was seen in the pool.
+          description: |
+            The earliest date within the window this address was seen in the
+            pool, as of its last day in the window once it has left.
           example: '2026-06-14'
         last_seen:
           type: string
           format: date
-          description: The most recent date within the window this address was seen in the pool.
+          description: |
+            The most recent date this address was seen in the pool. An address
+            that leaves the window keeps its flag, so this date is what says how
+            recent the sighting is.
           example: '2026-09-02'
         hits:
           type: integer
-          description: How many times the address was observed in the pool during the window.
+          description: |
+            How many times the address was observed in the pool during the
+            window, as of its last day in it once it has left.
           example: 42
         hits_days_pct:
           type: integer
           description: |
-            The share of days in the window on which the address was seen, as a
-            percentage. A high value means a stable pool member rather than a
-            one-off sighting.
+            The percentage of days in the window on which the address was seen,
+            as of its last day in it once it has left. A high value means a
+            stable pool member rather than a one-off sighting.
           example: 63
         providers_num:
           type: integer
@@ -1723,14 +1772,17 @@ components:
         last_seen:
           type: string
           format: date
-          description: The most recent date within the window a proxy on this address was seen.
+          description: |
+            The most recent date a proxy on this address was seen. An address
+            that leaves the window keeps its flag, so this date is what says how
+            recent the sighting is.
           example: '2026-10-17'
         last_usable:
           type: string
           description: |
             The most recent date within the window a request through a proxy on
             this address was answered, as YYYY-MM-DD, or an empty string when
-            none was.
+            none was, as of its last day in the window once it has left.
           example: '2026-10-17'
     Location:
       type: object
