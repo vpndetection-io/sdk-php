@@ -97,7 +97,7 @@ final class DatabaseTest extends TestCase
             }
             self::assertNotEmpty($dataset->versions, "{$dataset->base} carries no versions");
             foreach ($dataset->versions as $version) {
-                self::assertNotSame('', $version->id, "{$dataset->base} has a version with no id");
+                self::assertNotSame('', $version->id, "{$dataset->base} has a version with no ID");
                 self::assertGreaterThan(0, $version->version);
                 self::assertNotEmpty($version->formats, "{$version->id} carries no formats");
             }
