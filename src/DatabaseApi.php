@@ -105,12 +105,18 @@ final class DatabaseApi
      * running is not interrupted when it lapses.
      *
      * @param string $format `csvgz` or `mmdb`.
+     * @param ?string $build One build of the dataset, by the name a
+     *   `database.updated` webhook gives it, so the file is the one whose
+     *   `sha256` the webhook carries; null, the build that is live. A build is
+     *   kept 7 days, and one pruned since is a `BadRequest` with status 410. A
+     *   value that is no build's name is an `InvalidArgumentException`, before
+     *   any request.
      * @throws VPNDetectionException
      */
-    public function downloadUrl(string $id, string $format): string
+    public function downloadUrl(string $id, string $format, ?string $build = null): string
     {
         return $this->transport->read(
-            $this->api->downloadDatabaseRequest($id, WireFormat::from($format)),
+            $this->api->downloadDatabaseRequest($id, WireFormat::from($format), $build),
             static function (ResponseInterface $r): string {
                 $location = $r->getHeaderLine('Location');
                 if ($r->getStatusCode() === 302 && $location !== '') {
@@ -139,15 +145,16 @@ final class DatabaseApi
      *
      * @param string $format `csvgz` or `mmdb`.
      * @param string|resource $destination
+     * @param ?string $build One build of the dataset, as `downloadUrl` takes it.
      * @throws VPNDetectionException
      */
-    public function download(string $id, string $format, mixed $destination): int
+    public function download(string $id, string $format, mixed $destination, ?string $build = null): int
     {
         // Checked before the request, so a bad destination costs no quota.
         if (!is_string($destination) && !is_resource($destination)) {
             throw new InvalidArgumentException('destination must be a path or a stream resource');
         }
-        $response = $this->fetchDatabaseFile($id, $format);
+        $response = $this->fetchDatabaseFile($id, $format, $build);
         if (!is_string($destination)) {
             return self::drain($response, $destination);
         }
@@ -179,11 +186,12 @@ final class DatabaseApi
      * a parser; use `download` for anything you have not measured.
      *
      * @param string $format `csvgz` or `mmdb`.
+     * @param ?string $build One build of the dataset, as `downloadUrl` takes it.
      * @throws VPNDetectionException
      */
-    public function downloadBytes(string $id, string $format): string
+    public function downloadBytes(string $id, string $format, ?string $build = null): string
     {
-        $response = $this->fetchDatabaseFile($id, $format);
+        $response = $this->fetchDatabaseFile($id, $format, $build);
         $body = $response->getBody();
         $bytes = '';
         while (($chunk = self::readChunk($response, $body, strlen($bytes))) !== '') {
@@ -196,10 +204,10 @@ final class DatabaseApi
     // Follows the 302 as a SECOND, unauthenticated request: the presigned URL
     // carries its own authorization, so forwarding the API key would hand a
     // credential to a host that has no business holding it.
-    private function fetchDatabaseFile(string $id, string $format): ResponseInterface
+    private function fetchDatabaseFile(string $id, string $format, ?string $build): ResponseInterface
     {
         return $this->transport->sendStreaming(
-            new Request('GET', $this->downloadUrl($id, $format)),
+            new Request('GET', $this->downloadUrl($id, $format, $build)),
             'object storage refused the download link',
         );
     }

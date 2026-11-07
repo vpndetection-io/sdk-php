@@ -77,6 +77,60 @@ final class DownloadTest extends TestCase
         self::assertSame('aaa', $client->database->downloadBytes('cdn_ip_v1', 'csvgz'));
     }
 
+    public function testDownloadUrlAsksForTheLiveBuildUnlessGivenOne(): void
+    {
+        $client = $this->client(['blobBytes' => self::SMALL]);
+
+        $client->database->downloadUrl('cdn_ip_v1', 'csvgz');
+        $client->database->downloadUrl('cdn_ip_v1', 'csvgz', '20261105.0t53s5');
+
+        self::assertSame(
+            [
+                ['id' => 'cdn_ip_v1', 'format' => 'csvgz'],
+                ['id' => 'cdn_ip_v1', 'format' => 'csvgz', 'build' => '20261105.0t53s5'],
+            ],
+            array_column($this->origin->requests(), 'query'),
+        );
+    }
+
+    public function testATransferAsksForTheBuildItIsGiven(): void
+    {
+        $client = $this->client(['blobBytes' => self::SMALL]);
+
+        $client->database->download('cdn_ip_v1', 'csvgz', $this->tmp . '/build.csv.gz', '20261105.0t53s5');
+        $client->database->downloadBytes('cdn_ip_v1', 'csvgz', build: '20261105.0t53s5');
+
+        $minted = $this->origin->requestsTo('/api/v1/database/download');
+        self::assertSame(['20261105.0t53s5', '20261105.0t53s5'], array_column(array_column($minted, 'query'), 'build'));
+    }
+
+    // A pruned build is gone for good, so asking again cannot help.
+    public function testABuildNoLongerKeptIsABadRequestWithIts410SentOnce(): void
+    {
+        $client = $this->client(['blobBytes' => self::SMALL], retries: 3);
+
+        try {
+            $client->database->downloadBytes('cdn_ip_v1', 'csvgz', '20261029.abc123');
+            self::fail('a build no longer kept was downloaded');
+        } catch (VPNDetectionException $e) {
+            self::assertSame(ErrorKind::BadRequest, $e->kind);
+            self::assertSame(410, $e->status);
+        }
+        self::assertSame(['/api/v1/database/download'], array_column($this->origin->requests(), 'path'));
+    }
+
+    public function testABuildThatIsNoBuildNameIsRefusedBeforeAnyRequest(): void
+    {
+        $client = $this->client(['blobBytes' => self::SMALL]);
+
+        try {
+            $client->database->downloadUrl('cdn_ip_v1', 'csvgz', 'latest');
+            self::fail('a build that is no build name was sent');
+        } catch (InvalidArgumentException) {
+        }
+        self::assertSame([], $this->origin->requests());
+    }
+
     public function testADestinationThatIsNeitherAPathNorAStreamIsRefusedBeforeAnyRequest(): void
     {
         $client = $this->client(['blobBytes' => self::SMALL]);

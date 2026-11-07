@@ -48,6 +48,13 @@ if ($trickle !== false) {
     exit;
 }
 
+// A build the API no longer keeps.
+if ($path === '/api/v1/database/download' && ($_GET['build'] ?? null) === '20261029.abc123') {
+    http_response_code(410);
+    header('Content-Type: application/json');
+    echo json_encode(['rc' => 'BUILD_GONE']);
+    exit;
+}
 if ($path === '/api/v1/database/download') {
     header('Location: http://' . $_SERVER['HTTP_HOST'] . '/blob', true, 302);
     exit;

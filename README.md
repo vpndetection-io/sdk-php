@@ -196,6 +196,13 @@ $bytes = $client->database->downloadBytes('cdn_ip_v1', 'csvgz');
 
 `downloadBytes` holds the whole file in memory, and the catalog runs from `cdn_ip_v1` at 10 KB to `resproxy_ip_90d_v1` at 1.79 GB, so use `download` for anything you have not measured: past your `memory_limit` this is a fatal error, not merely a slow one.
 
+Each of the three takes `build`, the build a `database.updated` webhook names, so the file is the one whose `sha256` the webhook carries rather than whatever is live by the time you ask. Without it you get the live build. A build is kept 7 days, and one pruned since is a `bad_request` with status 410; a value that is no build's name throws `InvalidArgumentException` before any request:
+
+```php
+$data = $event['data']; // a database.updated webhook's
+$client->database->download($data['dataset'], 'mmdb', "/srv/data/{$data['dataset']}.mmdb", build: $data['build']);
+```
+
 ### Sign in with OAuth (device flow)
 
 A program running on the person's own machine can let them sign in with a browser and pick one of their API keys, instead of asking them to paste it:
