@@ -2,6 +2,19 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.12.0 - 2026-11-07
+
+### Features
+
+- Download the build a database.updated webhook names ([`dbe67a8`](https://github.com/vpndetection-io/sdk-php/commit/dbe67a866be0e8c30380643ff1acc4c321178424))
+
+### Fixes
+
+- Re-pin the spec to 2026.11.05: the download's build parameter ([`d6583b2`](https://github.com/vpndetection-io/sdk-php/commit/d6583b291511f545513acd5f3a13304770926ba3))
+- Re-pin the spec to 2026.11.03: a proxy flag keeps its last values ([`fda865e`](https://github.com/vpndetection-io/sdk-php/commit/fda865e9839818b4bce8c0b05ec3709849e4dbe1))
+- Re-pin the spec to 2026.11.02: ID and IDs in its descriptions ([`84ca020`](https://github.com/vpndetection-io/sdk-php/commit/84ca02025a610404c02189791ec0d1314835b83e))
+- Re-pin the spec to 2026.11.02: two spent-allowance messages ([`dded6c6`](https://github.com/vpndetection-io/sdk-php/commit/dded6c60c664e88658399cba620600c63fce399b))
+
 ## 4.11.3 - 2026-11-02
 
 ### Fixes
