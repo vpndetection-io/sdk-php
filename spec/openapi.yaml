@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.05
+  version: 2026.11.08
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -592,11 +592,9 @@ paths:
         - Database
       summary: List
       description: |
-        Every database this organization may SEE, with where its license stands.
-        Not just the ones you hold: a customer with one grant should be able to
-        tell what else is published without asking. `standing` is the
-        difference - `licensed`, `expired`, or `unlicensed` for one never
-        bought.
+        Every database this organization can see, licensed or not. `standing`
+        says where its license stands: `licensed`, `expired`, or `unlicensed`
+        for one never bought.
       responses:
         '200':
           description: OK
@@ -624,9 +622,8 @@ paths:
         - Database
       summary: Download
       description: >
-        Answers `302` with a time-limited URL pointing straight at object storage. Follow the
-        redirect; the link authorizes the START of a transfer, so one already running is not
-        interrupted when it lapses.
+        Redirects (`302`) to a time-limited link to the database file. The link only has to be valid
+        when the download starts, so a long one isn't cut off when it expires.
       parameters:
         - in: query
           name: id
@@ -937,16 +934,13 @@ paths:
         The identity behind this credential: what it is, the organization it is
         scoped to, and the scopes it currently holds.
 
-        `user` is present for an OAuth token and ABSENT for an API key, which
+        `user` is present for an OAuth token and absent for an API key, which
         has an organization but no person behind it. `credential.kind` says
         which you are holding, so a client can branch without guessing from a
         missing field.
 
-        Narrower than what the console shows its own user on purpose: an
-        integration needs a name to display and an organization to address, not
-        a profile. The `scopes` array is what the credential may do RIGHT NOW,
-        so a client can render its own capabilities rather than discovering
-        them from a 403.
+        `scopes` is what the credential may do now, so a client can check
+        before it calls.
       security:
         - bearerAuth:
             - account.read
@@ -984,9 +978,7 @@ paths:
       description: |
         The organization this credential is scoped to.
 
-        There is no way to name a different one. A credential describes exactly
-        one organization, so an identifier in the path could only ever be your
-        own or a refusal.
+        A credential belongs to one organization, so this takes no ID.
       security:
         - bearerAuth:
             - org.read
@@ -1008,9 +1000,9 @@ paths:
         - Organization
       summary: Members
       description: |
-        Read-only. Adding or removing a member is an invitation flow with email
-        in the middle rather than a POST, and modeling it as one here would
-        promise something this API does not do.
+        The members of the organization this credential is scoped to.
+
+        Read-only. Members are invited by email from the console.
       security:
         - bearerAuth:
             - org.read
@@ -1032,9 +1024,8 @@ paths:
         - API keys
       summary: List
       description: |
-        Metadata only. A key's secret is never in a list - not here and not in
-        the console - because a list is the response that ends up in logs,
-        caches and support tickets.
+        Each key's metadata. A list never carries a secret, here or in the
+        console: `reveal` reads one.
 
         `retrievable` says whether the secret could still be read back at all.
         A key issued before this product stored secrets recoverably was never
@@ -1062,8 +1053,8 @@ paths:
       description: |
         Creates a key and returns its secret.
 
-        This is the ONLY response that ever carries the secret, and only
-        because this is the moment it comes into existence. Store it now.
+        Store the secret now. Reading it back later takes `reveal` and the
+        `apikeys.reveal` scope.
       security:
         - bearerAuth:
             - apikeys.manage
@@ -1153,13 +1144,11 @@ paths:
       description: |
         Returns an existing key's secret.
 
-        Its own scope rather than part of `apikeys.manage`, because the two are
-        different acts: rotating replaces a secret you never see, while this
-        hands one over.
+        It needs the `apikeys.reveal` scope, which `apikeys.manage` doesn't
+        include.
 
-        Refused with `NOT_RETRIEVABLE` for a key issued before this product
-        stored secrets recoverably - that secret was never kept, so no retry
-        will ever produce it. Rotate the key instead.
+        Refused with `NOT_RETRIEVABLE` for a key issued before we kept secrets.
+        Rotate that key instead.
       security:
         - bearerAuth:
             - apikeys.reveal
@@ -1391,7 +1380,8 @@ paths:
         - Authorization
       summary: Token
       description: |
-        Three grant types.
+        Issues tokens for three grant types: a device code, an authorization
+        code and a refresh token.
 
         `urn:ietf:params:oauth:grant-type:device_code` polls a device
         authorization. Until the person approves it answers
@@ -1449,11 +1439,10 @@ paths:
         - Authorization
       summary: Revoke
       description: |
-        RFC 7009. Always answers 200, including for a token that was never
-        valid - an endpoint that distinguished the two would be a way to test
-        whether a stolen string is a live credential.
+        RFC 7009. Always answers 200, even for a token that was never valid, so
+        it can't be used to test whether a token is live.
 
-        Revoking a REFRESH token ends the whole authorization and takes its
+        Revoking a refresh token ends the whole authorization and takes its
         access tokens with it. Revoking an access token affects only that token.
       security: []
       requestBody:
