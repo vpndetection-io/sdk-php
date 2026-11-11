@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.13.2 - 2026-11-11
+
+### Fixes
+
+- Name the Unlimited tier and its terms, and re-pin the spec ([`49563ff`](https://github.com/vpndetection-io/sdk-php/commit/49563ffad26ce785d94717a49f9f48a9cd6c9c79))
+
 ## 4.13.1 - 2026-11-11
 
 ### Fixes
