@@ -885,8 +885,8 @@
       }
     },
     {
-      "name": "keyless-per-minute-limit-is-retryable",
-      "why": "Retry-After present. A caller with no API key is past 60 requests a minute from its address, which is a rate limit, so retrying after the wait WILL succeed.",
+      "name": "keyless-rate-limit-is-retryable",
+      "why": "Retry-After present. A caller with no API key that the API is protecting itself from is told when to come back, which is a rate limit, so retrying after the wait WILL succeed.",
       "status": 429,
       "headers": {
         "Retry-After": "1"

@@ -278,7 +278,7 @@ paths:
                   value:
                     error: rate limit exceeded
                 keylessRateLimited:
-                  summary: No API key, past 60 requests a minute, sent with Retry-After
+                  summary: No API key, a burst, sent with Retry-After
                   value:
                     error: >-
                       per-minute limit for requests without an API key exceeded; retry shortly or
@@ -412,7 +412,7 @@ paths:
                   value:
                     error: rate limit exceeded
                 keylessRateLimited:
-                  summary: No API key, past 60 requests a minute, sent with Retry-After
+                  summary: No API key, a burst, sent with Retry-After
                   value:
                     error: >-
                       per-minute limit for requests without an API key exceeded; retry shortly or
