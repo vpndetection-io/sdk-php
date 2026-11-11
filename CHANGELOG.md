@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.13.0 - 2026-11-11
+
+### Features
+
+- Re-pin the spec to 2026.11.11: a lookup without a key answers more ([`4f90272`](https://github.com/vpndetection-io/sdk-php/commit/4f90272ec6c03d87c6fa31b4ef36977d76168e7c))
+
 ## 4.12.0 - 2026-11-07
 
 ### Features
