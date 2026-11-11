@@ -7,6 +7,7 @@ What each release changed for you, newest first. Each line is a commit's summary
 ### Fixes
 
 - Say the free plan's daily trial, never a trial key, and re-pin the spec ([`9df51cb`](https://github.com/vpndetection-io/sdk-php/commit/9df51cb821cfbf8dc9435d6ba9e48550542ec59b))
+- Say Unlimited, the free plan, never the Unlimited tier ([`82040dc`](https://github.com/vpndetection-io/sdk-php/commit/82040dc5bec3967a604bb51b2bfeea0c2fc40222))
 
 ## 4.14.0 - 2026-11-11
 
