@@ -12,7 +12,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.08
+  version: 2026.11.10
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -1515,7 +1515,9 @@ components:
           description: Whether the address was seen in a residential proxy pool. Paid plans.
         is_dcproxy:
           type: boolean
-          description: Whether the address was seen in a datacenter proxy pool. Paid plans.
+          description: >-
+            Whether the address is one a datacenter proxy service sells or runs on, a proxy
+            company's own ranges included. Paid plans.
         is_mobproxy:
           type: boolean
           description: Whether the address was seen in a mobile proxy pool. Paid plans.
