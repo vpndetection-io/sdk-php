@@ -5,6 +5,11 @@ info:
     The VPNDetection API: classify any IP address, and download the databases
     behind the answers.
 
+    Lookups need no API key: the Unlimited tier answers any address with no
+    daily or monthly cap, for non-commercial use, and a service built on it
+    must credit VPNDetection (https://vpndetection.io/terms#no-key). Commercial
+    use needs a key, a free one included, which also adds every remaining flag.
+
     See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io
     for the official client libraries.
   contact:
@@ -47,8 +52,9 @@ paths:
       summary: Lookup
       description: |
         Answers what is known about a single IPv4 or IPv6 address. Which fields
-        come back is decided by the presented key; with no key the answer is
-        `ip`, `is_vpn`, the Tor and relay members, `location` and `asn`.
+        come back is decided by the presented key; with no key, the Unlimited
+        tier, the answer is `ip`, `is_vpn`, the Tor and relay members,
+        `location` and `asn`.
       parameters:
         - in: path
           name: ip
@@ -71,8 +77,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/LookupResponse'
               examples:
-                keyless:
-                  summary: No API key
+                unlimited:
+                  summary: Unlimited, no API key
                   value:
                     ip: 146.70.116.130
                     is_vpn: true
@@ -277,8 +283,8 @@ paths:
                   summary: Transient, sent with Retry-After
                   value:
                     error: rate limit exceeded
-                keylessRateLimited:
-                  summary: No API key, a burst, sent with Retry-After
+                unlimitedRateLimited:
+                  summary: Unlimited (no API key), a burst, sent with Retry-After
                   value:
                     error: >-
                       per-minute limit for requests without an API key exceeded; retry shortly or
@@ -329,8 +335,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/LookupResponse'
               examples:
-                keyless:
-                  summary: No API key
+                unlimited:
+                  summary: Unlimited, no API key
                   value:
                     ip: 146.70.116.130
                     is_vpn: true
@@ -411,8 +417,8 @@ paths:
                   summary: Transient, sent with Retry-After
                   value:
                     error: rate limit exceeded
-                keylessRateLimited:
-                  summary: No API key, a burst, sent with Retry-After
+                unlimitedRateLimited:
+                  summary: Unlimited (no API key), a burst, sent with Retry-After
                   value:
                     error: >-
                       per-minute limit for requests without an API key exceeded; retry shortly or
@@ -464,7 +470,7 @@ paths:
         allowance and never a throttle.
 
         A batch needs an API key, a free one included: without one the call is
-        refused with `401`. Keyless lookups are one address at a time.
+        refused with `401`. The Unlimited tier looks up one address at a time.
       security:
         - apiKeyQuery: []
         - apiKeyHeader: []
