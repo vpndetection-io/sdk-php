@@ -23,7 +23,7 @@ final class LiveTest extends TestCase
         }
     }
 
-    public function testTheFreeTierAnswersTheShapeItPromises(): void
+    public function testALookupWithoutAKeyAnswersTheShapeItPromises(): void
     {
         $client = new Client();
 
@@ -34,11 +34,12 @@ final class LiveTest extends TestCase
         $clean = $client->lookup('1.1.1.1');
         self::assertFalse($clean->isVpn);
 
-        // The assertion a stub cannot make honestly: without a key the tier-gated
-        // members are ABSENT, which is not the same answer as false.
+        // The assertion a stub cannot make honestly: without a key the members a
+        // key adds are ABSENT, which is not the same answer as false.
         self::assertNull($clean->isHosting);
         self::assertNull($clean->hosting);
-        self::assertSame(['ip', 'is_vpn'], array_keys($clean->raw));
+        self::assertNull($clean->vpn);
+        self::assertArrayNotHasKey('is_hosting', $clean->raw);
     }
 
     public function testAKeyRaisesTheShape(): void

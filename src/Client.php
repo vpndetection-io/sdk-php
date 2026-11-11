@@ -181,7 +181,9 @@ final class Client
      * to line two lists up. An address that fails carries its error as its value,
      * so one bad entry cannot lose the rest of the answers: the API reports a
      * per-entry failure with the status the single lookup would have answered,
-     * and a chunk that fails as a whole marks every address in it.
+     * and a chunk that fails as a whole marks every address in it. The batch
+     * endpoint needs an API key, a free one included: without one, every address
+     * sent to it carries an `Unauthorized` error.
      *
      * @param iterable<string> $ips
      * @param array{retries?: int, concurrency?: int, timeout?: float} $options Per-call overrides.

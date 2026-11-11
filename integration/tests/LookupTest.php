@@ -12,10 +12,12 @@ use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 use VPNDetection\Bogon;
 use VPNDetection\Client;
+use VPNDetection\ErrorKind;
 use VPNDetection\Integration\Staging;
 use VPNDetection\Integration\Tiers;
 use VPNDetection\Options;
 use VPNDetection\Result;
+use VPNDetection\VPNDetectionException;
 
 /**
  * The published package looking addresses up against the staging API.
@@ -26,7 +28,7 @@ use VPNDetection\Result;
  */
 final class LookupTest extends TestCase
 {
-    public function testAnUnauthenticatedLookupAnswersIpAndIsVpn(): void
+    public function testALookupWithoutAKeyAnswersIpAndIsVpnAtTheLeast(): void
     {
         $fixture = Staging::answerFor(Tiers::unauth());
 
@@ -127,13 +129,38 @@ final class LookupTest extends TestCase
         }
     }
 
+    public function testABatchWithoutAKeyIsRefusedOnceAndItsBogonStillAnswered(): void
+    {
+        $paths = [];
+        $client = Staging::clientFor(Tiers::unauth(), static function (array $fact) use (&$paths): void {
+            $paths[] = $fact['path'];
+        });
+
+        $got = $client->lookupBatch([Staging::PROBE, '10.0.0.1']);
+
+        self::assertTrue($got['10.0.0.1']->isBogon);
+        $refused = $got[Staging::PROBE];
+        self::assertInstanceOf(VPNDetectionException::class, $refused, 'a batch without a key must fail');
+        self::assertSame(ErrorKind::Unauthorized, $refused->kind);
+        self::assertSame(401, $refused->status);
+        self::assertFalse($refused->isRetryable());
+        self::assertSame(['/batch'], $paths, 'one request, never retried');
+    }
+
     public function testABatchCollapsesDuplicatesAndKeepsBogonsOffTheWire(): void
     {
+        // A batch needs a key, and the free one is the cheapest that has it.
+        $reason = Tiers::skipFor(Tiers::free());
+        if ($reason !== null) {
+            self::markTestSkipped($reason);
+        }
         // Distinct requests rather than a call count, so a retry against a
         // wobbling staging cannot read as a failure to deduplicate.
         $asked = [];
-        $client = Staging::clientFor(Tiers::unauth(), static function (array $fact) use (&$asked): void {
+        $carried = true;
+        $client = Staging::clientFor(Tiers::free(), static function (array $fact) use (&$asked, &$carried): void {
             $asked[$fact['path'] . ' ' . implode(',', $fact['ips'])] = true;
+            $carried = $carried && $fact['carriedKey'];
         });
 
         $got = $client->lookupBatch([Staging::PROBE, '8.8.8.8', Staging::PROBE, '10.0.0.1', '8.8.8.8']);
@@ -144,6 +171,7 @@ final class LookupTest extends TestCase
             array_keys($asked),
             'the batch asked for something other than the two servable addresses, in one POST /batch',
         );
+        self::assertTrue($carried, 'the free key never reached the wire');
         self::assertTrue($got['10.0.0.1']->isBogon);
         foreach ([Staging::PROBE, '8.8.8.8'] as $ip) {
             self::assertInstanceOf(Result::class, $got[$ip], "{$ip} failed");

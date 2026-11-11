@@ -46,6 +46,16 @@ final class Tiers
         return self::RUNGS[0];
     }
 
+    /**
+     * The cheapest rung a batch can run on: POST /batch needs a key.
+     *
+     * @return array{tier: string, secret: string|null, widens: bool}
+     */
+    public static function free(): array
+    {
+        return self::RUNGS[1];
+    }
+
     /** @return array{tier: string, secret: string|null, widens: bool} */
     public static function max(): array
     {

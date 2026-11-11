@@ -341,8 +341,8 @@
   },
   "lookup": [
     {
-      "name": "free-not-vpn",
-      "why": "The free shape. Every tier-gated member is absent, which means not-in-your-plan and must not read as false.",
+      "name": "required-only-not-vpn",
+      "why": "Only the two members every answer must carry. Every other member is absent, which means not in this answer and must not read as false.",
       "status": 200,
       "body": {
         "ip": "1.1.1.1",
@@ -639,8 +639,8 @@
       }
     },
     {
-      "name": "free-location-asn",
-      "why": "A free key's shape since 2026-10-20: Tor and relay beside the VPN flag, and where the address is and which AS announces it. location and asn carry every key whenever present, so each maps whole.",
+      "name": "keyless-location-asn",
+      "why": "The answer without a key since 2026-11-11: Tor and relay beside the VPN flag, and where the address is and which AS announces it. location and asn carry every key whenever present, so each maps whole.",
       "status": 200,
       "body": {
         "ip": "146.70.116.130",
@@ -684,6 +684,91 @@
           "is_dcproxy",
           "is_mobproxy",
           "is_pubproxy",
+          "vpn",
+          "hosting",
+          "cdn",
+          "resproxy",
+          "dcproxy",
+          "mobproxy",
+          "pubproxy"
+        ],
+        "emptyPresent": [
+          "relay",
+          "tor"
+        ],
+        "location": {
+          "continent": "EU",
+          "continent_name": "Europe",
+          "country": "AT",
+          "country_name": "Austria",
+          "timezone": "Europe/Vienna",
+          "currency_code": "EUR",
+          "currency_name": "Euro",
+          "currency_symbol": "€",
+          "flag_emoji": "🇦🇹",
+          "flag_unicode": "U+1F1E6 U+1F1F9"
+        },
+        "asn": {
+          "asn": 9009,
+          "name": "M247 Europe SRL",
+          "domain": "m247global.com",
+          "type": "hosting",
+          "prefix": "146.70.116.0/24"
+        }
+      }
+    },
+    {
+      "name": "free-flags-without-detail",
+      "why": "A free key's answer since 2026-11-11: every flag, but no detail object behind the six it adds to the keyless answer and no vpn object. Each flag maps on its own, and the detail it lacks stays absent rather than empty.",
+      "status": 200,
+      "body": {
+        "ip": "146.70.116.130",
+        "is_vpn": true,
+        "is_hosting": true,
+        "is_relay": false,
+        "is_tor": false,
+        "is_cdn": false,
+        "is_resproxy": false,
+        "is_dcproxy": false,
+        "is_mobproxy": false,
+        "is_pubproxy": false,
+        "relay": {},
+        "tor": {},
+        "location": {
+          "continent": "EU",
+          "continent_name": "Europe",
+          "country": "AT",
+          "country_name": "Austria",
+          "timezone": "Europe/Vienna",
+          "currency_code": "EUR",
+          "currency_name": "Euro",
+          "currency_symbol": "€",
+          "flag_emoji": "🇦🇹",
+          "flag_unicode": "U+1F1E6 U+1F1F9"
+        },
+        "asn": {
+          "asn": 9009,
+          "name": "M247 Europe SRL",
+          "domain": "m247global.com",
+          "type": "hosting",
+          "prefix": "146.70.116.0/24"
+        }
+      },
+      "expect": {
+        "ip": "146.70.116.130",
+        "isBogon": false,
+        "present": {
+          "is_vpn": true,
+          "is_hosting": true,
+          "is_relay": false,
+          "is_tor": false,
+          "is_cdn": false,
+          "is_resproxy": false,
+          "is_dcproxy": false,
+          "is_mobproxy": false,
+          "is_pubproxy": false
+        },
+        "absent": [
           "vpn",
           "hosting",
           "cdn",
@@ -800,16 +885,19 @@
       }
     },
     {
-      "name": "keyless-daily-quota-is-not-retryable",
-      "why": "No Retry-After. The keyless daily allowance is spent and retrying will not help.",
+      "name": "keyless-per-minute-limit-is-retryable",
+      "why": "Retry-After present. A caller with no API key is past 60 requests a minute from its address, which is a rate limit, so retrying after the wait WILL succeed.",
       "status": 429,
-      "headers": {},
+      "headers": {
+        "Retry-After": "1"
+      },
       "body": {
-        "error": "daily limit for unauthenticated requests exceeded; use an API key"
+        "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
       },
       "expect": {
-        "kind": "quota_exceeded",
-        "retryable": false
+        "kind": "rate_limited",
+        "retryable": true,
+        "retryAfterSeconds": 1
       }
     },
     {
@@ -5698,7 +5786,7 @@
       },
       {
         "name": "location-country-matches",
-        "why": "location is a member like any other: a country term matches the served country, without regard to case, on the free key's shape.",
+        "why": "location is a member like any other: a country term matches the served country, without regard to case, on the answer a lookup gets without a key.",
         "body": {
           "ip": "146.70.116.130",
           "is_vpn": true,
@@ -5821,7 +5909,7 @@
       },
       {
         "name": "asn-type-matches",
-        "why": "asn is a member like any other: a free key's answer says which kind of network announces the address.",
+        "why": "asn is a member like any other: even an answer without a key says which kind of network announces the address.",
         "body": {
           "ip": "146.70.116.130",
           "is_vpn": true,
@@ -5900,8 +5988,8 @@
         }
       },
       {
-        "name": "location-and-asn-absent-without-a-key",
-        "why": "No key answers ip and is_vpn alone, so terms on location and asn can never match and both are reported.",
+        "name": "location-and-asn-absent-are-reported",
+        "why": "An answer carrying ip and is_vpn alone has no location or asn, so terms on them can never match and both are reported.",
         "body": {
           "ip": "146.70.116.130",
           "is_vpn": true
