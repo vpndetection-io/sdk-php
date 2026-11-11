@@ -17,7 +17,7 @@ Requires PHP 8.2 or newer. Everything is typed, and the tier-gated fields are nu
 
 ## Usage
 
-**No API key needed to start.** The Unlimited tier answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one.
+**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one.
 
 ```php
 use VPNDetection\Client;
@@ -32,7 +32,7 @@ echo $result->asn->name;              // who runs the announcing network
 
 ### With an API key
 
-Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. The plans differ only in how many lookups they include, and a new account can try every field, 100 lookups a day. Create a key in the [console](https://app.vpndetection.io), then pass it in:
+Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. The plans differ only in how many lookups they include, and a free account tries every field, 100 lookups a day. Create a key in the [console](https://app.vpndetection.io), then pass it in:
 
 ```php
 use VPNDetection\Client;
@@ -64,7 +64,7 @@ echo $acct->usage->requests;    // 580
 echo $acct->usage->windowEnd;   // when the allowance resets
 ```
 
-Usage counts against the anniversary of your subscription on a paid plan, not the calendar month and not the billing period, and against the UTC day on a trial key; it is the same number a lookup is gated on. `hardLimit` is `null` on an uncapped plan, which is not the same as zero.
+Usage counts against the anniversary of your subscription on a paid plan, not the calendar month and not the billing period, and against the UTC day on the free plan; it is the same number a lookup is gated on. `hardLimit` is `null` on an uncapped plan, which is not the same as zero.
 
 ### Batch lookup
 
@@ -255,12 +255,12 @@ Each redirect URI must be https on a public host name, or http on a loopback add
 
 ### Absent is not false
 
-The Unlimited tier leaves out `isHosting`, `isCdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's; a trial key's answer carries `trialExpired`, true once its day of full answers is spent. A field your key does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
+The Unlimited tier leaves out `isHosting`, `isCdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's; a free-plan key's answer carries `trialExpired`, true once its daily trial is spent. A field your key does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
 
 ```php
 $result->isHosting ?? false;   // when you only want the flag
 $result->isHosting === null;   // on the Unlimited tier: not in your plan
-$result->trialExpired === true; // a trial key's day of full answers is spent
+$result->trialExpired === true; // a free-plan key's daily trial is spent
 ```
 
 ## Other Libraries

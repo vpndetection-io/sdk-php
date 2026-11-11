@@ -5,11 +5,11 @@ info:
     The VPNDetection API: classify any IP address, and download the databases
     behind the answers.
 
-    Lookups need no API key: the Unlimited tier answers any address with no
-    daily or monthly cap, with a key or without one. Every paid plan answers
-    every field, and an organization on no paid plan can try them, 100 lookups
-    a day. Unlimited's answers may be used commercially, but not redistributed
-    or used in a competing service (https://vpndetection.io/terms#no-key).
+    Lookups need no API key: Unlimited, the free plan, answers any address with
+    no daily or monthly cap, with a key or without one. Every paid plan answers
+    every field, and a free account tries them, 100 lookups a day. Unlimited's
+    answers may be used commercially, but not redistributed or used in a
+    competing service (https://vpndetection.io/terms#no-key).
 
     See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io
     for the official client libraries.
@@ -105,7 +105,7 @@ paths:
                       type: hosting
                       prefix: 146.70.116.0/24
                 trial:
-                  summary: A trial key within its day's 100 full answers
+                  summary: A free-plan key within its day's trial of every field
                   value:
                     ip: 146.70.116.130
                     is_vpn: true
@@ -151,7 +151,7 @@ paths:
                       prefix: 146.70.116.0/24
                     trial_expired: false
                 trialExpired:
-                  summary: A trial key past its day's 100, answered as Unlimited
+                  summary: A free-plan key past its day's trial, with Unlimited's fields
                   value:
                     ip: 146.70.116.130
                     is_vpn: true
@@ -504,9 +504,9 @@ paths:
         and never a throttle.
 
         A batch needs a paid plan: without a key the call is refused with `401`,
-        and with a trial key with `402`, unless it names one address, which is
-        answered as `GET /{ip}` would answer it. Unlimited and a trial look up
-        one address at a time.
+        and with a key on the free plan with `402`, unless it names one address,
+        which is answered as `GET /{ip}` would answer it. Unlimited looks up one
+        address at a time.
       security:
         - apiKeyQuery: []
         - apiKeyHeader: []
@@ -629,8 +629,8 @@ paths:
                     error: API key expired
         '402':
           description: |
-            The key is a trial's, an organization on no paid plan, and the batch
-            names more than one address: a batch needs a paid plan.
+            The key is on the free plan and the batch names more than one
+            address: a batch needs a paid plan.
           content:
             application/json:
               schema:
@@ -955,11 +955,12 @@ paths:
                       hard_limit: null
                       window_start: '2026-09-04T07:00:00Z'
                       window_end: '2026-10-04T07:00:00Z'
-                trial:
+                free:
                   summary: >-
-                    A key of an organization on no paid plan, on its trial: the day's full answers
-                    against the 100 a day it has. Nothing stops it past them, its lookups answering
-                    as Unlimited, so there is no hard limit, and the window is the UTC day.
+                    A key of an organization on the free plan, Unlimited: its usage is the day's
+                    lookups answered with every field, out of the 100 a day its trial has. Nothing
+                    stops it past them, its lookups answering with Unlimited's fields, so there is
+                    no hard limit, and the window is the UTC day.
                   value:
                     org_id: f32191d0-ef02-450e-a505-eb5814c35cab
                     apikey:
@@ -967,7 +968,7 @@ paths:
                       expires: null
                       allowed_cidrs: []
                     plan:
-                      key: trial
+                      key: free
                       tier: free
                     usage:
                       requests: 37
@@ -1669,9 +1670,9 @@ components:
         trial_expired:
           type: boolean
           description: |
-            On every answer to a trial key, an organization on no paid plan, and
-            on no other: `false` while the organization's 100 full answers for
-            the UTC day last, `true` once the answer is Unlimited's.
+            On every answer to a key on the free plan, and on no other: `false`
+            while its organization's daily trial lasts (every field for the first
+            100 lookups each UTC day), `true` once the answer has Unlimited's.
     BatchLookupRequest:
       type: object
       required:
@@ -2326,9 +2327,9 @@ components:
         key:
           type: string
           description: |
-            The plan the organization is on, or `trial` on none: a trial
-            answers every field for the organization's first 100 lookups each
-            UTC day, and Unlimited's answer after them.
+            The plan the organization is on: `free` for the free plan,
+            Unlimited, or a paid plan's key. On `free`, usage counts the
+            day's lookups answered with every field, its daily trial.
           example: max
         tier:
           type: string
@@ -2339,7 +2340,7 @@ components:
             - max
           description: |
             The field tier, which decides how much of a lookup answer comes
-            back; `free` is a trial's. What each tier includes is documented
+            back; `free` is the free plan's. What each tier includes is documented
             on the lookup endpoint rather than repeated here, so there is one
             place it can be wrong.
     EntitlementUsage:

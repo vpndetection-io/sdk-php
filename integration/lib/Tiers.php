@@ -24,9 +24,10 @@ final class Tiers
      * against whichever observable rung sits below it: the first paid tier
      * serves strictly more than no key; every paid plan answers the same fields,
      * so a higher paid tier only keeps what the one under it serves. The trial
-     * key's answer is a paid one for its organization's first 100 lookups of the
-     * UTC day and Unlimited's after, so it promises nothing and is never the rung
-     * a later one is compared against.
+     * rung's key is on the free plan: its answer is a paid one for its
+     * organization's daily trial, the first 100 lookups of the UTC day, and
+     * Unlimited's after, so it promises nothing and is never the rung a later one
+     * is compared against.
      *
      * Field COUNTS are deliberately absent. Pinning "starter answers seven
      * fields" turns a pricing change into a red SDK build; the relation between
@@ -49,7 +50,7 @@ final class Tiers
     }
 
     /**
-     * A key on no paid plan, on its trial.
+     * A key on the free plan, with its daily trial.
      *
      * @return array{tier: string, secret: string|null, widens: bool}
      */

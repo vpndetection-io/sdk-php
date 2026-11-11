@@ -76,7 +76,7 @@ final class LookupTest extends TestCase
         }
     }
 
-    public function testATrialKeysAnswerIsAPaidOneOrUnlimitedsAndSaysWhich(): void
+    public function testAFreePlanKeysAnswerIsAPaidOneOrUnlimitedsAndSaysWhich(): void
     {
         $reason = Tiers::skipFor(Tiers::trial());
         if ($reason !== null) {
@@ -84,13 +84,13 @@ final class LookupTest extends TestCase
         }
         $raw = Staging::answerFor(Tiers::trial())['result']->raw;
 
-        self::assertIsBool($raw['trial_expired'] ?? null, 'a trial key answers trial_expired');
+        self::assertIsBool($raw['trial_expired'] ?? null, 'a free-plan key answers trial_expired');
         // The organization's first 100 lookups of the UTC day are answered in
         // full, and the rest as Unlimited's: which half a run sees depends on the day.
         self::assertSame(!$raw['trial_expired'], array_key_exists('is_hosting', $raw));
     }
 
-    public function testATrialKeysBatchOfTwoIsRefusedAsABadRequestOnce(): void
+    public function testAFreePlanKeysBatchOfTwoIsRefusedAsABadRequestOnce(): void
     {
         $reason = Tiers::skipFor(Tiers::trial());
         if ($reason !== null) {
@@ -105,7 +105,7 @@ final class LookupTest extends TestCase
 
         foreach ([Staging::PROBE, '8.8.8.8'] as $ip) {
             $refused = $got[$ip];
-            self::assertInstanceOf(VPNDetectionException::class, $refused, "{$ip}: a trial key's batch of two must fail");
+            self::assertInstanceOf(VPNDetectionException::class, $refused, "{$ip}: a free-plan key's batch of two must fail");
             self::assertSame(ErrorKind::BadRequest, $refused->kind);
             self::assertSame(402, $refused->status);
             self::assertFalse($refused->isRetryable());
@@ -113,7 +113,7 @@ final class LookupTest extends TestCase
         self::assertSame(['/batch'], $paths, 'one request, never retried');
     }
 
-    public function testATrialKeysBatchOfOneIsAnswered(): void
+    public function testAFreePlanKeysBatchOfOneIsAnswered(): void
     {
         $reason = Tiers::skipFor(Tiers::trial());
         if ($reason !== null) {
@@ -122,7 +122,7 @@ final class LookupTest extends TestCase
         $got = Staging::clientFor(Tiers::trial())->lookupBatch([Staging::PROBE]);
 
         $answer = $got[Staging::PROBE];
-        self::assertInstanceOf(Result::class, $answer, 'a trial key\'s batch of one failed');
+        self::assertInstanceOf(Result::class, $answer, 'a free-plan key\'s batch of one failed');
         self::assertIsBool($answer->raw['trial_expired'] ?? null, 'the answer carries trial_expired');
     }
 

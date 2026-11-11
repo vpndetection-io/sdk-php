@@ -808,7 +808,7 @@
     },
     {
       "name": "trial-full-answer",
-      "why": "A trial key within its UTC day's 100 full answers: every field, as a paid plan answers it, and trial_expired false. trial_expired maps on presence like any flag.",
+      "why": "A free-plan key within its UTC day's trial, the first 100 lookups: every field, as a paid plan answers it, and trial_expired false. trial_expired maps on presence like any flag.",
       "status": 200,
       "body": {
         "ip": "146.70.116.130",
@@ -911,7 +911,7 @@
     },
     {
       "name": "trial-expired-answer",
-      "why": "A trial key past its UTC day's 100 full answers: the Unlimited tier's answer, and trial_expired true. What the day no longer answers is absent, never false.",
+      "why": "A free-plan key past its UTC day's trial: Unlimited's answer, and trial_expired true. What the day no longer answers is absent, never false.",
       "status": 200,
       "body": {
         "ip": "146.70.116.130",
@@ -1074,7 +1074,7 @@
     },
     {
       "name": "unlimited-rate-limit-is-retryable",
-      "why": "Retry-After present. A lookup on the Unlimited tier, with no key or a trial's, that the API is protecting itself from is told when to come back, which is a rate limit, so retrying after the wait WILL succeed.",
+      "why": "Retry-After present. A lookup on Unlimited, the free plan, with a key or without one, that the API is protecting itself from is told when to come back, which is a rate limit, so retrying after the wait WILL succeed.",
       "status": 429,
       "headers": {
         "Retry-After": "1"
@@ -1090,7 +1090,7 @@
     },
     {
       "name": "batch-needs-a-paid-plan-is-a-bad-request",
-      "why": "A trial key's batch of more than one address answers 402. To a client it is any other 4xx: refused as asked, never retried, its message the API's.",
+      "why": "A free-plan key's batch of more than one address answers 402. To a client it is any other 4xx: refused as asked, never retried, its message the API's.",
       "status": 402,
       "headers": {},
       "body": {
