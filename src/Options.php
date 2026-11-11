@@ -16,9 +16,9 @@ final class Options
 {
     public function __construct(
         /**
-         * Your API key. Omit it to look up without one: a lookup then answers
-         * `ip`, `is_vpn`, the Tor and relay members, `location` and `asn`, with
-         * no daily or monthly cap, and a batch is refused as unauthorized.
+         * Your API key. Without one a lookup is on the Unlimited tier: `ip`,
+         * `is_vpn`, the Tor and relay members, `location` and `asn`, with no
+         * daily or monthly cap. A batch needs a key on a paid plan.
          */
         public readonly ?string $apiKey = null,
         public readonly string $baseUrl = Client::DEFAULT_BASE_URL,

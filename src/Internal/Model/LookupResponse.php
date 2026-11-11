@@ -12,7 +12,7 @@
 /**
  * VPNDetection API
  *
- * The VPNDetection API: classify any IP address, and download the databases behind the answers.  Lookups need no API key: the Unlimited tier answers any address with no daily or monthly cap, for non-commercial use, and a service built on it must credit VPNDetection (https://vpndetection.io/terms#no-key). Commercial use needs a key, a free one included, which also adds every remaining flag.  See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io for the official client libraries.
+ * The VPNDetection API: classify any IP address, and download the databases behind the answers.  Lookups need no API key: the Unlimited tier answers any address with no daily or monthly cap, with a key or without one. Every paid plan answers every field, and an organization on no paid plan can try them, 100 lookups a day. Unlimited's answers may be used commercially, but not redistributed or used in a competing service (https://vpndetection.io/terms#no-key).  See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io for the official client libraries.
  *
  * The version of the OpenAPI document: 2026.11.11
  * Contact: support@vpndetection.io
@@ -37,7 +37,7 @@ use VPNDetection\Internal\ObjectSerializer;
 /**
  * LookupResponse Class Doc Comment
  *
- * @description The union of every plan&#39;s answer. Every answer carries &#x60;ip&#x60;, &#x60;is_vpn&#x60;, the Tor and relay members, &#x60;location&#x60; and &#x60;asn&#x60;, with or without a key; each remaining field is present when your key includes it, and absent otherwise. A client that must work across plans should treat an absent flag as unknown rather than as &#x60;false&#x60;.
+ * @description The union of every tier&#39;s answer. Every answer carries &#x60;ip&#x60;, &#x60;is_vpn&#x60;, the Tor and relay members, &#x60;location&#x60; and &#x60;asn&#x60;, with or without a key; each remaining field is present when your tier includes it, and absent otherwise. A client that must work across plans should treat an absent flag as unknown rather than as &#x60;false&#x60;.
  * @package  VPNDetection\Internal
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
@@ -80,7 +80,8 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
         'mobproxy' => '\VPNDetection\Internal\Model\ProxyDetail',
         'pubproxy' => '\VPNDetection\Internal\Model\PubproxyDetail',
         'location' => '\VPNDetection\Internal\Model\Location',
-        'asn' => '\VPNDetection\Internal\Model\Asn'
+        'asn' => '\VPNDetection\Internal\Model\Asn',
+        'trial_expired' => 'bool'
     ];
 
     /**
@@ -109,7 +110,8 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
         'mobproxy' => null,
         'pubproxy' => null,
         'location' => null,
-        'asn' => null
+        'asn' => null,
+        'trial_expired' => null
     ];
 
     /**
@@ -138,7 +140,8 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
         'mobproxy' => false,
         'pubproxy' => false,
         'location' => false,
-        'asn' => false
+        'asn' => false,
+        'trial_expired' => false
     ];
 
     /**
@@ -237,7 +240,8 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
         'mobproxy' => 'mobproxy',
         'pubproxy' => 'pubproxy',
         'location' => 'location',
-        'asn' => 'asn'
+        'asn' => 'asn',
+        'trial_expired' => 'trial_expired'
     ];
 
     /**
@@ -266,7 +270,8 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
         'mobproxy' => 'setMobproxy',
         'pubproxy' => 'setPubproxy',
         'location' => 'setLocation',
-        'asn' => 'setAsn'
+        'asn' => 'setAsn',
+        'trial_expired' => 'setTrialExpired'
     ];
 
     /**
@@ -295,7 +300,8 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
         'mobproxy' => 'getMobproxy',
         'pubproxy' => 'getPubproxy',
         'location' => 'getLocation',
-        'asn' => 'getAsn'
+        'asn' => 'getAsn',
+        'trial_expired' => 'getTrialExpired'
     ];
 
     /**
@@ -366,6 +372,7 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
         $this->setIfExists('pubproxy', $data ?? [], null);
         $this->setIfExists('location', $data ?? [], null);
         $this->setIfExists('asn', $data ?? [], null);
+        $this->setIfExists('trial_expired', $data ?? [], null);
     }
 
     /**
@@ -478,7 +485,7 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets is_hosting
      *
-     * @param bool|null $is_hosting Whether the address belongs to a hosting or cloud provider. Free and paid plans.
+     * @param bool|null $is_hosting Whether the address belongs to a hosting or cloud provider. Paid plans.
      *
      * @return $this
      */
@@ -559,7 +566,7 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets is_cdn
      *
-     * @param bool|null $is_cdn Whether the address belongs to a CDN. Free and paid plans.
+     * @param bool|null $is_cdn Whether the address belongs to a CDN. Paid plans.
      *
      * @return $this
      */
@@ -586,7 +593,7 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets is_resproxy
      *
-     * @param bool|null $is_resproxy Whether the address was seen in a residential proxy pool. Free and paid plans.
+     * @param bool|null $is_resproxy Whether the address was seen in a residential proxy pool. Paid plans.
      *
      * @return $this
      */
@@ -613,7 +620,7 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets is_dcproxy
      *
-     * @param bool|null $is_dcproxy Whether the address is one a datacenter proxy service sells or runs on, a proxy company's own ranges included. Free and paid plans.
+     * @param bool|null $is_dcproxy Whether the address is one a datacenter proxy service sells or runs on, a proxy company's own ranges included. Paid plans.
      *
      * @return $this
      */
@@ -640,7 +647,7 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets is_mobproxy
      *
-     * @param bool|null $is_mobproxy Whether the address was seen in a mobile proxy pool. Free and paid plans.
+     * @param bool|null $is_mobproxy Whether the address was seen in a mobile proxy pool. Paid plans.
      *
      * @return $this
      */
@@ -667,7 +674,7 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets is_pubproxy
      *
-     * @param bool|null $is_pubproxy Whether a public proxy, one anyone can connect through, listens on the address or sends its traffic out from it. Free and paid plans.
+     * @param bool|null $is_pubproxy Whether a public proxy, one anyone can connect through, listens on the address or sends its traffic out from it. Paid plans.
      *
      * @return $this
      */
@@ -974,6 +981,33 @@ class LookupResponse implements ModelInterface, ArrayAccess, JsonSerializable
             throw new InvalidArgumentException('non-nullable asn cannot be null');
         }
         $this->container['asn'] = $asn;
+
+        return $this;
+    }
+
+    /**
+     * Gets trial_expired
+     *
+     * @return bool|null
+     */
+    public function getTrialExpired(): ?bool
+    {
+        return $this->container['trial_expired'];
+    }
+
+    /**
+     * Sets trial_expired
+     *
+     * @param bool|null $trial_expired On every answer to a trial key, an organization on no paid plan, and on no other: `false` while the organization's 100 full answers for the UTC day last, `true` once the answer is Unlimited's.
+     *
+     * @return $this
+     */
+    public function setTrialExpired(?bool $trial_expired): static
+    {
+        if (is_null($trial_expired)) {
+            throw new InvalidArgumentException('non-nullable trial_expired cannot be null');
+        }
+        $this->container['trial_expired'] = $trial_expired;
 
         return $this;
     }

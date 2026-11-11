@@ -12,7 +12,7 @@
 /**
  * VPNDetection API
  *
- * The VPNDetection API: classify any IP address, and download the databases behind the answers.  Lookups need no API key: the Unlimited tier answers any address with no daily or monthly cap, for non-commercial use, and a service built on it must credit VPNDetection (https://vpndetection.io/terms#no-key). Commercial use needs a key, a free one included, which also adds every remaining flag.  See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io for the official client libraries.
+ * The VPNDetection API: classify any IP address, and download the databases behind the answers.  Lookups need no API key: the Unlimited tier answers any address with no daily or monthly cap, with a key or without one. Every paid plan answers every field, and an organization on no paid plan can try them, 100 lookups a day. Unlimited's answers may be used commercially, but not redistributed or used in a competing service (https://vpndetection.io/terms#no-key).  See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io for the official client libraries.
  *
  * The version of the OpenAPI document: 2026.11.11
  * Contact: support@vpndetection.io
@@ -318,7 +318,7 @@ class EntitlementPlan implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets key
      *
-     * @param string $key The plan the organization is on.
+     * @param string $key The plan the organization is on, or `trial` on none: a trial answers every field for the organization's first 100 lookups each UTC day, and Unlimited's answer after them.
      *
      * @return $this
      */
@@ -345,7 +345,7 @@ class EntitlementPlan implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets tier
      *
-     * @param string $tier The field tier, which decides how much of a lookup answer comes back. What each tier includes is documented on the lookup endpoint rather than repeated here, so there is one place it can be wrong.
+     * @param string $tier The field tier, which decides how much of a lookup answer comes back; `free` is a trial's. What each tier includes is documented on the lookup endpoint rather than repeated here, so there is one place it can be wrong.
      *
      * @return $this
      */

@@ -7,7 +7,7 @@ namespace VPNDetection;
 use VPNDetection\Internal\Model\Location as WireLocation;
 
 /**
- * Where the address is, on every keyed answer.
+ * Where the address is, on every answer, with or without a key.
  *
  * Every property is set whenever the object is, an empty string where it is not
  * known.

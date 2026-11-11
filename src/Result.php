@@ -49,10 +49,15 @@ final class Result
          * @var array<string, mixed>
          */
         public readonly array $raw = [],
-        /** Where the address is. Every keyed answer carries it, free and paid. */
+        /** Where the address is. Every answer carries it, with or without a key. */
         public readonly ?Location $location = null,
-        /** The AS announcing the address. Every keyed answer carries it, free and paid. */
+        /** The AS announcing the address. Every answer carries it, with or without a key. */
         public readonly ?Asn $asn = null,
+        /**
+         * On a Trial key's answers only: false while the organization's 100 full
+         * answers for the UTC day last, true once the answer is Unlimited's.
+         */
+        public readonly ?bool $trialExpired = null,
     ) {
     }
 
@@ -92,6 +97,7 @@ final class Result
             raw: $raw,
             location: $w->getLocation() === null ? null : Location::fromWire($w->getLocation()),
             asn: $w->getAsn() === null ? null : Asn::fromWire($w->getAsn()),
+            trialExpired: $w->getTrialExpired(),
         );
     }
 }

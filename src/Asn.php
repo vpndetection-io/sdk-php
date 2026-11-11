@@ -6,7 +6,7 @@ namespace VPNDetection;
 
 use VPNDetection\Internal\Model\Asn as WireAsn;
 
-/** The AS announcing the address, on every keyed answer: `asn` is 0 where none does. */
+/** The AS announcing the address, on every answer, with or without a key: `asn` is 0 where none does. */
 final class Asn
 {
     public function __construct(

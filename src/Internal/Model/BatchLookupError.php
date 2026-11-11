@@ -12,7 +12,7 @@
 /**
  * VPNDetection API
  *
- * The VPNDetection API: classify any IP address, and download the databases behind the answers.  Lookups need no API key: the Unlimited tier answers any address with no daily or monthly cap, for non-commercial use, and a service built on it must credit VPNDetection (https://vpndetection.io/terms#no-key). Commercial use needs a key, a free one included, which also adds every remaining flag.  See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io for the official client libraries.
+ * The VPNDetection API: classify any IP address, and download the databases behind the answers.  Lookups need no API key: the Unlimited tier answers any address with no daily or monthly cap, with a key or without one. Every paid plan answers every field, and an organization on no paid plan can try them, 100 lookups a day. Unlimited's answers may be used commercially, but not redistributed or used in a competing service (https://vpndetection.io/terms#no-key).  See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io for the official client libraries.
  *
  * The version of the OpenAPI document: 2026.11.11
  * Contact: support@vpndetection.io
@@ -291,7 +291,7 @@ class BatchLookupError implements ModelInterface, ArrayAccess, JsonSerializable
     /**
      * Sets status
      *
-     * @param int $status The HTTP status `GET /{ip}` would have answered for this entry: `400` for a string that is not an address, `429` for a spent allowance, `500` when the VPN dataset could not be consulted. A `429` here is never a throttle; the whole call is refused instead.
+     * @param int $status The HTTP status `GET /{ip}` would have answered for this entry: `400` for a string that is not an address, `429` for a reached overage cap, `500` when the VPN dataset could not be consulted. A `429` here is never a throttle; the whole call is refused instead.
      *
      * @return $this
      */

@@ -17,7 +17,7 @@ Requires PHP 8.2 or newer. Everything is typed, and the tier-gated fields are nu
 
 ## Usage
 
-**No API key needed to start.** The Unlimited tier answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, for [non-commercial use](https://vpndetection.io/terms#no-key). Commercial use, or a batch lookup, needs a key, a free one included.
+**No API key needed to start.** The Unlimited tier answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one.
 
 ```php
 use VPNDetection\Client;
@@ -32,7 +32,7 @@ echo $result->asn->name;              // who runs the announcing network
 
 ### With an API key
 
-A free key adds every other flag, `is_hosting`, `is_cdn` and the four proxy flags, at 50,000 lookups a month, and every paid plan answers every field, the provider, confidence and last-seen detail behind each flag included. The paid plans differ only in how many lookups they include. Create a key in the [console](https://app.vpndetection.io), then pass it in:
+Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. The plans differ only in how many lookups they include, and a new account can try every field, 100 lookups a day. Create a key in the [console](https://app.vpndetection.io), then pass it in:
 
 ```php
 use VPNDetection\Client;
@@ -42,7 +42,7 @@ $client = new Client(new Options(apiKey: getenv('VPNDETECTION_API_KEY') ?: null)
 
 $result = $client->lookup('45.83.91.1');
 $result->isVpn;               // true
-$result->isHosting;           // true, with any key, a free one included
+$result->isHosting;           // true, on a paid plan
 $result->vpn->provider;       // 'nordvpn', on a paid plan
 ```
 
@@ -64,11 +64,11 @@ echo $acct->usage->requests;    // 580
 echo $acct->usage->windowEnd;   // when the allowance resets
 ```
 
-Usage counts against the anniversary of your subscription, not the calendar month and not the billing period, and it is the same number a lookup is gated on. `hardLimit` is `null` on an uncapped plan, which is not the same as zero.
+Usage counts against the anniversary of your subscription on a paid plan, not the calendar month and not the billing period, and against the UTC day on a trial key; it is the same number a lookup is gated on. `hardLimit` is `null` on an uncapped plan, which is not the same as zero.
 
 ### Batch lookup
 
-Look up many addresses at once. Bogons and cached answers are handled locally, and everything else goes to the batch endpoint in chunks of up to 1000 addresses, in parallel. The batch endpoint needs an API key, a free one included:
+Look up many addresses at once. Bogons and cached answers are handled locally, and everything else goes to the batch endpoint in chunks of up to 1000 addresses, in parallel. The batch endpoint needs a paid plan:
 
 ```php
 use VPNDetection\VPNDetectionException;
@@ -255,12 +255,12 @@ Each redirect URI must be https on a public host name, or http on a loopback add
 
 ### Absent is not false
 
-Without a key a lookup leaves out `isHosting`, `isCdn` and the four proxy flags, and a free key leaves out `vpn` and the detail behind each flag. A field your key does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
+The Unlimited tier leaves out `isHosting`, `isCdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's; a trial key's answer carries `trialExpired`, true once its day of full answers is spent. A field your key does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
 
 ```php
 $result->isHosting ?? false;   // when you only want the flag
-$result->isHosting === null;   // without a key: not in your plan
-$result->vpn === null;         // on a free key: not in your plan
+$result->isHosting === null;   // on the Unlimited tier: not in your plan
+$result->trialExpired === true; // a trial key's day of full answers is spent
 ```
 
 ## Other Libraries

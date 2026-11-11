@@ -6,9 +6,10 @@ info:
     behind the answers.
 
     Lookups need no API key: the Unlimited tier answers any address with no
-    daily or monthly cap, for non-commercial use, and a service built on it
-    must credit VPNDetection (https://vpndetection.io/terms#no-key). Commercial
-    use needs a key, a free one included, which also adds every remaining flag.
+    daily or monthly cap, with a key or without one. Every paid plan answers
+    every field, and an organization on no paid plan can try them, 100 lookups
+    a day. Unlimited's answers may be used commercially, but not redistributed
+    or used in a competing service (https://vpndetection.io/terms#no-key).
 
     See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io
     for the official client libraries.
@@ -103,8 +104,8 @@ paths:
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
-                free:
-                  summary: A key on the free plan
+                trial:
+                  summary: A trial key within its day's 100 full answers
                   value:
                     ip: 146.70.116.130
                     is_vpn: true
@@ -116,6 +117,46 @@ paths:
                     is_dcproxy: false
                     is_mobproxy: false
                     is_pubproxy: false
+                    vpn:
+                      provider: mullvad
+                      last_seen: '2026-09-02'
+                      confidence: high
+                    hosting:
+                      provider: m247
+                      confidence: high
+                      last_seen: '2026-09-02'
+                    relay: {}
+                    tor: {}
+                    cdn: {}
+                    resproxy: {}
+                    dcproxy: {}
+                    mobproxy: {}
+                    pubproxy: {}
+                    location:
+                      continent: EU
+                      continent_name: Europe
+                      country: AT
+                      country_name: Austria
+                      timezone: Europe/Vienna
+                      currency_code: EUR
+                      currency_name: Euro
+                      currency_symbol: €
+                      flag_emoji: 🇦🇹
+                      flag_unicode: U+1F1E6 U+1F1F9
+                    asn:
+                      asn: 9009
+                      name: M247 Europe SRL
+                      domain: m247global.com
+                      type: hosting
+                      prefix: 146.70.116.0/24
+                    trial_expired: false
+                trialExpired:
+                  summary: A trial key past its day's 100, answered as Unlimited
+                  value:
+                    ip: 146.70.116.130
+                    is_vpn: true
+                    is_relay: false
+                    is_tor: false
                     relay: {}
                     tor: {}
                     location:
@@ -135,6 +176,7 @@ paths:
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                    trial_expired: true
                 paid:
                   summary: A key on any paid plan, address found in the VPN dataset
                   value:
@@ -262,14 +304,14 @@ paths:
                     error: API key sent over plain HTTP; use https://
         '429':
           description: |
-            Either a rate limit or a spent allowance. `Retry-After` is present
-            for the former and absent for the latter, and is the only way to
-            tell them apart.
+            Either a rate limit or a paid plan's overage cap. `Retry-After` is
+            present for the former and absent for the latter, and is the only
+            way to tell them apart.
           headers:
             Retry-After:
               description: |
                 Seconds to wait before retrying. Present ONLY when the rejection
-                is a rate limit; its absence means an allowance is spent and
+                is a rate limit; its absence means the overage cap is reached and
                 retrying will not help.
               required: false
               schema:
@@ -284,15 +326,11 @@ paths:
                   value:
                     error: rate limit exceeded
                 unlimitedRateLimited:
-                  summary: Unlimited (no API key), a burst, sent with Retry-After
+                  summary: Unlimited, a burst, sent with Retry-After
                   value:
                     error: >-
-                      per-minute limit for requests without an API key exceeded; retry shortly or
-                      use an API key
-                quotaExceeded:
-                  summary: Free plan's monthly allowance spent, no Retry-After
-                  value:
-                    error: monthly request allowance spent; upgrade your plan for more lookups
+                      per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
+                      plan
                 overageCapReached:
                   summary: Paid plan's overage cap reached, no Retry-After
                   value:
@@ -320,7 +358,7 @@ paths:
         Answers what is known about the address this request came from, which is
         the same answer `GET /{ip}` gives for that address: the presented key
         decides which fields come back, and the request counts against the same
-        limit or allowance.
+        limits.
 
         The address is the one our edge observed, so a request through a proxy
         or a VPN reports the exit it left through rather than the machine that
@@ -396,14 +434,14 @@ paths:
                     error: API key sent over plain HTTP; use https://
         '429':
           description: |
-            Either a rate limit or a spent allowance. `Retry-After` is present
-            for the former and absent for the latter, and is the only way to
-            tell them apart.
+            Either a rate limit or a paid plan's overage cap. `Retry-After` is
+            present for the former and absent for the latter, and is the only
+            way to tell them apart.
           headers:
             Retry-After:
               description: |
                 Seconds to wait before retrying. Present ONLY when the rejection
-                is a rate limit; its absence means an allowance is spent and
+                is a rate limit; its absence means the overage cap is reached and
                 retrying will not help.
               required: false
               schema:
@@ -418,15 +456,11 @@ paths:
                   value:
                     error: rate limit exceeded
                 unlimitedRateLimited:
-                  summary: Unlimited (no API key), a burst, sent with Retry-After
+                  summary: Unlimited, a burst, sent with Retry-After
                   value:
                     error: >-
-                      per-minute limit for requests without an API key exceeded; retry shortly or
-                      use an API key
-                quotaExceeded:
-                  summary: Free plan's monthly allowance spent, no Retry-After
-                  value:
-                    error: monthly request allowance spent; upgrade your plan for more lookups
+                      per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
+                      plan
                 overageCapReached:
                   summary: Paid plan's overage cap reached, no Retry-After
                   value:
@@ -461,16 +495,18 @@ paths:
         normalized form. An address that could not be answered sits in `errors`
         with the status and message the single lookup would have given, and
         never disturbs the others: a string that is not an address is a `400`
-        there, and an allowance that runs out part way through leaves the
-        remaining entries as `429`s.
+        there, and an overage cap reached part way through leaves the remaining
+        entries as `429`s.
 
         The call itself fails only for the reasons below, and a `429` on the
         call always carries `Retry-After`: the batch is admitted or refused
-        whole by the rate limit, so a per-entry `429` is always a spent
-        allowance and never a throttle.
+        whole by the rate limit, so a per-entry `429` is always the overage cap
+        and never a throttle.
 
-        A batch needs an API key, a free one included: without one the call is
-        refused with `401`. The Unlimited tier looks up one address at a time.
+        A batch needs a paid plan: without a key the call is refused with `401`,
+        and with a trial key with `402`, unless it names one address, which is
+        answered as `GET /{ip}` would answer it. Unlimited and a trial look up
+        one address at a time.
       security:
         - apiKeyQuery: []
         - apiKeyHeader: []
@@ -498,8 +534,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/BatchLookupResponse'
               examples:
-                free:
-                  summary: A key on the free plan, with a private address and a string that is not one
+                privateAndInvalid:
+                  summary: A key on a paid plan, with a private address and a string that is not one
                   value:
                     results:
                       192.168.1.1:
@@ -513,8 +549,15 @@ paths:
                         is_dcproxy: false
                         is_mobproxy: false
                         is_pubproxy: false
+                        vpn: {}
+                        hosting: {}
                         relay: {}
                         tor: {}
+                        cdn: {}
+                        resproxy: {}
+                        dcproxy: {}
+                        mobproxy: {}
+                        pubproxy: {}
                         location:
                           continent: ''
                           continent_name: ''
@@ -536,44 +579,6 @@ paths:
                       not-an-ip:
                         status: 400
                         error: not a valid IP address
-                quotaExceeded:
-                  summary: A key on the free plan whose allowance ran out after the first entry
-                  value:
-                    results:
-                      146.70.116.130:
-                        ip: 146.70.116.130
-                        is_vpn: true
-                        is_hosting: true
-                        is_relay: false
-                        is_tor: false
-                        is_cdn: false
-                        is_resproxy: false
-                        is_dcproxy: false
-                        is_mobproxy: false
-                        is_pubproxy: false
-                        relay: {}
-                        tor: {}
-                        location:
-                          continent: EU
-                          continent_name: Europe
-                          country: AT
-                          country_name: Austria
-                          timezone: Europe/Vienna
-                          currency_code: EUR
-                          currency_name: Euro
-                          currency_symbol: €
-                          flag_emoji: 🇦🇹
-                          flag_unicode: U+1F1E6 U+1F1F9
-                        asn:
-                          asn: 9009
-                          name: M247 Europe SRL
-                          domain: m247global.com
-                          type: hosting
-                          prefix: 146.70.116.0/24
-                    errors:
-                      8.8.8.8:
-                        status: 429
-                        error: monthly request allowance spent; upgrade your plan for more lookups
                 overageCapReached:
                   summary: A key on a paid plan whose overage cap was already reached
                   value:
@@ -612,7 +617,7 @@ paths:
               examples:
                 noKey:
                   value:
-                    error: an API key is required for POST /batch
+                    error: POST /batch needs an API key on a paid plan
                 invalid:
                   value:
                     error: invalid API key
@@ -622,6 +627,16 @@ paths:
                 expired:
                   value:
                     error: API key expired
+        '402':
+          description: |
+            The key is a trial's, an organization on no paid plan, and the batch
+            names more than one address: a batch needs a paid plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LookupError'
+              example:
+                error: POST /batch needs a paid plan
         '403':
           description: |
             The key restricts which source addresses may use it and this
@@ -650,7 +665,7 @@ paths:
         '429':
           description: |
             The rate limit refused the whole call. Always transient and always
-            with `Retry-After`; a spent allowance is reported per entry in a
+            with `Retry-After`; a reached overage cap is reported per entry in a
             `200` instead.
           headers:
             Retry-After:
@@ -940,10 +955,11 @@ paths:
                       hard_limit: null
                       window_start: '2026-09-04T07:00:00Z'
                       window_end: '2026-10-04T07:00:00Z'
-                free:
+                trial:
                   summary: >-
-                    A key on the free plan. There is no subscription, so the window is the calendar
-                    month, and the allowance is a hard stop rather than a billable overage.
+                    A key of an organization on no paid plan, on its trial: the day's full answers
+                    against the 100 a day it has. Nothing stops it past them, its lookups answering
+                    as Unlimited, so there is no hard limit, and the window is the UTC day.
                   value:
                     org_id: f32191d0-ef02-450e-a505-eb5814c35cab
                     apikey:
@@ -951,14 +967,14 @@ paths:
                       expires: null
                       allowed_cidrs: []
                     plan:
-                      key: free
+                      key: trial
                       tier: free
                     usage:
-                      requests: 545
-                      quota: 50000
-                      hard_limit: 50000
-                      window_start: '2026-09-01T00:00:00Z'
-                      window_end: '2026-10-01T00:00:00Z'
+                      requests: 37
+                      quota: 100
+                      hard_limit: null
+                      window_start: '2026-11-11T00:00:00Z'
+                      window_end: '2026-11-12T00:00:00Z'
         '401':
           description: No key was presented, or it is unknown, revoked or expired.
           content:
@@ -1557,9 +1573,9 @@ components:
     LookupResponse:
       type: object
       description: |
-        The union of every plan's answer. Every answer carries `ip`, `is_vpn`,
+        The union of every tier's answer. Every answer carries `ip`, `is_vpn`,
         the Tor and relay members, `location` and `asn`, with or without a key;
-        each remaining field is present when your key includes it, and absent
+        each remaining field is present when your tier includes it, and absent
         otherwise. A client that must work across plans should treat an absent
         flag as unknown rather than as `false`.
       required:
@@ -1578,7 +1594,7 @@ components:
             `true`.
         is_hosting:
           type: boolean
-          description: Whether the address belongs to a hosting or cloud provider. Free and paid plans.
+          description: Whether the address belongs to a hosting or cloud provider. Paid plans.
         is_relay:
           type: boolean
           description: >-
@@ -1589,23 +1605,23 @@ components:
           description: Whether the address is a Tor node. Every answer, with or without a key.
         is_cdn:
           type: boolean
-          description: Whether the address belongs to a CDN. Free and paid plans.
+          description: Whether the address belongs to a CDN. Paid plans.
         is_resproxy:
           type: boolean
-          description: Whether the address was seen in a residential proxy pool. Free and paid plans.
+          description: Whether the address was seen in a residential proxy pool. Paid plans.
         is_dcproxy:
           type: boolean
           description: >-
             Whether the address is one a datacenter proxy service sells or runs on, a proxy
-            company's own ranges included. Free and paid plans.
+            company's own ranges included. Paid plans.
         is_mobproxy:
           type: boolean
-          description: Whether the address was seen in a mobile proxy pool. Free and paid plans.
+          description: Whether the address was seen in a mobile proxy pool. Paid plans.
         is_pubproxy:
           type: boolean
           description: >-
             Whether a public proxy, one anyone can connect through, listens on the address or sends
-            its traffic out from it. Free and paid plans.
+            its traffic out from it. Paid plans.
         vpn:
           allOf:
             - $ref: '#/components/schemas/VpnDetail'
@@ -1650,6 +1666,12 @@ components:
           $ref: '#/components/schemas/Location'
         asn:
           $ref: '#/components/schemas/Asn'
+        trial_expired:
+          type: boolean
+          description: |
+            On every answer to a trial key, an organization on no paid plan, and
+            on no other: `false` while the organization's 100 full answers for
+            the UTC day last, `true` once the answer is Unlimited's.
     BatchLookupRequest:
       type: object
       required:
@@ -1699,7 +1721,7 @@ components:
           type: integer
           description: |
             The HTTP status `GET /{ip}` would have answered for this entry: `400`
-            for a string that is not an address, `429` for a spent allowance,
+            for a string that is not an address, `429` for a reached overage cap,
             `500` when the VPN dataset could not be consulted. A `429` here is
             never a throttle; the whole call is refused instead.
           example: 400
@@ -2303,7 +2325,10 @@ components:
       properties:
         key:
           type: string
-          description: The plan the organization is on.
+          description: |
+            The plan the organization is on, or `trial` on none: a trial
+            answers every field for the organization's first 100 lookups each
+            UTC day, and Unlimited's answer after them.
           example: max
         tier:
           type: string
@@ -2314,8 +2339,9 @@ components:
             - max
           description: |
             The field tier, which decides how much of a lookup answer comes
-            back. What each tier includes is documented on the lookup endpoint
-            rather than repeated here, so there is one place it can be wrong.
+            back; `free` is a trial's. What each tier includes is documented
+            on the lookup endpoint rather than repeated here, so there is one
+            place it can be wrong.
     EntitlementUsage:
       type: object
       required:

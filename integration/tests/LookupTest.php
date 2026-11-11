@@ -52,7 +52,9 @@ final class LookupTest extends TestCase
 
         $below = null;
         foreach (Tiers::observable() as $rung) {
-            $fields = array_keys(Staging::answerFor($rung)['result']->raw);
+            // trial_expired marks a trial key's answers, and no other: it is not a
+            // field a tier serves.
+            $fields = array_values(array_diff(array_keys(Staging::answerFor($rung)['result']->raw), ['trial_expired']));
             print "{$rung['tier']}: " . count($fields) . " fields\n";
             if ($below !== null) {
                 foreach ($below['fields'] as $field) {
@@ -68,8 +70,60 @@ final class LookupTest extends TestCase
                     );
                 }
             }
-            $below = ['tier' => $rung['tier'], 'fields' => $fields];
+            if ($rung['tier'] !== 'trial') {
+                $below = ['tier' => $rung['tier'], 'fields' => $fields];
+            }
         }
+    }
+
+    public function testATrialKeysAnswerIsAPaidOneOrUnlimitedsAndSaysWhich(): void
+    {
+        $reason = Tiers::skipFor(Tiers::trial());
+        if ($reason !== null) {
+            self::markTestSkipped($reason);
+        }
+        $raw = Staging::answerFor(Tiers::trial())['result']->raw;
+
+        self::assertIsBool($raw['trial_expired'] ?? null, 'a trial key answers trial_expired');
+        // The organization's first 100 lookups of the UTC day are answered in
+        // full, and the rest as Unlimited's: which half a run sees depends on the day.
+        self::assertSame(!$raw['trial_expired'], array_key_exists('is_hosting', $raw));
+    }
+
+    public function testATrialKeysBatchOfTwoIsRefusedAsABadRequestOnce(): void
+    {
+        $reason = Tiers::skipFor(Tiers::trial());
+        if ($reason !== null) {
+            self::markTestSkipped($reason);
+        }
+        $paths = [];
+        $client = Staging::clientFor(Tiers::trial(), static function (array $fact) use (&$paths): void {
+            $paths[] = $fact['path'];
+        });
+
+        $got = $client->lookupBatch([Staging::PROBE, '8.8.8.8']);
+
+        foreach ([Staging::PROBE, '8.8.8.8'] as $ip) {
+            $refused = $got[$ip];
+            self::assertInstanceOf(VPNDetectionException::class, $refused, "{$ip}: a trial key's batch of two must fail");
+            self::assertSame(ErrorKind::BadRequest, $refused->kind);
+            self::assertSame(402, $refused->status);
+            self::assertFalse($refused->isRetryable());
+        }
+        self::assertSame(['/batch'], $paths, 'one request, never retried');
+    }
+
+    public function testATrialKeysBatchOfOneIsAnswered(): void
+    {
+        $reason = Tiers::skipFor(Tiers::trial());
+        if ($reason !== null) {
+            self::markTestSkipped($reason);
+        }
+        $got = Staging::clientFor(Tiers::trial())->lookupBatch([Staging::PROBE]);
+
+        $answer = $got[Staging::PROBE];
+        self::assertInstanceOf(Result::class, $answer, 'a trial key\'s batch of one failed');
+        self::assertIsBool($answer->raw['trial_expired'] ?? null, 'the answer carries trial_expired');
     }
 
     public function testAFieldAHigherTierServesIsAbsentOnALowerOneNeverFalse(): void
@@ -149,8 +203,8 @@ final class LookupTest extends TestCase
 
     public function testABatchCollapsesDuplicatesAndKeepsBogonsOffTheWire(): void
     {
-        // A batch needs a key, and the free one is the cheapest that has it.
-        $reason = Tiers::skipFor(Tiers::free());
+        // A batch needs a paid plan, and starter is the cheapest.
+        $reason = Tiers::skipFor(Tiers::paid());
         if ($reason !== null) {
             self::markTestSkipped($reason);
         }
@@ -158,7 +212,7 @@ final class LookupTest extends TestCase
         // wobbling staging cannot read as a failure to deduplicate.
         $asked = [];
         $carried = true;
-        $client = Staging::clientFor(Tiers::free(), static function (array $fact) use (&$asked, &$carried): void {
+        $client = Staging::clientFor(Tiers::paid(), static function (array $fact) use (&$asked, &$carried): void {
             $asked[$fact['path'] . ' ' . implode(',', $fact['ips'])] = true;
             $carried = $carried && $fact['carriedKey'];
         });
@@ -171,7 +225,7 @@ final class LookupTest extends TestCase
             array_keys($asked),
             'the batch asked for something other than the two servable addresses, in one POST /batch',
         );
-        self::assertTrue($carried, 'the free key never reached the wire');
+        self::assertTrue($carried, 'the paid key never reached the wire');
         self::assertTrue($got['10.0.0.1']->isBogon);
         foreach ([Staging::PROBE, '8.8.8.8'] as $ip) {
             self::assertInstanceOf(Result::class, $got[$ip], "{$ip} failed");

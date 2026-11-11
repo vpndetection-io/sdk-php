@@ -371,7 +371,8 @@
           "dcproxy",
           "mobproxy",
           "is_pubproxy",
-          "pubproxy"
+          "pubproxy",
+          "trial_expired"
         ]
       }
     },
@@ -624,7 +625,9 @@
           "is_mobproxy": false,
           "is_pubproxy": false
         },
-        "absent": [],
+        "absent": [
+          "trial_expired"
+        ],
         "emptyPresent": [
           "vpn",
           "hosting",
@@ -639,8 +642,8 @@
       }
     },
     {
-      "name": "keyless-location-asn",
-      "why": "The answer without a key since 2026-11-11: Tor and relay beside the VPN flag, and where the address is and which AS announces it. location and asn carry every key whenever present, so each maps whole.",
+      "name": "unlimited-location-asn",
+      "why": "The Unlimited tier's answer, with a key or without one: Tor and relay beside the VPN flag, and where the address is and which AS announces it. location and asn carry every key whenever present, so each maps whole.",
       "status": 200,
       "body": {
         "ip": "146.70.116.130",
@@ -690,7 +693,8 @@
           "resproxy",
           "dcproxy",
           "mobproxy",
-          "pubproxy"
+          "pubproxy",
+          "trial_expired"
         ],
         "emptyPresent": [
           "relay",
@@ -718,8 +722,8 @@
       }
     },
     {
-      "name": "free-flags-without-detail",
-      "why": "A free key's answer since 2026-11-11: every flag, but no detail object behind the six it adds to the keyless answer and no vpn object. Each flag maps on its own, and the detail it lacks stays absent rather than empty.",
+      "name": "flags-without-detail",
+      "why": "Every flag, but no detail object behind the six flags past the Unlimited tier's and no vpn object. Each flag maps on its own, and the detail it lacks stays absent rather than empty.",
       "status": 200,
       "body": {
         "ip": "146.70.116.130",
@@ -769,6 +773,190 @@
           "is_pubproxy": false
         },
         "absent": [
+          "vpn",
+          "hosting",
+          "cdn",
+          "resproxy",
+          "dcproxy",
+          "mobproxy",
+          "pubproxy"
+        ],
+        "emptyPresent": [
+          "relay",
+          "tor"
+        ],
+        "location": {
+          "continent": "EU",
+          "continent_name": "Europe",
+          "country": "AT",
+          "country_name": "Austria",
+          "timezone": "Europe/Vienna",
+          "currency_code": "EUR",
+          "currency_name": "Euro",
+          "currency_symbol": "€",
+          "flag_emoji": "🇦🇹",
+          "flag_unicode": "U+1F1E6 U+1F1F9"
+        },
+        "asn": {
+          "asn": 9009,
+          "name": "M247 Europe SRL",
+          "domain": "m247global.com",
+          "type": "hosting",
+          "prefix": "146.70.116.0/24"
+        }
+      }
+    },
+    {
+      "name": "trial-full-answer",
+      "why": "A trial key within its UTC day's 100 full answers: every field, as a paid plan answers it, and trial_expired false. trial_expired maps on presence like any flag.",
+      "status": 200,
+      "body": {
+        "ip": "146.70.116.130",
+        "is_vpn": true,
+        "is_hosting": true,
+        "is_relay": false,
+        "is_tor": false,
+        "is_cdn": false,
+        "is_resproxy": false,
+        "is_dcproxy": false,
+        "is_mobproxy": false,
+        "is_pubproxy": false,
+        "vpn": {
+          "provider": "mullvad",
+          "last_seen": "2026-09-02",
+          "confidence": "high"
+        },
+        "hosting": {
+          "provider": "m247",
+          "confidence": "high",
+          "last_seen": "2026-09-02"
+        },
+        "relay": {},
+        "tor": {},
+        "cdn": {},
+        "resproxy": {},
+        "dcproxy": {},
+        "mobproxy": {},
+        "pubproxy": {},
+        "location": {
+          "continent": "EU",
+          "continent_name": "Europe",
+          "country": "AT",
+          "country_name": "Austria",
+          "timezone": "Europe/Vienna",
+          "currency_code": "EUR",
+          "currency_name": "Euro",
+          "currency_symbol": "€",
+          "flag_emoji": "🇦🇹",
+          "flag_unicode": "U+1F1E6 U+1F1F9"
+        },
+        "asn": {
+          "asn": 9009,
+          "name": "M247 Europe SRL",
+          "domain": "m247global.com",
+          "type": "hosting",
+          "prefix": "146.70.116.0/24"
+        },
+        "trial_expired": false
+      },
+      "expect": {
+        "ip": "146.70.116.130",
+        "isBogon": false,
+        "present": {
+          "is_vpn": true,
+          "is_hosting": true,
+          "is_relay": false,
+          "is_tor": false,
+          "is_cdn": false,
+          "is_resproxy": false,
+          "is_dcproxy": false,
+          "is_mobproxy": false,
+          "is_pubproxy": false,
+          "trial_expired": false
+        },
+        "emptyPresent": [
+          "relay",
+          "tor",
+          "cdn",
+          "resproxy",
+          "dcproxy",
+          "mobproxy",
+          "pubproxy"
+        ],
+        "vpn": {
+          "provider": "mullvad",
+          "last_seen": "2026-09-02",
+          "confidence": "high"
+        },
+        "location": {
+          "continent": "EU",
+          "continent_name": "Europe",
+          "country": "AT",
+          "country_name": "Austria",
+          "timezone": "Europe/Vienna",
+          "currency_code": "EUR",
+          "currency_name": "Euro",
+          "currency_symbol": "€",
+          "flag_emoji": "🇦🇹",
+          "flag_unicode": "U+1F1E6 U+1F1F9"
+        },
+        "asn": {
+          "asn": 9009,
+          "name": "M247 Europe SRL",
+          "domain": "m247global.com",
+          "type": "hosting",
+          "prefix": "146.70.116.0/24"
+        }
+      }
+    },
+    {
+      "name": "trial-expired-answer",
+      "why": "A trial key past its UTC day's 100 full answers: the Unlimited tier's answer, and trial_expired true. What the day no longer answers is absent, never false.",
+      "status": 200,
+      "body": {
+        "ip": "146.70.116.130",
+        "is_vpn": true,
+        "is_relay": false,
+        "is_tor": false,
+        "relay": {},
+        "tor": {},
+        "location": {
+          "continent": "EU",
+          "continent_name": "Europe",
+          "country": "AT",
+          "country_name": "Austria",
+          "timezone": "Europe/Vienna",
+          "currency_code": "EUR",
+          "currency_name": "Euro",
+          "currency_symbol": "€",
+          "flag_emoji": "🇦🇹",
+          "flag_unicode": "U+1F1E6 U+1F1F9"
+        },
+        "asn": {
+          "asn": 9009,
+          "name": "M247 Europe SRL",
+          "domain": "m247global.com",
+          "type": "hosting",
+          "prefix": "146.70.116.0/24"
+        },
+        "trial_expired": true
+      },
+      "expect": {
+        "ip": "146.70.116.130",
+        "isBogon": false,
+        "present": {
+          "is_vpn": true,
+          "is_relay": false,
+          "is_tor": false,
+          "trial_expired": true
+        },
+        "absent": [
+          "is_hosting",
+          "is_cdn",
+          "is_resproxy",
+          "is_dcproxy",
+          "is_mobproxy",
+          "is_pubproxy",
           "vpn",
           "hosting",
           "cdn",
@@ -885,14 +1073,14 @@
       }
     },
     {
-      "name": "keyless-rate-limit-is-retryable",
-      "why": "Retry-After present. A caller with no API key that the API is protecting itself from is told when to come back, which is a rate limit, so retrying after the wait WILL succeed.",
+      "name": "unlimited-rate-limit-is-retryable",
+      "why": "Retry-After present. A lookup on the Unlimited tier, with no key or a trial's, that the API is protecting itself from is told when to come back, which is a rate limit, so retrying after the wait WILL succeed.",
       "status": 429,
       "headers": {
         "Retry-After": "1"
       },
       "body": {
-        "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
+        "error": "per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
       },
       "expect": {
         "kind": "rate_limited",
@@ -901,16 +1089,17 @@
       }
     },
     {
-      "name": "plan-quota-is-not-retryable",
-      "why": "No Retry-After. A free key's monthly allowance is spent, and upgrading, not retrying, is what helps.",
-      "status": 429,
+      "name": "batch-needs-a-paid-plan-is-a-bad-request",
+      "why": "A trial key's batch of more than one address answers 402. To a client it is any other 4xx: refused as asked, never retried, its message the API's.",
+      "status": 402,
       "headers": {},
       "body": {
-        "error": "monthly request allowance spent; upgrade your plan for more lookups"
+        "error": "POST /batch needs a paid plan"
       },
       "expect": {
-        "kind": "quota_exceeded",
-        "retryable": false
+        "kind": "bad_request",
+        "retryable": false,
+        "message": "POST /batch needs a paid plan"
       }
     },
     {
