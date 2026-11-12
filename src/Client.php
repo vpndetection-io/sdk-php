@@ -183,9 +183,10 @@ final class Client
      * so one bad entry cannot lose the rest of the answers: the API reports a
      * per-entry failure with the status the single lookup would have answered,
      * and a chunk that fails as a whole marks every address in it. The batch
-     * endpoint needs a paid plan: without a key every address sent to it carries
-     * an `Unauthorized` error, and a free-plan key's batch of two or more a
-     * `BadRequest` (HTTP 402).
+     * endpoint needs a paid plan: without a key every address in a request of
+     * two or more carries an `Unauthorized` error, and a free-plan key's request
+     * of two or more a `BadRequest` (HTTP 402). A request of one address is
+     * answered as its lookup would be.
      *
      * @param iterable<string> $ips
      * @param array{retries?: int, concurrency?: int, timeout?: float} $options Per-call overrides.
