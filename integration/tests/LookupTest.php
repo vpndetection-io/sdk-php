@@ -190,7 +190,8 @@ final class LookupTest extends TestCase
             $paths[] = $fact['path'];
         });
 
-        $got = $client->lookupBatch([Staging::PROBE, '10.0.0.1']);
+        // Two addresses on the wire: a keyless batch of one is answered as its lookup.
+        $got = $client->lookupBatch([Staging::PROBE, '8.8.8.8', '10.0.0.1']);
 
         self::assertTrue($got['10.0.0.1']->isBogon);
         $refused = $got[Staging::PROBE];
