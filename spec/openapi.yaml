@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.11
+  version: 2026.11.12
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -505,8 +505,8 @@ paths:
 
         A batch needs a paid plan: without a key the call is refused with `401`,
         and with a key on the free plan with `402`, unless it names one address,
-        which is answered as `GET /{ip}` would answer it. Unlimited looks up one
-        address at a time.
+        which is answered as `GET /{ip}` would answer it, under the same rate
+        limit. Unlimited looks up one address at a time.
       security:
         - apiKeyQuery: []
         - apiKeyHeader: []
@@ -609,7 +609,9 @@ paths:
                   value:
                     error: ips must hold between 1 and 1000 addresses
         '401':
-          description: No API key was presented, or the one presented is unknown, revoked, or expired.
+          description: |
+            No API key was presented for more than one address, or the one
+            presented is unknown, revoked, or expired.
           content:
             application/json:
               schema:
@@ -677,8 +679,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LookupError'
-              example:
-                error: rate limit exceeded
+              examples:
+                rateLimited:
+                  summary: Transient, sent with Retry-After
+                  value:
+                    error: rate limit exceeded
+                unlimitedRateLimited:
+                  summary: Unlimited's one address, a burst, sent with Retry-After
+                  value:
+                    error: >-
+                      per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
+                      plan
   /api/v1/database/list:
     get:
       operationId: listDatabases
