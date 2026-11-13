@@ -144,7 +144,9 @@ function assertInstalledFromPackagist(string $dir, array $versions): void
  */
 function listedDist(string $version): array
 {
-    $url = sprintf('%s/p2/%s.json?t=%d', registry(), PACKAGE, time());
+    // A branch (dev-main) is listed apart from the releases, in the package's ~dev file.
+    $listing = str_starts_with($version, 'dev-') ? PACKAGE . '~dev' : PACKAGE;
+    $url = sprintf('%s/p2/%s.json?t=%d', registry(), $listing, time());
     $body = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 30]]));
     if ($body === false) {
         throw new RuntimeException("cannot read {$url}");
