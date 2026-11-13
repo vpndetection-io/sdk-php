@@ -61,7 +61,7 @@ Same answer `lookup` would give for that address, and the same cost against your
 $acct = $client->myEntitlement();
 echo $acct->plan->key;          // max
 echo $acct->usage->requests;    // 580
-echo $acct->usage->windowEnd;   // when the allowance resets
+echo $acct->usage->windowEnd->format(DATE_ATOM); // when the allowance resets
 ```
 
 Usage counts against the anniversary of your subscription on a paid plan, not the calendar month and not the billing period, and against the UTC day on the free plan; it is the same number a lookup is gated on. `hardLimit` is `null` on an uncapped plan, which is not the same as zero.
