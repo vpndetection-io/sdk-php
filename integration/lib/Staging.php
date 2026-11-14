@@ -33,7 +33,7 @@ final class Staging
      * @var array<string, array{required: list<string>, optional: list<string>}>
      */
     public const MEMBERS = [
-        'vpn' => ['required' => ['provider', 'last_seen'], 'optional' => ['confidence', 'method']],
+        'vpn' => ['required' => ['provider', 'provider_name', 'last_seen'], 'optional' => ['confidence', 'method']],
         'hosting' => ['required' => self::CLASS_KEYS, 'optional' => []],
         'relay' => ['required' => self::CLASS_KEYS, 'optional' => []],
         'tor' => ['required' => self::CLASS_KEYS, 'optional' => []],
@@ -43,8 +43,10 @@ final class Staging
         'mobproxy' => ['required' => self::PROXY_KEYS, 'optional' => []],
     ];
 
-    private const CLASS_KEYS = ['provider', 'confidence', 'last_seen'];
-    private const PROXY_KEYS = ['provider', 'first_seen', 'last_seen', 'hits', 'hits_days_pct', 'providers_num'];
+    private const CLASS_KEYS = ['provider', 'provider_name', 'confidence', 'last_seen'];
+    private const PROXY_KEYS = [
+        'provider', 'provider_name', 'first_seen', 'last_seen', 'hits', 'hits_days_pct', 'providers_num',
+    ];
 
     /** @var array<string, array{rung: array<string, mixed>, result: Result, carriedKey: bool}> */
     private static array $answers = [];
