@@ -838,7 +838,22 @@ final class ClientTest extends TestCase
         // A key must be absent rather than empty: `Authorization: Bearer ` is a 401.
         self::assertFalse($stub->requests[1]->hasHeader('Authorization'));
         self::assertStringStartsWith('vpndetection-php/', $stub->requests[0]->getHeaderLine('User-Agent'));
+        self::assertMatchesRegularExpression(
+            '#^vpndetection-php/[^v ]\\S* php/#',
+            $stub->requests[0]->getHeaderLine('User-Agent'),
+            'the version is bare, never the tag with its v',
+        );
         self::assertSame('', $stub->requests[0]->getUri()->getQuery(), 'the key never rides in the query');
+    }
+
+    public function testTheVersionInTheUserAgentDropsTheTagsV(): void
+    {
+        $bare = new \ReflectionMethod(Client::class, 'bare');
+
+        self::assertSame('9.8.7', $bare->invoke(null, 'v9.8.7'));
+        self::assertSame('9.8.7', $bare->invoke(null, '9.8.7'));
+        self::assertSame('dev-main', $bare->invoke(null, 'dev-main'));
+        self::assertSame('dev', $bare->invoke(null, 'dev'));
     }
 
     /** @param array<string, mixed> $body */

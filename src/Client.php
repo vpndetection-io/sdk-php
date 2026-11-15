@@ -79,7 +79,7 @@ final class Client
             default => new Cache($options->cacheMaxSize, $options->cacheTtlSeconds),
         };
         $this->concurrency = $options->concurrency;
-        $this->database = new DatabaseApi(new WireDatabaseApi($http, $config), $this->transport);
+        $this->database = new DatabaseApi(new WireDatabaseApi($http, $config), $this->transport, self::userAgent());
         $this->oauth = new OauthApi($this->transport, rtrim($options->baseUrl, '/'), self::userAgent());
     }
 
@@ -387,9 +387,16 @@ final class Client
             return 'dev';
         }
         try {
-            return InstalledVersions::getPrettyVersion('vpndetection/vpndetection') ?? 'dev';
+            return self::bare(InstalledVersions::getPrettyVersion('vpndetection/vpndetection') ?? 'dev');
         } catch (OutOfBoundsException) {
             return 'dev';
         }
+    }
+
+    // Composer names an installed release by its tag, v4.15.0, where every other
+    // SDK's User-Agent carries the bare version.
+    private static function bare(string $version): string
+    {
+        return (string) preg_replace('/^v(?=\d)/', '', $version);
     }
 }

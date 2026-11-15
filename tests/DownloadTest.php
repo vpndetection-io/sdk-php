@@ -163,6 +163,18 @@ final class DownloadTest extends TestCase
         );
     }
 
+    public function testTheApiAndObjectStorageRequestsBothNameTheSdk(): void
+    {
+        $client = $this->client(['blobBytes' => self::SMALL]);
+
+        $client->database->download('cdn_ip_v1', 'csvgz', $this->tmp . '/agent.csv.gz');
+
+        $api = $this->origin->requestsTo('/api/v1/database/download')[0];
+        $storage = $this->origin->requestsTo('/blob')[0];
+        self::assertMatchesRegularExpression('#^vpndetection-php/[^v ]\S* php/#', $api['headers']['user-agent']);
+        self::assertSame($api['headers']['user-agent'], $storage['headers']['user-agent']);
+    }
+
     /**
      * The assertion that matters most, and the one a vacuous measurement would
      * pass: `downloadBytes` moving the same body through the same origin has to

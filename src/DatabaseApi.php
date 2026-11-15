@@ -32,6 +32,7 @@ final class DatabaseApi
     public function __construct(
         private readonly WireDatabaseApi $api,
         private readonly Transport $transport,
+        private readonly ?string $userAgent = null,
     ) {
     }
 
@@ -207,7 +208,11 @@ final class DatabaseApi
     private function fetchDatabaseFile(string $id, string $format, ?string $build): ResponseInterface
     {
         return $this->transport->sendStreaming(
-            new Request('GET', $this->downloadUrl($id, $format, $build)),
+            new Request(
+                'GET',
+                $this->downloadUrl($id, $format, $build),
+                $this->userAgent === null ? [] : ['User-Agent' => $this->userAgent],
+            ),
             'object storage refused the download link',
         );
     }
