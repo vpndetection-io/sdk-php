@@ -2,6 +2,19 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.15.0 - 2026-11-15
+
+### Features
+
+- Re-pin the spec to 2026.11.14: is_bogon on every answer, and provider_name beside each provider ([`943ce13`](https://github.com/vpndetection-io/sdk-php/commit/943ce139439f45549adcc0dd0eba1a74a692ad5b))
+
+### Fixes
+
+- Name the SDK in object storage's User-Agent, and send the bare version ([`d29138e`](https://github.com/vpndetection-io/sdk-php/commit/d29138ed31f182994f74e571c19cf2bba43c9a96))
+- README: format windowEnd before echoing it ([`2b9c0a2`](https://github.com/vpndetection-io/sdk-php/commit/2b9c0a2fefb685daac2e1adbb45445e661154ab1))
+- Say that a batch request of one address is answered as its lookup ([`32cf4e3`](https://github.com/vpndetection-io/sdk-php/commit/32cf4e367982820d44afa1afee7c7832dab7056c))
+- Re-pin the spec to 2026.11.12: plainer words on the 401 and the batch rate limit ([`161d180`](https://github.com/vpndetection-io/sdk-php/commit/161d180478b7e875be349fb750345df8457e04b5))
+
 ## 4.14.1 - 2026-11-11
 
 ### Fixes
