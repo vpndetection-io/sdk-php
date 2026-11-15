@@ -62,12 +62,12 @@ final class Bogon
 
     /**
      * The answer a bogon gets, in the full shape the API serves at its widest
-     * plan: every flag present and false, every detail object present and empty,
-     * and a location and AS of empty strings and AS 0.
+     * plan: `isBogon` true and every other flag present and false, every detail
+     * object present and empty, and a location and AS of empty strings and AS 0,
+     * as the API answers a bogon.
      *
-     * `isBogon` is set so a caller can always tell a locally computed answer from
-     * a served one. Note this is deliberately the WIDEST shape regardless of your
-     * plan, so do not infer which fields your plan includes from a bogon answer.
+     * Note this is deliberately the WIDEST shape regardless of your plan, so do
+     * not infer which fields your plan includes from a bogon answer.
      */
     public static function result(string $ip): Result
     {

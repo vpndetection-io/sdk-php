@@ -217,6 +217,22 @@ final class ConformanceTest extends TestCase
         self::assertFalse($got['1.1.1.1']->isVpn, 'the good address still answered');
     }
 
+    public function testAServedIsBogonReachesTheResult(): void
+    {
+        $stub = new Stub(Stub::lookups([
+            '8.8.8.8' => Stub::ok(['ip' => '8.8.8.8', 'is_bogon' => true, 'is_vpn' => false]),
+            '8.8.4.4' => Stub::ok(['ip' => '8.8.4.4', 'is_bogon' => false, 'is_vpn' => false]),
+            '1.1.1.1' => Stub::ok(['ip' => '1.1.1.1', 'is_vpn' => false]),
+        ]));
+        $client = new Client(new Options(httpClient: $stub->client, cache: false));
+
+        self::assertTrue($client->lookup('8.8.8.8')->isBogon, 'lookup: the served true');
+        self::assertFalse($client->lookup('1.1.1.1')->isBogon, 'lookup: an absent is_bogon is false');
+        $got = $client->lookupBatch(['8.8.8.8', '8.8.4.4']);
+        self::assertTrue($got['8.8.8.8']->isBogon, 'batch: the served true');
+        self::assertFalse($got['8.8.4.4']->isBogon, 'batch: the served false');
+    }
+
     public function testACacheHitIssuesNoSecondRequest(): void
     {
         $case = self::batchCase('cache-hit-issues-no-second-request');

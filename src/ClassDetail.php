@@ -16,19 +16,25 @@ use VPNDetection\Internal\Model\ClassDetail as WireClassDetail;
 final class ClassDetail
 {
     public function __construct(
-        /** The provider, or an empty string where the dataset has none. */
+        /** The provider's ID, or an empty string where the dataset has none. */
         public readonly ?string $provider = null,
         /** How strongly the classification is supported. */
         public readonly ?string $confidence = null,
         /** The most recent date this address was observed in this dataset. */
         public readonly ?DateTimeImmutable $lastSeen = null,
+        /**
+         * The name the provider catalog gives the provider; an empty string where
+         * the catalog names none or the dataset has no provider.
+         */
+        public readonly ?string $providerName = null,
     ) {
     }
 
     /** True when the API answered `{}`, which means the flag above it is false. */
     public function isEmpty(): bool
     {
-        return $this->provider === null && $this->confidence === null && $this->lastSeen === null;
+        return $this->provider === null && $this->confidence === null && $this->lastSeen === null
+            && $this->providerName === null;
     }
 
     /** @internal */
@@ -38,6 +44,7 @@ final class ClassDetail
             provider: $w->getProvider(),
             confidence: $w->getConfidence(),
             lastSeen: Dates::immutable($w->getLastSeen()),
+            providerName: $w->getProviderName(),
         );
     }
 }

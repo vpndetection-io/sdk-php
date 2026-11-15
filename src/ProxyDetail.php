@@ -17,7 +17,7 @@ use VPNDetection\Internal\Model\ProxyDetail as WireProxyDetail;
 final class ProxyDetail
 {
     public function __construct(
-        /** The proxy network, or an empty string where unattributed. */
+        /** The proxy network's ID, or an empty string where unattributed. */
         public readonly ?string $provider = null,
         /** The earliest date within the window this address was seen in the pool. */
         public readonly ?DateTimeImmutable $firstSeen = null,
@@ -33,6 +33,11 @@ final class ProxyDetail
         public readonly ?int $hitsDaysPct = null,
         /** How many distinct proxy networks this address was seen in. */
         public readonly ?int $providersNum = null,
+        /**
+         * The name the provider catalog gives the proxy network; an empty string
+         * where the catalog names none or the address is unattributed.
+         */
+        public readonly ?string $providerName = null,
     ) {
     }
 
@@ -40,7 +45,8 @@ final class ProxyDetail
     public function isEmpty(): bool
     {
         return $this->provider === null && $this->firstSeen === null && $this->lastSeen === null
-            && $this->hits === null && $this->hitsDaysPct === null && $this->providersNum === null;
+            && $this->hits === null && $this->hitsDaysPct === null && $this->providersNum === null
+            && $this->providerName === null;
     }
 
     /** @internal */
@@ -53,6 +59,7 @@ final class ProxyDetail
             hits: $w->getHits(),
             hitsDaysPct: $w->getHitsDaysPct(),
             providersNum: $w->getProvidersNum(),
+            providerName: $w->getProviderName(),
         );
     }
 }

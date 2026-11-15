@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.12
+  version: 2026.11.14
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -82,6 +82,7 @@ paths:
                   summary: Unlimited, no API key
                   value:
                     ip: 146.70.116.130
+                    is_bogon: false
                     is_vpn: true
                     is_relay: false
                     is_tor: false
@@ -108,6 +109,7 @@ paths:
                   summary: A free-plan key within its day's trial of every field
                   value:
                     ip: 146.70.116.130
+                    is_bogon: false
                     is_vpn: true
                     is_hosting: true
                     is_relay: false
@@ -119,10 +121,12 @@ paths:
                     is_pubproxy: false
                     vpn:
                       provider: mullvad
+                      provider_name: Mullvad
                       last_seen: '2026-09-02'
                       confidence: high
                     hosting:
                       provider: m247
+                      provider_name: M247
                       confidence: high
                       last_seen: '2026-09-02'
                     relay: {}
@@ -154,6 +158,7 @@ paths:
                   summary: A free-plan key past its day's trial, with Unlimited's fields
                   value:
                     ip: 146.70.116.130
+                    is_bogon: false
                     is_vpn: true
                     is_relay: false
                     is_tor: false
@@ -181,6 +186,7 @@ paths:
                   summary: A key on any paid plan, address found in the VPN dataset
                   value:
                     ip: 146.70.116.130
+                    is_bogon: false
                     is_vpn: true
                     is_hosting: true
                     is_relay: false
@@ -192,10 +198,12 @@ paths:
                     is_pubproxy: false
                     vpn:
                       provider: mullvad
+                      provider_name: Mullvad
                       last_seen: '2026-09-02'
                       confidence: high
                     hosting:
                       provider: m247
+                      provider_name: M247
                       confidence: high
                       last_seen: '2026-09-02'
                     relay: {}
@@ -226,6 +234,7 @@ paths:
                   summary: A private address on a paid plan, answered without a lookup
                   value:
                     ip: 192.168.1.1
+                    is_bogon: true
                     is_vpn: false
                     is_hosting: false
                     is_relay: false
@@ -377,6 +386,7 @@ paths:
                   summary: Unlimited, no API key
                   value:
                     ip: 146.70.116.130
+                    is_bogon: false
                     is_vpn: true
                     is_relay: false
                     is_tor: false
@@ -540,6 +550,7 @@ paths:
                     results:
                       192.168.1.1:
                         ip: 192.168.1.1
+                        is_bogon: true
                         is_vpn: false
                         is_hosting: false
                         is_relay: false
@@ -1585,8 +1596,8 @@ components:
     LookupResponse:
       type: object
       description: |
-        The union of every tier's answer. Every answer carries `ip`, `is_vpn`,
-        the Tor and relay members, `location` and `asn`, with or without a key;
+        The union of every tier's answer. Every answer carries `ip`, `is_bogon`,
+        `is_vpn`, the Tor and relay members, `location` and `asn`, with or without a key;
         each remaining field is present when your tier includes it, and absent
         otherwise. A client that must work across plans should treat an absent
         flag as unknown rather than as `false`.
@@ -1598,6 +1609,12 @@ components:
           type: string
           description: The address that was looked up, normalized.
           example: 1.1.1.1
+        is_bogon:
+          type: boolean
+          description: |
+            Whether the address is reserved space (RFC 1918, loopback, link-local,
+            documentation ranges and their IPv6 equivalents), answered from the
+            address alone. Every answer, with or without a key.
         is_vpn:
           type: boolean
           description: |
@@ -1652,8 +1669,8 @@ components:
             - $ref: '#/components/schemas/ClassDetail'
           description: |
             Detail for `is_tor`. Empty when false. Every answer, with or without a
-            key. The tor dataset carries no provider, so `provider` is always an
-            empty string.
+            key. The tor dataset carries no provider, so `provider` and
+            `provider_name` are always empty strings.
         cdn:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
@@ -1750,8 +1767,14 @@ components:
       properties:
         provider:
           type: string
-          description: The VPN provider, or an empty string for an unattributed range.
+          description: The VPN provider's ID, or an empty string for an unattributed range.
           example: mullvad
+        provider_name:
+          type: string
+          description: |
+            The name the provider catalog gives the provider, beside the ID to key on;
+            an empty string where the catalog names none or the range is unattributed.
+          example: Mullvad
         last_seen:
           type: string
           format: date
@@ -1777,8 +1800,14 @@ components:
       properties:
         provider:
           type: string
-          description: The provider, or an empty string where the dataset has none.
+          description: The provider's ID, or an empty string where the dataset has none.
           example: m247
+        provider_name:
+          type: string
+          description: |
+            The name the provider catalog gives the provider; an empty string where the
+            catalog names none or the dataset has no provider.
+          example: M247
         confidence:
           type: string
           description: How strongly the classification is supported.
@@ -1799,8 +1828,14 @@ components:
       properties:
         provider:
           type: string
-          description: The proxy network, or an empty string where unattributed.
+          description: The proxy network's ID, or an empty string where unattributed.
           example: brightdata
+        provider_name:
+          type: string
+          description: |
+            The name the provider catalog gives the proxy network; an empty string where
+            the catalog names none or the address is unattributed.
+          example: Bright Data
         first_seen:
           type: string
           format: date

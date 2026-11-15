@@ -24,7 +24,11 @@ final class Result
         public readonly string $ip,
         /** Whether the address is VPN infrastructure. Every plan includes this. */
         public readonly bool $isVpn,
-        /** Set when this answer was computed locally rather than served. */
+        /**
+         * True for reserved space (private, loopback, documentation and the
+         * like), which the library answers locally without a request. A served
+         * answer carries the API's own `is_bogon`, and this reads it.
+         */
         public readonly bool $isBogon,
         public readonly ?bool $isHosting = null,
         public readonly ?bool $isRelay = null,
@@ -77,7 +81,7 @@ final class Result
         return new self(
             ip: $w->getIp(),
             isVpn: $w->getIsVpn(),
-            isBogon: false,
+            isBogon: $w->getIsBogon() ?? false,
             isHosting: $w->getIsHosting(),
             isRelay: $w->getIsRelay(),
             isTor: $w->getIsTor(),

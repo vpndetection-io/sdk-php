@@ -17,7 +17,7 @@ use VPNDetection\Internal\Model\VpnDetail as WireVpnDetail;
 final class VpnDetail
 {
     public function __construct(
-        /** The VPN provider, or an empty string for an unattributed range. */
+        /** The VPN provider's ID, or an empty string for an unattributed range. */
         public readonly ?string $provider = null,
         /** The most recent date this address was observed as VPN infrastructure. */
         public readonly ?DateTimeImmutable $lastSeen = null,
@@ -28,6 +28,12 @@ final class VpnDetail
          * always null; read `confidence` instead. It goes in the next major.
          */
         public readonly ?string $method = null,
+        /**
+         * The name the provider catalog gives the provider, beside the ID in
+         * `provider` to key on; an empty string where the catalog names none or
+         * the range is unattributed.
+         */
+        public readonly ?string $providerName = null,
     ) {
     }
 
@@ -35,7 +41,8 @@ final class VpnDetail
     public function isEmpty(): bool
     {
         return $this->provider === null && $this->lastSeen === null
-            && $this->confidence === null && $this->method === null;
+            && $this->confidence === null && $this->method === null
+            && $this->providerName === null;
     }
 
     /** @internal */
@@ -46,6 +53,7 @@ final class VpnDetail
             lastSeen: Dates::immutable($w->getLastSeen()),
             confidence: $w->getConfidence(),
             method: $w->getMethod(),
+            providerName: $w->getProviderName(),
         );
     }
 }
