@@ -5713,6 +5713,48 @@
         }
       },
       {
+        "name": "numeric-upper-bound-on-absent-member",
+        "why": "lt on a member this plan does not serve matches nothing and is reported. A binding that reads the missing member as zero matches lt: 5 and blocks a visitor on data it never saw, which the gte case above cannot show.",
+        "body": {
+          "ip": "45.83.91.1",
+          "is_vpn": true
+        },
+        "condition": {
+          "resproxy": {
+            "hits": {
+              "lt": 5
+            }
+          }
+        },
+        "expect": {
+          "blocked": false,
+          "missing": [
+            "resproxy"
+          ]
+        }
+      },
+      {
+        "name": "numeric-inclusive-upper-bound-on-absent-member",
+        "why": "lte, the mirror of the case above: zero is inside lte: 5 too.",
+        "body": {
+          "ip": "45.83.91.1",
+          "is_vpn": true
+        },
+        "condition": {
+          "resproxy": {
+            "hits": {
+              "lte": 5
+            }
+          }
+        },
+        "expect": {
+          "blocked": false,
+          "missing": [
+            "resproxy"
+          ]
+        }
+      },
+      {
         "name": "false-entry-is-ignored",
         "why": "A false entry states nothing, so the remaining term decides. There is deliberately no way to write block-when-false, which would read as blocking everybody.",
         "body": {
