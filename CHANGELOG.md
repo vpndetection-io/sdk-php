@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.16.0 - 2026-11-18
+
+### Features
+
+- Hand back vocabulary values as served, and read plan name and cap_reached ([`b3a08d8`](https://github.com/vpndetection-io/sdk-php/commit/b3a08d8b4462761ff5478f00f2c88d4a7dc46db1))
+
 ## 4.15.0 - 2026-11-15
 
 ### Features
