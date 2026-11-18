@@ -18,12 +18,17 @@ final class EntitlementPlan
          * documented on the lookup endpoint rather than repeated here.
          */
         public readonly string $tier,
+        /**
+         * The plan's display name, `Unlimited` for `free`. Show it, and compare
+         * against `key`, which never changes: a plan's name can.
+         */
+        public readonly string $name = '',
     ) {
     }
 
     /** @internal */
     public static function fromWire(WireEntitlementPlan $w): self
     {
-        return new self(key: $w->getKey(), tier: $w->getTier());
+        return new self(key: $w->getKey(), tier: $w->getTier(), name: $w->getName());
     }
 }

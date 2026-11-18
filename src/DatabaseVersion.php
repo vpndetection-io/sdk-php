@@ -37,7 +37,7 @@ final class DatabaseVersion
             version: $w->getVersion(),
             summary: $w->getSummary(),
             formats: array_map(DatabaseFormatSize::fromWire(...), $w->getFormats()),
-            sampleFormats: array_map(static fn ($f) => $f->value, $w->getSampleFormats() ?? []),
+            sampleFormats: $w->getSampleFormats() ?? [],
         );
     }
 }

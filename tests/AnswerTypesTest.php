@@ -23,7 +23,7 @@ final class AnswerTypesTest extends TestCase
     private const ENTITLEMENT = [
         'org_id' => '85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61',
         'apikey' => ['id' => '0ab424cc-7619-4dad-b027-afacdc2cedb0', 'expires' => null, 'allowed_cidrs' => []],
-        'plan' => ['key' => 'max', 'tier' => 'max'],
+        'plan' => ['key' => 'max', 'name' => 'Max', 'tier' => 'max'],
         'usage' => [
             'requests' => 580,
             'quota' => 5000000,

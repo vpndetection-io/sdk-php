@@ -69,6 +69,9 @@ if [ "$(grep -c -e '^ \* @internal ' -e '^ \* @deprecated ' "$AUTHORIZATION")" !
     exit 1
 fi
 
+# A value the API adds to an answer's enum reads as served (scripts/open_enums.py).
+python3 scripts/open_enums.py src/Internal/Model
+
 rm -rf .gen
 echo "regenerated src/Internal from spec/openapi.yaml"
 grep -m1 '^  version:' spec/openapi.yaml

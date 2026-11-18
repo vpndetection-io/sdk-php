@@ -63,6 +63,12 @@ final class Result
          * true once the answer has Unlimited's.
          */
         public readonly ?bool $trialExpired = null,
+        /**
+         * On answers to a key on a paid plan only: false while the answer has every
+         * field, true once its organization's overage cap is reached and the answer
+         * has Unlimited's. Lookups answered past the cap are not billed.
+         */
+        public readonly ?bool $capReached = null,
     ) {
     }
 
@@ -103,6 +109,7 @@ final class Result
             location: $w->getLocation() === null ? null : Location::fromWire($w->getLocation()),
             asn: $w->getAsn() === null ? null : Asn::fromWire($w->getAsn()),
             trialExpired: $w->getTrialExpired(),
+            capReached: $w->getCapReached(),
         );
     }
 }

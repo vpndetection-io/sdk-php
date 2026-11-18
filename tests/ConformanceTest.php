@@ -351,6 +351,38 @@ final class ConformanceTest extends TestCase
     }
 
     /** @return array<string, mixed> */
+    /**
+     * A value the API adds to a closed vocabulary in an answer (a tier, a standing,
+     * a license type, a format, an outcome) comes back as served, and the plan's
+     * name is read. Each `expect` key is a wire path through the answer.
+     */
+    public function testAVocabularyValueTheApiAddsComesBackAsServed(): void
+    {
+        $calls = [
+            'myEntitlement' => ['/api/v1/entitlement', static fn (Client $c) => $c->myEntitlement()],
+            'listDatabases' => ['/api/v1/database/list', static fn (Client $c) => $c->database->list()],
+            'listDownloads' => ['/api/v1/database/downloads', static fn (Client $c) => $c->database->downloads()],
+        ];
+        $raw = json_decode((string) file_get_contents(__DIR__ . '/../testdata/testdata.json'), false, 512, JSON_THROW_ON_ERROR);
+        self::assertNotEmpty(self::$data['vocabulary']['cases']);
+        foreach (self::$data['vocabulary']['cases'] as $i => $case) {
+            [$path, $call] = $calls[$case['call']];
+            $stub = new Stub([$path => Stub::ok($raw->vocabulary->cases[$i]->answer)]);
+            $value = $call(new Client(new Options(apiKey: 'test-key', httpClient: $stub->client)));
+            foreach ($case['expect'] as $wirePath => $want) {
+                $got = $value;
+                foreach (explode('.', $wirePath) as $step) {
+                    if (is_array($got) && !ctype_digit($step)) {
+                        // A list call answers the list itself, not the object around it.
+                        continue;
+                    }
+                    $got = is_array($got) ? $got[(int) $step] : $got->{self::camel($step)};
+                }
+                self::assertSame($want, $got, "{$case['name']}: {$wirePath}");
+            }
+        }
+    }
+
     private static function batchCase(string $name): array
     {
         foreach (self::$data['batch'] as $case) {

@@ -59,7 +59,7 @@ final class Database
             starts: Dates::immutable($w->getStarts()),
             expires: Dates::immutable($w->getExpires()),
             inTerm: $w->getInTerm(),
-            standing: $w->getStanding()->value,
+            standing: $w->getStanding(),
             versions: array_map(DatabaseVersion::fromWire(...), $w->getVersions()),
             open: $w->getOpen(),
         );

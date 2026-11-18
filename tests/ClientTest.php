@@ -1033,7 +1033,7 @@ final class ClientTest extends TestCase
             'expires' => null,
             'allowed_cidrs' => [],
         ],
-        'plan' => ['key' => 'max', 'tier' => 'max'],
+        'plan' => ['key' => 'max', 'name' => 'Max', 'tier' => 'max'],
         'usage' => [
             'requests' => 580,
             'quota' => 5000000,
@@ -1075,6 +1075,7 @@ final class ClientTest extends TestCase
 
         self::assertSame('max', $ent->plan->key);
         self::assertSame('max', $ent->plan->tier);
+        self::assertSame('Max', $ent->plan->name);
         self::assertSame(580, $ent->usage->requests);
         self::assertSame(5000000, $ent->usage->quota);
         // Null means NEVER stop, which is not the same as a limit of zero.

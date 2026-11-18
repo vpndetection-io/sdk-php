@@ -59,10 +59,13 @@ Same answer `lookup` would give for that address, and the same cost against your
 
 ```php
 $acct = $client->myEntitlement();
+echo $acct->plan->name;         // Max
 echo $acct->plan->key;          // max
 echo $acct->usage->requests;    // 580
 echo $acct->usage->windowEnd->format(DATE_ATOM); // when the allowance resets
 ```
+
+Show `plan->name` and compare against `plan->key`: a plan's name can change, and its key never does. A value the API adds later to a plan's `tier`, a database's `standing` or `licenseType`, a format or a download's `outcome` comes back as the string it served, so check for the values you know rather than assuming the list is complete.
 
 Usage counts against the anniversary of your subscription on a paid plan, not the calendar month and not the billing period, and against the UTC day on the free plan; it is the same number a lookup is gated on. `hardLimit` is `null` on an uncapped plan, which is not the same as zero.
 
@@ -255,12 +258,13 @@ Each redirect URI must be https on a public host name, or http on a loopback add
 
 ### Absent is not false
 
-Unlimited leaves out `isHosting`, `isCdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's; a free-plan key's answer carries `trialExpired`, true once its daily trial is spent. A field your key does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
+Unlimited leaves out `isHosting`, `isCdn` and the four proxy flags, and of the detail behind each flag it answers only Tor's and relay's; a free-plan key's answer carries `trialExpired`, true once its daily trial is spent, and a paid key's carries `capReached`, true once its organization's overage cap is reached and the answer has Unlimited's. A field your key does not include is `null`, which is not the same answer as `false`: `null` means "not in your plan", `false` means "checked, and no".
 
 ```php
 $result->isHosting ?? false;   // when you only want the flag
 $result->isHosting === null;   // on Unlimited: not in your plan
 $result->trialExpired === true; // a free-plan key's daily trial is spent
+$result->capReached === true;   // a paid key past its overage cap
 ```
 
 ## Other Libraries

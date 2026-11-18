@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.14
+  version: 2026.11.17
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -230,6 +230,37 @@ paths:
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                    cap_reached: false
+                capReached:
+                  summary: >-
+                    A key on a paid plan past its organization's overage cap, with Unlimited's
+                    fields
+                  value:
+                    ip: 146.70.116.130
+                    is_bogon: false
+                    is_vpn: true
+                    is_relay: false
+                    is_tor: false
+                    relay: {}
+                    tor: {}
+                    location:
+                      continent: EU
+                      continent_name: Europe
+                      country: AT
+                      country_name: Austria
+                      timezone: Europe/Vienna
+                      currency_code: EUR
+                      currency_name: Euro
+                      currency_symbol: €
+                      flag_emoji: 🇦🇹
+                      flag_unicode: U+1F1E6 U+1F1F9
+                    asn:
+                      asn: 9009
+                      name: M247 Europe SRL
+                      domain: m247global.com
+                      type: hosting
+                      prefix: 146.70.116.0/24
+                    cap_reached: true
                 bogon:
                   summary: A private address on a paid plan, answered without a lookup
                   value:
@@ -270,6 +301,7 @@ paths:
                       domain: ''
                       type: ''
                       prefix: ''
+                    cap_reached: false
         '400':
           description: The path segment is not a valid IP address.
           content:
@@ -297,9 +329,10 @@ paths:
         '403':
           description: |
             The key restricts which source addresses may use it and this
-            request came from none of them, or the key was sent over plain
-            HTTP, where anyone on the network path could read it. Rotate a key
-            that was.
+            request came from none of them, or the key lacks the `ip.lookup`
+            scope (IP lookup, in the console's key settings), or the key was
+            sent over plain HTTP, where anyone on the network path could read
+            it. Rotate a key that was.
           content:
             application/json:
               schema:
@@ -308,21 +341,21 @@ paths:
                 sourceNotAllowed:
                   value:
                     error: source address not allowed for this API key
+                scopeMissing:
+                  value:
+                    error: API key lacks the ip.lookup scope; add IP lookup to it in the console
                 plainHttp:
                   value:
                     error: API key sent over plain HTTP; use https://
         '429':
           description: |
-            Either a rate limit or a paid plan's overage cap. `Retry-After` is
-            present for the former and absent for the latter, and is the only
-            way to tell them apart.
+            A rate limit, always with `Retry-After`. A paid plan's overage cap is
+            never a `429`: it answers `200` with Unlimited's fields and
+            `cap_reached` `true`.
           headers:
             Retry-After:
-              description: |
-                Seconds to wait before retrying. Present ONLY when the rejection
-                is a rate limit; its absence means the overage cap is reached and
-                retrying will not help.
-              required: false
+              description: Seconds to wait before retrying.
+              required: true
               schema:
                 type: integer
           content:
@@ -340,10 +373,6 @@ paths:
                     error: >-
                       per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
                       plan
-                overageCapReached:
-                  summary: Paid plan's overage cap reached, no Retry-After
-                  value:
-                    error: overage cap reached; raise or remove it in Billing
         '500':
           description: The VPN dataset could not be consulted.
           content:
@@ -428,9 +457,10 @@ paths:
         '403':
           description: |
             The key restricts which source addresses may use it and this
-            request came from none of them, or the key was sent over plain
-            HTTP, where anyone on the network path could read it. Rotate a key
-            that was.
+            request came from none of them, or the key lacks the `ip.lookup`
+            scope (IP lookup, in the console's key settings), or the key was
+            sent over plain HTTP, where anyone on the network path could read
+            it. Rotate a key that was.
           content:
             application/json:
               schema:
@@ -439,21 +469,21 @@ paths:
                 sourceNotAllowed:
                   value:
                     error: source address not allowed for this API key
+                scopeMissing:
+                  value:
+                    error: API key lacks the ip.lookup scope; add IP lookup to it in the console
                 plainHttp:
                   value:
                     error: API key sent over plain HTTP; use https://
         '429':
           description: |
-            Either a rate limit or a paid plan's overage cap. `Retry-After` is
-            present for the former and absent for the latter, and is the only
-            way to tell them apart.
+            A rate limit, always with `Retry-After`. A paid plan's overage cap is
+            never a `429`: it answers `200` with Unlimited's fields and
+            `cap_reached` `true`.
           headers:
             Retry-After:
-              description: |
-                Seconds to wait before retrying. Present ONLY when the rejection
-                is a rate limit; its absence means the overage cap is reached and
-                retrying will not help.
-              required: false
+              description: Seconds to wait before retrying.
+              required: true
               schema:
                 type: integer
           content:
@@ -471,10 +501,6 @@ paths:
                     error: >-
                       per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
                       plan
-                overageCapReached:
-                  summary: Paid plan's overage cap reached, no Retry-After
-                  value:
-                    error: overage cap reached; raise or remove it in Billing
         '500':
           description: The VPN dataset could not be consulted.
           content:
@@ -505,13 +531,12 @@ paths:
         normalized form. An address that could not be answered sits in `errors`
         with the status and message the single lookup would have given, and
         never disturbs the others: a string that is not an address is a `400`
-        there, and an overage cap reached part way through leaves the remaining
-        entries as `429`s.
+        there. An overage cap reached part way through answers the remaining
+        entries with Unlimited's fields and `cap_reached` `true`, in `results`.
 
         The call itself fails only for the reasons below, and a `429` on the
         call always carries `Retry-After`: the batch is admitted or refused
-        whole by the rate limit, so a per-entry `429` is always the overage cap
-        and never a throttle.
+        whole by the rate limit, never per entry.
 
         A batch needs a paid plan: without a key the call is refused with `401`,
         and with a key on the free plan with `402`, unless it names one address,
@@ -586,18 +611,44 @@ paths:
                           domain: ''
                           type: ''
                           prefix: ''
+                        cap_reached: false
                     errors:
                       not-an-ip:
                         status: 400
                         error: not a valid IP address
-                overageCapReached:
-                  summary: A key on a paid plan whose overage cap was already reached
+                capReached:
+                  summary: >-
+                    A key on a paid plan whose overage cap was already reached, answered with
+                    Unlimited's fields
                   value:
-                    results: {}
-                    errors:
-                      8.8.8.8:
-                        status: 429
-                        error: overage cap reached; raise or remove it in Billing
+                    results:
+                      146.70.116.130:
+                        ip: 146.70.116.130
+                        is_bogon: false
+                        is_vpn: true
+                        is_relay: false
+                        is_tor: false
+                        relay: {}
+                        tor: {}
+                        location:
+                          continent: EU
+                          continent_name: Europe
+                          country: AT
+                          country_name: Austria
+                          timezone: Europe/Vienna
+                          currency_code: EUR
+                          currency_name: Euro
+                          currency_symbol: €
+                          flag_emoji: 🇦🇹
+                          flag_unicode: U+1F1E6 U+1F1F9
+                        asn:
+                          asn: 9009
+                          name: M247 Europe SRL
+                          domain: m247global.com
+                          type: hosting
+                          prefix: 146.70.116.0/24
+                        cap_reached: true
+                    errors: {}
                 lookupFailed:
                   summary: The VPN dataset could not be consulted, which fails every entry
                   value:
@@ -653,9 +704,10 @@ paths:
         '403':
           description: |
             The key restricts which source addresses may use it and this
-            request came from none of them, or the key was sent over plain
-            HTTP, where anyone on the network path could read it. Rotate a key
-            that was.
+            request came from none of them, or the key lacks the `ip.lookup`
+            scope (IP lookup, in the console's key settings), or the key was
+            sent over plain HTTP, where anyone on the network path could read
+            it. Rotate a key that was.
           content:
             application/json:
               schema:
@@ -664,6 +716,9 @@ paths:
                 sourceNotAllowed:
                   value:
                     error: source address not allowed for this API key
+                scopeMissing:
+                  value:
+                    error: API key lacks the ip.lookup scope; add IP lookup to it in the console
                 plainHttp:
                   value:
                     error: API key sent over plain HTTP; use https://
@@ -678,7 +733,7 @@ paths:
         '429':
           description: |
             The rate limit refused the whole call. Always transient and always
-            with `Retry-After`; a reached overage cap is reported per entry in a
+            with `Retry-After`; a reached overage cap answers each entry in a
             `200` instead.
           headers:
             Retry-After:
@@ -970,6 +1025,7 @@ paths:
                       allowed_cidrs: []
                     plan:
                       key: max
+                      name: Max
                       tier: max
                     usage:
                       requests: 580
@@ -991,6 +1047,7 @@ paths:
                       allowed_cidrs: []
                     plan:
                       key: free
+                      name: Unlimited
                       tier: free
                     usage:
                       requests: 37
@@ -1020,13 +1077,19 @@ paths:
         '403':
           description: |
             The key restricts which source addresses may use it, and this
-            request did not come from one of them.
+            request did not come from one of them; or the key was sent over
+            plain HTTP, which is refused whatever the key.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EntitlementError'
-              example:
-                error: source address not allowed for this API key
+              examples:
+                source:
+                  value:
+                    error: source address not allowed for this API key
+                plain_http:
+                  value:
+                    error: API key sent over plain HTTP; use https://
         '503':
           description: |
             The usage counters could not be read. Reported rather than guessed
@@ -1701,6 +1764,14 @@ components:
             On every answer to a key on the free plan, and on no other: `false`
             while its organization's daily trial lasts (every field for the first
             100 lookups each UTC day), `true` once the answer has Unlimited's.
+        cap_reached:
+          type: boolean
+          description: |
+            On every answer to a key on a paid plan, and on no other: `false`
+            while the answer has every field, `true` once its organization's
+            overage cap is reached and the answer has Unlimited's. Lookups
+            answered past the cap are not billed; raising or removing the cap in
+            Billing turns it `false` again.
     BatchLookupRequest:
       type: object
       required:
@@ -1750,9 +1821,8 @@ components:
           type: integer
           description: |
             The HTTP status `GET /{ip}` would have answered for this entry: `400`
-            for a string that is not an address, `429` for a reached overage cap,
-            `500` when the VPN dataset could not be consulted. A `429` here is
-            never a throttle; the whole call is refused instead.
+            for a string that is not an address, `500` when the VPN dataset could
+            not be consulted.
           example: 400
         error:
           type: string
@@ -2000,6 +2070,7 @@ components:
       properties:
         asn:
           type: integer
+          format: int64
           description: The AS number, 0 when no announcement covers the address.
           example: 9009
         name:
@@ -2368,15 +2439,24 @@ components:
       type: object
       required:
         - key
+        - name
         - tier
       properties:
         key:
           type: string
           description: |
-            The plan the organization is on: `free` for the free plan,
-            Unlimited, or a paid plan's key. On `free`, usage counts the
+            The plan the organization is on, as an identifier that is never
+            renamed or reused: `free` for the free plan, or a paid plan's key.
+            Compare against it and show `name`. On `free`, usage counts the
             day's lookups answered with every field, its daily trial.
           example: max
+        name:
+          type: string
+          description: |
+            The plan's name, as the site and console show it: `Unlimited` for
+            the free plan. Show this rather than a name built from `key`: a
+            plan's name can change, and its key never does.
+          example: Max
         tier:
           type: string
           enum:
@@ -2386,7 +2466,8 @@ components:
             - max
           description: |
             The field tier, which decides how much of a lookup answer comes
-            back; `free` is the free plan's. What each tier includes is documented
+            back; `free` is the free plan's. This list never gains a value: a
+            new plan reports one of these. What each tier includes is documented
             on the lookup endpoint rather than repeated here, so there is one
             place it can be wrong.
     EntitlementUsage:
@@ -2413,9 +2494,12 @@ components:
           format: int64
           nullable: true
           description: |
-            Where we stop serving. NULL means never, which is the normal state
-            of an uncapped paid plan and is not the same as zero. Above the
-            quota and below this, requests are served and billed as overage.
+            Where full answers stop: past it, a paid key is answered with
+            Unlimited's fields and `cap_reached: true`, uncharged, until the
+            window ends or the cap is raised. NULL means never, which is the
+            normal state of an uncapped paid plan and is not the same as zero.
+            Above the quota and below this, requests are served and billed as
+            overage.
         window_start:
           type: string
           format: date-time

@@ -20,6 +20,6 @@ final class DatabaseFormatSize
     /** @internal */
     public static function fromWire(WireDatabaseFormatSize $w): self
     {
-        return new self(format: $w->getFormat()->value, bytes: $w->getBytes());
+        return new self(format: $w->getFormat(), bytes: $w->getBytes());
     }
 }
