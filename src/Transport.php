@@ -311,10 +311,9 @@ final class Transport
      * answer without them came back as one.
      *
      * Only those two rules of the generated listInvalidProperties() are kept. Its
-     * enum checks would add nothing: the generated setters already refuse a
-     * `license_type`, `outcome` or `tier` outside the pinned spec's values while
-     * ObjectSerializer::deserialize() runs, before this does, so a value the API
-     * adds fails the call as a retried server_error until a release re-pins.
+     * enum checks are left out on purpose: a `license_type`, `outcome` or `tier`
+     * the API adds comes back as served, the generated setters' own checks dropped
+     * by scripts/open_enums.py, and those rules would refuse it again here.
      */
     private static function unmet(mixed $value, string $type, string $at): ?string
     {
