@@ -225,7 +225,7 @@ if ($token->apikey === null) {
 $keyed = new Client(new Options(apiKey: $token->apikey));
 ```
 
-A denied sign-in throws `OauthAccessDeniedException` and a code that ran out `OauthExpiredTokenException`. Client IDs are issued on request from support@vpndetection.io, and `$client->oauth->revoke('your-client-id', $token->refreshToken)` signs the machine out again.
+A denied sign-in throws `OauthAccessDeniedException` and a code that ran out `OauthExpiredTokenException`. `$client->oauth->revoke('your-client-id', $token->refreshToken)` signs the machine out again. Only a client we registered, such as our CLI, can use the device flow: an app of your own signs people in with the authorization code flow below.
 
 ### Sign in with OAuth (authorization code)
 
