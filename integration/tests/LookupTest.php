@@ -85,8 +85,8 @@ final class LookupTest extends TestCase
         $raw = Staging::answerFor(Tiers::trial())['result']->raw;
 
         self::assertIsBool($raw['trial_expired'] ?? null, 'a free-plan key answers trial_expired');
-        // The organization's first 100 lookups of the UTC day are answered in
-        // full, and the rest as Unlimited's: which half a run sees depends on the day.
+        // While the organization's trial lasts its lookups are answered in full,
+        // and after it as Unlimited's: which a run sees depends on the trial.
         self::assertSame(!$raw['trial_expired'], array_key_exists('is_hosting', $raw));
     }
 
