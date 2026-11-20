@@ -179,8 +179,14 @@ final class LookupTest extends TestCase
         self::assertTrue(Bogon::isBogon('10.0.0.1'), 'the standalone form must agree');
         foreach (array_keys(Staging::MEMBERS) as $name) {
             self::assertFalse($r->{Staging::flagProp($name)}, "a bogon must answer {$name} false, not null");
-            self::assertTrue($r->$name->isEmpty(), "a bogon must carry an empty {$name}");
+            self::assertTrue($r->{Staging::detailProp($name)}->isEmpty(), "a bogon must carry an empty {$name}");
         }
+        self::assertFalse($r->isAnycast, 'a bogon must answer is_anycast false, not null');
+        self::assertFalse($r->isWeb, 'a bogon must answer is_web false, not null');
+        self::assertSame([], $r->web, 'a bogon must carry an empty web');
+        self::assertSame('', $r->hostname, 'a bogon must carry an empty hostname');
+        self::assertSame('', $r->company?->name, 'a bogon must carry an empty company');
+        self::assertSame('', $r->abuse?->email, 'a bogon must carry an empty abuse contact');
     }
 
     public function testABatchWithoutAKeyIsRefusedOnceAndItsBogonStillAnswered(): void

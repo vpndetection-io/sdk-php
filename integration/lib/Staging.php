@@ -41,6 +41,61 @@ final class Staging
         'resproxy' => ['required' => self::PROXY_KEYS, 'optional' => []],
         'dcproxy' => ['required' => self::PROXY_KEYS, 'optional' => []],
         'mobproxy' => ['required' => self::PROXY_KEYS, 'optional' => []],
+        'carrier' => ['required' => ['name', 'mcc', 'mnc', 'country', 'confidence'], 'optional' => []],
+        'satellite' => [
+            'required' => ['provider', 'provider_name', 'orbit', 'segment', 'country', 'asn', 'confidence'],
+            'optional' => [],
+        ],
+        'ssh' => [
+            'required' => ['port', 'banner', 'host_key_fp', 'session_ok', 'first_seen', 'last_seen'],
+            'optional' => [],
+        ],
+        'smtp' => ['required' => ['port', 'banner', 'session_ok', 'first_seen', 'last_seen'], 'optional' => []],
+        'dns_resolver' => [
+            'required' => ['port', 'recursion_available', 'rcode', 'answer_correct', 'first_seen', 'last_seen'],
+            'optional' => [],
+        ],
+        'bittorrent' => [
+            'required' => [
+                'verified', 'id_matches_ip', 'first_seen', 'last_seen', 'last_reachable', 'days_seen',
+                'num_ports', 'peak_num_ports', 'indexer', 'clients',
+            ],
+            'optional' => [],
+        ],
+    ];
+
+    /** The keys of each row of `web`, a list with a row per port that answered. */
+    public const WEB_KEYS = [
+        'port', 'tls_ok', 'session_ok', 'status_code', 'server', 'location', 'title', 'cert_subject_cn',
+        'cert_subject_o', 'cert_issuer_dn', 'cert_browser_trusted', 'tls_version', 'first_seen', 'last_seen',
+    ];
+
+    /**
+     * The objects that are never empty: `required` is on every answer carrying
+     * the object, `optional` only on a plan that includes it.
+     *
+     * @var array<string, array{required: list<string>, optional: list<string>}>
+     */
+    public const OBJECTS = [
+        'location' => [
+            'required' => [
+                'continent', 'continent_name', 'country', 'country_name', 'timezone', 'currency_code',
+                'currency_name', 'currency_symbol', 'flag_emoji', 'flag_unicode',
+            ],
+            'optional' => [
+                'region', 'region_code', 'city', 'postal_code', 'latitude', 'longitude', 'accuracy_radius',
+                'geoname_id', 'dma_code', 'last_changed',
+            ],
+        ],
+        'asn' => [
+            'required' => ['asn', 'name', 'domain', 'type', 'prefix'],
+            'optional' => ['country', 'rpki_status'],
+        ],
+        'company' => ['required' => ['name', 'domain'], 'optional' => ['type', 'country']],
+        'abuse' => [
+            'required' => ['email'],
+            'optional' => ['name', 'phone', 'address', 'country', 'network', 'validated', 'unvalidated_since'],
+        ],
     ];
 
     private const CLASS_KEYS = ['provider', 'provider_name', 'confidence', 'last_seen'];
@@ -59,9 +114,15 @@ final class Staging
      */
     public static function resultProps(): array
     {
-        $props = ['ip' => 'ip', 'is_vpn' => 'isVpn'];
+        $props = [
+            'ip' => 'ip', 'is_vpn' => 'isVpn', 'is_anycast' => 'isAnycast', 'is_web' => 'isWeb', 'web' => 'web',
+            'hostname' => 'hostname',
+        ];
         foreach (array_keys(self::MEMBERS) as $name) {
             $props["is_{$name}"] = self::flagProp($name);
+            $props[$name] = self::detailProp($name);
+        }
+        foreach (array_keys(self::OBJECTS) as $name) {
             $props[$name] = $name;
         }
         return $props;
@@ -69,7 +130,13 @@ final class Staging
 
     public static function flagProp(string $name): string
     {
-        return 'is' . ucfirst($name);
+        return 'is' . ucfirst(self::detailProp($name));
+    }
+
+    /** `dns_resolver` is `dnsResolver` on the result. */
+    public static function detailProp(string $name): string
+    {
+        return lcfirst(str_replace('_', '', ucwords($name, '_')));
     }
 
     /**
@@ -198,6 +265,55 @@ final class Staging
             Assert::assertNotNull($r->$flag, "{$name} is served without {$flag}");
             self::assertDetail($r, $name, $spec);
         }
+        foreach (['is_anycast' => 'isAnycast', 'is_web' => 'isWeb'] as $wire => $flag) {
+            if (array_key_exists($wire, $r->raw)) {
+                Assert::assertIsBool($r->$flag, "{$wire} is served, so the client must map it to a boolean");
+            }
+        }
+        if (array_key_exists('hostname', $r->raw)) {
+            Assert::assertIsString($r->hostname, 'hostname is served, so the client must map it to a string');
+        }
+        if (array_key_exists('web', $r->raw)) {
+            self::assertWeb($r);
+        }
+        foreach (self::OBJECTS as $name => $spec) {
+            if (array_key_exists($name, $r->raw)) {
+                Assert::assertNotNull($r->$name, "{$name} is served, so the client must map it");
+                self::assertKeys($r->raw[$name], $name, $spec);
+            }
+        }
+    }
+
+    private static function assertWeb(Result $r): void
+    {
+        $rows = $r->raw['web'];
+        Assert::assertIsArray($rows, 'web must be a list when present');
+        Assert::assertTrue(array_is_list($rows), 'web must be a list when present');
+        Assert::assertNotNull($r->isWeb, 'web is served without isWeb');
+        Assert::assertSame($rows !== [], $r->isWeb, 'web has rows exactly when isWeb is true');
+        Assert::assertCount(count($rows), $r->web ?? [], 'the client keeps every web row');
+        foreach ($rows as $row) {
+            self::assertKeys($row, 'web[]', ['required' => self::WEB_KEYS, 'optional' => []]);
+        }
+    }
+
+    /**
+     * @param mixed $object
+     * @param array{required: list<string>, optional: list<string>} $spec
+     */
+    private static function assertKeys(mixed $object, string $name, array $spec): void
+    {
+        Assert::assertIsArray($object, "{$name} must be an object when present");
+        foreach ($spec['required'] as $key) {
+            Assert::assertArrayHasKey($key, $object, "{$name} carries no {$key}");
+        }
+        foreach (array_keys($object) as $key) {
+            Assert::assertContains(
+                $key,
+                [...$spec['required'], ...$spec['optional']],
+                "{$name}.{$key} is not a documented key of this object",
+            );
+        }
     }
 
     /** @param array{required: list<string>, optional: list<string>} $spec */
@@ -207,7 +323,7 @@ final class Staging
         Assert::assertIsArray($detail, "{$name} must be an object when present");
         if ($detail === []) {
             Assert::assertFalse($r->{self::flagProp($name)}, "{$name} is empty, so its flag must be false");
-            Assert::assertTrue($r->$name->isEmpty(), "{$name} arrived empty and the client filled it in");
+            Assert::assertTrue($r->{self::detailProp($name)}->isEmpty(), "{$name} arrived empty and the client filled it in");
             return;
         }
         foreach ($spec['required'] as $key) {
