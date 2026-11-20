@@ -7,9 +7,9 @@ info:
 
     Lookups need no API key: Unlimited, the free plan, answers any address with
     no daily or monthly cap, with a key or without one. Every paid plan answers
-    every field, and a free account tries them, 100 lookups a day. Unlimited's
-    answers may be used commercially, but not redistributed or used in a
-    competing service (https://vpndetection.io/terms#no-key).
+    every field, and a free account tries them. Unlimited's answers may be used
+    commercially, but not redistributed or used in a competing service
+    (https://vpndetection.io/terms#no-key).
 
     See https://docs.vpndetection.io for guides and https://github.com/vpndetection-io
     for the official client libraries.
@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.18
+  version: 2026.11.20
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -55,7 +55,7 @@ paths:
         Answers what is known about a single IPv4 or IPv6 address. Which fields
         come back is decided by the presented key; with no key, on Unlimited,
         the free plan, the answer is `ip`, `is_vpn`, the Tor and relay members,
-        `location` and `asn`.
+        `is_anycast`, `hostname`, `location` and `asn`.
       parameters:
         - in: path
           name: ip
@@ -86,6 +86,7 @@ paths:
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_anycast: false
                     relay: {}
                     tor: {}
                     location:
@@ -105,8 +106,11 @@ paths:
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                      country: RO
+                      rpki_status: not_found
+                    hostname: ''
                 trial:
-                  summary: A free-plan key within its day's trial of every field
+                  summary: A free-plan key within its trial of every field
                   value:
                     ip: 146.70.116.130
                     is_bogon: false
@@ -119,6 +123,14 @@ paths:
                     is_dcproxy: false
                     is_mobproxy: false
                     is_pubproxy: false
+                    is_anycast: false
+                    is_carrier: false
+                    is_satellite: false
+                    is_ssh: false
+                    is_smtp: false
+                    is_web: false
+                    is_dns_resolver: false
+                    is_bittorrent: false
                     vpn:
                       provider: mullvad
                       provider_name: Mullvad
@@ -136,6 +148,13 @@ paths:
                     dcproxy: {}
                     mobproxy: {}
                     pubproxy: {}
+                    carrier: {}
+                    satellite: {}
+                    ssh: {}
+                    smtp: {}
+                    web: []
+                    dns_resolver: {}
+                    bittorrent: {}
                     location:
                       continent: EU
                       continent_name: Europe
@@ -147,21 +166,49 @@ paths:
                       currency_symbol: €
                       flag_emoji: 🇦🇹
                       flag_unicode: U+1F1E6 U+1F1F9
+                      region: Vienna
+                      region_code: AT-9
+                      city: Vienna
+                      postal_code: '1230'
+                      latitude: 48.20849
+                      longitude: 16.37208
+                      accuracy_radius: 10
+                      geoname_id: '2761369'
+                      dma_code: ''
+                      last_changed: '2026-10-06'
                     asn:
                       asn: 9009
                       name: M247 Europe SRL
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                      country: RO
+                      rpki_status: not_found
+                    company:
+                      name: M247 LTD Vienna Infrastructure
+                      domain: m247.ro
+                      type: hosting
+                      country: AT
+                    hostname: ''
+                    abuse:
+                      email: abuse@m247.ro
+                      name: M247 Europe
+                      phone: ''
+                      address: Sos. Fabrica de Glucoza, Nr 11B, etaj 1, Sector 2, Bucuresti Romania
+                      country: AT
+                      network: 146.70.116.0-146.70.116.255
+                      validated: false
+                      unvalidated_since: ''
                     trial_expired: false
                 trialExpired:
-                  summary: A free-plan key past its day's trial, with Unlimited's fields
+                  summary: A free-plan key past its trial, with Unlimited's fields
                   value:
                     ip: 146.70.116.130
                     is_bogon: false
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_anycast: false
                     relay: {}
                     tor: {}
                     location:
@@ -181,6 +228,9 @@ paths:
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                      country: RO
+                      rpki_status: not_found
+                    hostname: ''
                     trial_expired: true
                 paid:
                   summary: A key on any paid plan, address found in the VPN dataset
@@ -196,6 +246,14 @@ paths:
                     is_dcproxy: false
                     is_mobproxy: false
                     is_pubproxy: false
+                    is_anycast: false
+                    is_carrier: false
+                    is_satellite: false
+                    is_ssh: false
+                    is_smtp: false
+                    is_web: false
+                    is_dns_resolver: false
+                    is_bittorrent: false
                     vpn:
                       provider: mullvad
                       provider_name: Mullvad
@@ -213,6 +271,13 @@ paths:
                     dcproxy: {}
                     mobproxy: {}
                     pubproxy: {}
+                    carrier: {}
+                    satellite: {}
+                    ssh: {}
+                    smtp: {}
+                    web: []
+                    dns_resolver: {}
+                    bittorrent: {}
                     location:
                       continent: EU
                       continent_name: Europe
@@ -224,12 +289,39 @@ paths:
                       currency_symbol: €
                       flag_emoji: 🇦🇹
                       flag_unicode: U+1F1E6 U+1F1F9
+                      region: Vienna
+                      region_code: AT-9
+                      city: Vienna
+                      postal_code: '1230'
+                      latitude: 48.20849
+                      longitude: 16.37208
+                      accuracy_radius: 10
+                      geoname_id: '2761369'
+                      dma_code: ''
+                      last_changed: '2026-10-06'
                     asn:
                       asn: 9009
                       name: M247 Europe SRL
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                      country: RO
+                      rpki_status: not_found
+                    company:
+                      name: M247 LTD Vienna Infrastructure
+                      domain: m247.ro
+                      type: hosting
+                      country: AT
+                    hostname: ''
+                    abuse:
+                      email: abuse@m247.ro
+                      name: M247 Europe
+                      phone: ''
+                      address: Sos. Fabrica de Glucoza, Nr 11B, etaj 1, Sector 2, Bucuresti Romania
+                      country: AT
+                      network: 146.70.116.0-146.70.116.255
+                      validated: false
+                      unvalidated_since: ''
                     cap_reached: false
                 capReached:
                   summary: >-
@@ -241,6 +333,7 @@ paths:
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_anycast: false
                     relay: {}
                     tor: {}
                     location:
@@ -260,6 +353,9 @@ paths:
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                      country: RO
+                      rpki_status: not_found
+                    hostname: ''
                     cap_reached: true
                 bogon:
                   summary: A private address on a paid plan, answered without a lookup
@@ -275,6 +371,14 @@ paths:
                     is_dcproxy: false
                     is_mobproxy: false
                     is_pubproxy: false
+                    is_anycast: false
+                    is_carrier: false
+                    is_satellite: false
+                    is_ssh: false
+                    is_smtp: false
+                    is_web: false
+                    is_dns_resolver: false
+                    is_bittorrent: false
                     vpn: {}
                     hosting: {}
                     relay: {}
@@ -284,6 +388,13 @@ paths:
                     dcproxy: {}
                     mobproxy: {}
                     pubproxy: {}
+                    carrier: {}
+                    satellite: {}
+                    ssh: {}
+                    smtp: {}
+                    web: []
+                    dns_resolver: {}
+                    bittorrent: {}
                     location:
                       continent: ''
                       continent_name: ''
@@ -295,12 +406,39 @@ paths:
                       currency_symbol: ''
                       flag_emoji: ''
                       flag_unicode: ''
+                      region: ''
+                      region_code: ''
+                      city: ''
+                      postal_code: ''
+                      latitude: 0
+                      longitude: 0
+                      accuracy_radius: 0
+                      geoname_id: ''
+                      dma_code: ''
+                      last_changed: ''
                     asn:
                       asn: 0
                       name: ''
                       domain: ''
                       type: ''
                       prefix: ''
+                      country: ''
+                      rpki_status: ''
+                    company:
+                      name: ''
+                      domain: ''
+                      type: ''
+                      country: ''
+                    hostname: ''
+                    abuse:
+                      email: ''
+                      name: ''
+                      phone: ''
+                      address: ''
+                      country: ''
+                      network: ''
+                      validated: false
+                      unvalidated_since: ''
                     cap_reached: false
         '400':
           description: The path segment is not a valid IP address.
@@ -350,8 +488,8 @@ paths:
         '429':
           description: |
             A rate limit, always with `Retry-After`. A paid plan's overage cap is
-            never a `429`: it answers `200` with Unlimited's fields and
-            `cap_reached` `true`.
+            never a `429` by itself: it answers `200` with Unlimited's fields and
+            `cap_reached` `true`, and a burst past it is rate limited as an Unlimited one is.
           headers:
             Retry-After:
               description: Seconds to wait before retrying.
@@ -370,9 +508,13 @@ paths:
                 unlimitedRateLimited:
                   summary: Unlimited, a burst, sent with Retry-After
                   value:
+                    error: rate limit for Unlimited lookups exceeded; retry shortly, or use a paid plan
+                cappedRateLimited:
+                  summary: Past a paid plan's overage cap, a burst, sent with Retry-After
+                  value:
                     error: >-
-                      per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
-                      plan
+                      rate limit for lookups past your overage cap exceeded; retry shortly, or raise
+                      the cap in Billing
         '500':
           description: The VPN dataset could not be consulted.
           content:
@@ -419,6 +561,7 @@ paths:
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_anycast: false
                     relay: {}
                     tor: {}
                     location:
@@ -438,6 +581,9 @@ paths:
                       domain: m247global.com
                       type: hosting
                       prefix: 146.70.116.0/24
+                      country: RO
+                      rpki_status: not_found
+                    hostname: ''
         '401':
           description: The presented API key is unknown, revoked, or expired.
           content:
@@ -478,8 +624,8 @@ paths:
         '429':
           description: |
             A rate limit, always with `Retry-After`. A paid plan's overage cap is
-            never a `429`: it answers `200` with Unlimited's fields and
-            `cap_reached` `true`.
+            never a `429` by itself: it answers `200` with Unlimited's fields and
+            `cap_reached` `true`, and a burst past it is rate limited as an Unlimited one is.
           headers:
             Retry-After:
               description: Seconds to wait before retrying.
@@ -498,9 +644,13 @@ paths:
                 unlimitedRateLimited:
                   summary: Unlimited, a burst, sent with Retry-After
                   value:
+                    error: rate limit for Unlimited lookups exceeded; retry shortly, or use a paid plan
+                cappedRateLimited:
+                  summary: Past a paid plan's overage cap, a burst, sent with Retry-After
+                  value:
                     error: >-
-                      per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
-                      plan
+                      rate limit for lookups past your overage cap exceeded; retry shortly, or raise
+                      the cap in Billing
         '500':
           description: The VPN dataset could not be consulted.
           content:
@@ -585,6 +735,14 @@ paths:
                         is_dcproxy: false
                         is_mobproxy: false
                         is_pubproxy: false
+                        is_anycast: false
+                        is_carrier: false
+                        is_satellite: false
+                        is_ssh: false
+                        is_smtp: false
+                        is_web: false
+                        is_dns_resolver: false
+                        is_bittorrent: false
                         vpn: {}
                         hosting: {}
                         relay: {}
@@ -594,6 +752,13 @@ paths:
                         dcproxy: {}
                         mobproxy: {}
                         pubproxy: {}
+                        carrier: {}
+                        satellite: {}
+                        ssh: {}
+                        smtp: {}
+                        web: []
+                        dns_resolver: {}
+                        bittorrent: {}
                         location:
                           continent: ''
                           continent_name: ''
@@ -605,12 +770,39 @@ paths:
                           currency_symbol: ''
                           flag_emoji: ''
                           flag_unicode: ''
+                          region: ''
+                          region_code: ''
+                          city: ''
+                          postal_code: ''
+                          latitude: 0
+                          longitude: 0
+                          accuracy_radius: 0
+                          geoname_id: ''
+                          dma_code: ''
+                          last_changed: ''
                         asn:
                           asn: 0
                           name: ''
                           domain: ''
                           type: ''
                           prefix: ''
+                          country: ''
+                          rpki_status: ''
+                        company:
+                          name: ''
+                          domain: ''
+                          type: ''
+                          country: ''
+                        hostname: ''
+                        abuse:
+                          email: ''
+                          name: ''
+                          phone: ''
+                          address: ''
+                          country: ''
+                          network: ''
+                          validated: false
+                          unvalidated_since: ''
                         cap_reached: false
                     errors:
                       not-an-ip:
@@ -628,6 +820,7 @@ paths:
                         is_vpn: true
                         is_relay: false
                         is_tor: false
+                        is_anycast: false
                         relay: {}
                         tor: {}
                         location:
@@ -647,6 +840,9 @@ paths:
                           domain: m247global.com
                           type: hosting
                           prefix: 146.70.116.0/24
+                          country: RO
+                          rpki_status: not_found
+                        hostname: ''
                         cap_reached: true
                     errors: {}
                 lookupFailed:
@@ -734,7 +930,7 @@ paths:
           description: |
             The rate limit refused the whole call. Always transient and always
             with `Retry-After`; a reached overage cap answers each entry in a
-            `200` instead.
+            `200` instead, and a burst past it is rate limited as an Unlimited one is.
           headers:
             Retry-After:
               description: Seconds to wait before retrying the call.
@@ -753,9 +949,13 @@ paths:
                 unlimitedRateLimited:
                   summary: Unlimited's one address, a burst, sent with Retry-After
                   value:
+                    error: rate limit for Unlimited lookups exceeded; retry shortly, or use a paid plan
+                cappedRateLimited:
+                  summary: Past a paid plan's overage cap, a burst, sent with Retry-After
+                  value:
                     error: >-
-                      per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid
-                      plan
+                      rate limit for lookups past your overage cap exceeded; retry shortly, or raise
+                      the cap in Billing
   /api/v1/database/list:
     get:
       operationId: listDatabases
@@ -1051,10 +1251,10 @@ paths:
                       window_end: '2026-10-04T07:00:00Z'
                 free:
                   summary: >-
-                    A key of an organization on the free plan, Unlimited: its usage is the day's
-                    lookups answered with every field, out of the 100 a day its trial has. Nothing
+                    A key of an organization on the free plan, Unlimited: its usage is its trial,
+                    the lookups answered with every field, out of the quota the trial has. Nothing
                     stops it past them, its lookups answering with Unlimited's fields, so there is
-                    no hard limit, and the window is the UTC day.
+                    no hard limit.
                   value:
                     org_id: f32191d0-ef02-450e-a505-eb5814c35cab
                     apikey:
@@ -1676,7 +1876,8 @@ components:
       type: object
       description: |
         The union of every tier's answer. Every answer carries `ip`, `is_bogon`,
-        `is_vpn`, the Tor and relay members, `location` and `asn`, with or without a key;
+        `is_vpn`, the Tor and relay members, `is_anycast`, `hostname`, `location` and
+        `asn`, with or without a key;
         each remaining field is present when your tier includes it, and absent
         otherwise. A client that must work across plans should treat an absent
         flag as unknown rather than as `false`.
@@ -1730,6 +1931,34 @@ components:
           description: >-
             Whether a public proxy, one anyone can connect through, listens on the address or sends
             its traffic out from it. Paid plans.
+        is_anycast:
+          type: boolean
+          description: >-
+            Whether the address is announced from many places at once, as a public DNS resolver's or
+            a CDN's edge is. Every answer, with or without a key.
+        is_carrier:
+          type: boolean
+          description: >-
+            Whether the address is a mobile carrier's, where many phones can share one address. Paid
+            plans.
+        is_satellite:
+          type: boolean
+          description: Whether the address is a satellite operator's. Paid plans.
+        is_ssh:
+          type: boolean
+          description: Whether an SSH server answered on the address. Paid plans.
+        is_smtp:
+          type: boolean
+          description: Whether a mail server answered on the address. Paid plans.
+        is_web:
+          type: boolean
+          description: Whether a web server answered on the address, on port 80 or 443. Paid plans.
+        is_dns_resolver:
+          type: boolean
+          description: Whether an open DNS resolver answered on the address. Paid plans.
+        is_bittorrent:
+          type: boolean
+          description: Whether a BitTorrent client was seen on the address in the last 90 days. Paid plans.
         vpn:
           allOf:
             - $ref: '#/components/schemas/VpnDetail'
@@ -1770,16 +1999,57 @@ components:
           allOf:
             - $ref: '#/components/schemas/PubproxyDetail'
           description: Detail for `is_pubproxy`. Empty when false. Paid plans.
+        carrier:
+          allOf:
+            - $ref: '#/components/schemas/CarrierDetail'
+          description: Detail for `is_carrier`. Empty when false. Paid plans.
+        satellite:
+          allOf:
+            - $ref: '#/components/schemas/SatelliteDetail'
+          description: Detail for `is_satellite`. Empty when false. Paid plans.
+        ssh:
+          allOf:
+            - $ref: '#/components/schemas/SshDetail'
+          description: Detail for `is_ssh`. Empty when false. Paid plans.
+        smtp:
+          allOf:
+            - $ref: '#/components/schemas/SmtpDetail'
+          description: Detail for `is_smtp`. Empty when false. Paid plans.
+        web:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebDetail'
+          description: >-
+            Detail for `is_web`: a row per port that answered, lowest first, and `[]` when false.
+            Paid plans.
+        dns_resolver:
+          allOf:
+            - $ref: '#/components/schemas/DnsResolverDetail'
+          description: Detail for `is_dns_resolver`. Empty when false. Paid plans.
+        bittorrent:
+          allOf:
+            - $ref: '#/components/schemas/BitTorrentDetail'
+          description: Detail for `is_bittorrent`. Empty when false. Paid plans.
         location:
           $ref: '#/components/schemas/Location'
         asn:
           $ref: '#/components/schemas/Asn'
+        company:
+          $ref: '#/components/schemas/Company'
+        hostname:
+          type: string
+          description: >-
+            The name the address's reverse DNS (PTR) record points to, from our IP RDNS database; an
+            empty string when it has none. Every answer, with or without a key.
+          example: ''
+        abuse:
+          $ref: '#/components/schemas/AbuseContact'
         trial_expired:
           type: boolean
           description: |
             On every answer to a key on the free plan, and on no other: `false`
-            while its organization's daily trial lasts (every field for the first
-            100 lookups each UTC day), `true` once the answer has Unlimited's.
+            while its organization's trial of every field lasts, `true` once the
+            answer has Unlimited's.
         cap_reached:
           type: boolean
           description: |
@@ -2014,10 +2284,11 @@ components:
     Location:
       type: object
       description: |
-        Where the address is, to the country: the fields of our IP Country
-        database. Every answer, with or without a key. Each field is present
-        whenever the object is, so an address in no country, or a private one,
-        answers empty strings.
+        Where the address is: the fields of our IP Country database on every
+        answer, with or without a key, and our IP Geolocation database's finer
+        ones on a paid plan. Each field your plan includes is present whenever
+        the object is, so an address in no country, or a private one, answers
+        empty strings and zeros.
       required:
         - continent
         - continent_name
@@ -2070,6 +2341,48 @@ components:
           type: string
           description: The Unicode code points of the flag emoji.
           example: U+1F1E6 U+1F1F9
+        region:
+          type: string
+          description: Region (state or province). Paid plans.
+          example: Vienna
+        region_code:
+          type: string
+          description: ISO 3166-2 region code. Paid plans.
+          example: AT-9
+        city:
+          type: string
+          description: City. Paid plans.
+          example: Vienna
+        postal_code:
+          type: string
+          description: Postal code. Paid plans.
+          example: '1230'
+        latitude:
+          type: number
+          description: Latitude of the city. Paid plans.
+          example: 48.20849
+        longitude:
+          type: number
+          description: Longitude of the city. Paid plans.
+          example: 16.37208
+        accuracy_radius:
+          type: integer
+          description: >-
+            Radius in km holding the true location with 67% confidence; 20000 for an address
+            announced everywhere, as an anycast one is. Paid plans.
+          example: 10
+        geoname_id:
+          type: string
+          description: GeoNames ID of the city. Paid plans.
+          example: '2761369'
+        dma_code:
+          type: string
+          description: US TV market (DMA) code, empty outside the US. Paid plans.
+          example: ''
+        last_changed:
+          type: string
+          description: The day the range's location last changed. Paid plans.
+          example: '2026-10-06'
     Asn:
       type: object
       description: |
@@ -2105,6 +2418,358 @@ components:
           type: string
           description: The announced BGP prefix that covers the address, the most specific when several do.
           example: 146.70.116.0/24
+        country:
+          type: string
+          description: The country the AS's registry assigned it to.
+          example: RO
+        rpki_status:
+          type: string
+          description: 'The announcement''s RPKI status: valid, invalid or not_found.'
+          example: not_found
+    CarrierDetail:
+      type: object
+      description: |
+        The mobile network whose space the address is, from our Carrier IP
+        database. Every key is present when the object is populated; the object
+        is `{}` when `is_carrier` is false.
+      properties:
+        name:
+          type: string
+          description: The mobile carrier.
+          example: T-Mobile US
+        mcc:
+          type: string
+          description: Its mobile country code.
+          example: '310'
+        mnc:
+          type: string
+          description: Its mobile network code.
+          example: '260'
+        country:
+          type: string
+          description: ISO 3166 country code.
+          example: US
+        confidence:
+          type: string
+          description: '`high`, `medium` or `low`.'
+          example: high
+    SatelliteDetail:
+      type: object
+      description: |
+        The satellite operator whose space the address is, from our Satellite IP
+        database. Every key is present when the object is populated; the object
+        is `{}` when `is_satellite` is false.
+      properties:
+        provider:
+          type: string
+          description: The operator's ID in Satellite IP Provider.
+          example: starlink
+        provider_name:
+          type: string
+          description: The operator's name.
+          example: Starlink
+        orbit:
+          type: string
+          description: 'The orbit: `leo`, `meo` or `geo`.'
+          example: leo
+        segment:
+          type: string
+          description: Who the space serves, such as consumer or maritime.
+          example: consumer
+        country:
+          type: string
+          description: ISO 3166 country code.
+          example: US
+        asn:
+          type: integer
+          description: The AS the operator announces it from.
+          example: 14593
+        confidence:
+          type: string
+          description: '`high`, `medium` or `low`.'
+          example: high
+    SshDetail:
+      type: object
+      description: |
+        The SSH server that answered on the address, from our SSH IP database.
+        Every key is present when the object is populated; the object is `{}`
+        when `is_ssh` is false.
+      properties:
+        port:
+          type: integer
+          description: The port the server answered on.
+          example: 22
+        banner:
+          type: string
+          description: Its banner.
+          example: SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.5
+        host_key_fp:
+          type: string
+          description: Its host key's fingerprint.
+          example: SHA256:9Bq3Jrm6pVJ7QqV2c8l0pE6f8wJ4sZ4u5tYyH9cXo1E
+        session_ok:
+          type: boolean
+          description: A session was set up.
+          example: true
+        first_seen:
+          type: string
+          description: The first day it answered.
+          example: '2026-08-04'
+        last_seen:
+          type: string
+          description: The last day it did.
+          example: '2026-11-15'
+    SmtpDetail:
+      type: object
+      description: |
+        The mail server that answered on the address, from our SMTP IP database.
+        Every key is present when the object is populated; the object is `{}`
+        when `is_smtp` is false.
+      properties:
+        port:
+          type: integer
+          description: The port the server answered on.
+          example: 25
+        banner:
+          type: string
+          description: Its banner.
+          example: 220 mail.example.com ESMTP Postfix
+        session_ok:
+          type: boolean
+          description: A session was set up.
+          example: true
+        first_seen:
+          type: string
+          description: The first day it answered.
+          example: '2026-08-04'
+        last_seen:
+          type: string
+          description: The last day it did.
+          example: '2026-11-15'
+    WebDetail:
+      type: object
+      description: One port of the address that answered as a web server, from our Web IP database.
+      required:
+        - port
+        - tls_ok
+        - session_ok
+        - status_code
+        - server
+        - location
+        - title
+        - cert_subject_cn
+        - cert_subject_o
+        - cert_issuer_dn
+        - cert_browser_trusted
+        - tls_version
+        - first_seen
+        - last_seen
+      properties:
+        port:
+          type: integer
+          description: 80 or 443.
+          example: 443
+        tls_ok:
+          type: boolean
+          description: A TLS handshake completed.
+          example: true
+        session_ok:
+          type: boolean
+          description: An HTTP response came back.
+          example: true
+        status_code:
+          type: integer
+          description: Its status, 0 where none came.
+          example: 200
+        server:
+          type: string
+          description: Its `Server` header.
+          example: nginx
+        location:
+          type: string
+          description: Where it redirected.
+          example: ''
+        title:
+          type: string
+          description: The page's title.
+          example: Welcome to nginx!
+        cert_subject_cn:
+          type: string
+          description: The certificate's subject common name.
+          example: example.com
+        cert_subject_o:
+          type: string
+          description: Its subject organization.
+          example: ''
+        cert_issuer_dn:
+          type: string
+          description: Its issuer.
+          example: CN=R11,O=Let's Encrypt,C=US
+        cert_browser_trusted:
+          type: boolean
+          description: Browsers trust it.
+          example: true
+        tls_version:
+          type: string
+          description: The TLS version negotiated, empty without TLS.
+          example: TLS 1.3
+        first_seen:
+          type: string
+          description: The first day the port was open.
+          example: '2026-08-04'
+        last_seen:
+          type: string
+          description: The last day it was.
+          example: '2026-11-15'
+    DnsResolverDetail:
+      type: object
+      description: |
+        The open DNS resolver that answered on the address, from our DNS
+        Resolver IP database. Every key is present when the object is populated;
+        the object is `{}` when `is_dns_resolver` is false.
+      properties:
+        port:
+          type: integer
+          description: The port it answered on.
+          example: 53
+        recursion_available:
+          type: boolean
+          description: It offered recursion.
+          example: true
+        rcode:
+          type: integer
+          description: Its answer's response code.
+          example: 0
+        answer_correct:
+          type: boolean
+          description: Its answer was right.
+          example: true
+        first_seen:
+          type: string
+          description: The first day it answered.
+          example: '2026-08-04'
+        last_seen:
+          type: string
+          description: The last day it did.
+          example: '2026-11-15'
+    BitTorrentDetail:
+      type: object
+      description: |
+        BitTorrent clients seen on the address over the last 90 days, from our
+        BitTorrent IP database. Every key is present when the object is
+        populated; the object is `{}` when `is_bittorrent` is false.
+      properties:
+        verified:
+          type: boolean
+          description: A client here answered, or two or more reported it at once.
+          example: true
+        id_matches_ip:
+          type: boolean
+          description: A client here derived its node ID from the address (BEP 42).
+          example: false
+        first_seen:
+          type: string
+          description: The first day a client was seen here.
+          example: '2026-08-21'
+        last_seen:
+          type: string
+          description: The last day.
+          example: '2026-11-15'
+        last_reachable:
+          type: string
+          description: The last day one answered, empty when none did.
+          example: '2026-11-14'
+        days_seen:
+          type: integer
+          description: On how many days.
+          example: 37
+        num_ports:
+          type: integer
+          description: Distinct ports over the window.
+          example: 4
+        peak_num_ports:
+          type: integer
+          description: The most on one day.
+          example: 2
+        indexer:
+          type: boolean
+          description: A DHT indexer rather than people.
+          example: false
+        clients:
+          type: array
+          items:
+            type: string
+          description: The two-letter codes its clients name themselves by.
+          example:
+            - qB
+            - TR
+    Company:
+      type: object
+      description: |
+        Who uses the address, from our IP Company database. Paid plans. Every
+        key is present whenever the object is: empty strings where no record
+        covers the address.
+      required:
+        - name
+        - domain
+      properties:
+        name:
+          type: string
+          description: Who uses the address.
+          example: M247 LTD Vienna Infrastructure
+        domain:
+          type: string
+          description: Their domain.
+          example: m247.ro
+        type:
+          type: string
+          description: 'What kind of organization: hosting, isp, business, education or government.'
+          example: hosting
+        country:
+          type: string
+          description: ISO 3166 country code.
+          example: AT
+    AbuseContact:
+      type: object
+      description: |
+        Where to report abuse from the address, from our IP Abuse Contact
+        database. Paid plans. Every key is present whenever the object is: empty
+        strings where no record covers the address.
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          description: Where to report abuse from the address.
+          example: abuse@m247.ro
+        name:
+          type: string
+          description: The contact.
+          example: M247 Europe
+        phone:
+          type: string
+          description: Its phone number.
+          example: ''
+        address:
+          type: string
+          description: Its postal address.
+          example: Sos. Fabrica de Glucoza, Nr 11B, etaj 1, Sector 2, Bucuresti Romania
+        country:
+          type: string
+          description: ISO 3166 country code.
+          example: AT
+        network:
+          type: string
+          description: The registry block it was derived from.
+          example: 146.70.116.0-146.70.116.255
+        validated:
+          type: boolean
+          description: ARIN reports the contact answered its yearly validation.
+          example: false
+        unvalidated_since:
+          type: string
+          description: Since when it has not.
+          example: ''
     LookupError:
       type: object
       description: Every non-2xx response carries this shape.
@@ -2463,8 +3128,8 @@ components:
           description: |
             The plan the organization is on, as an identifier that is never
             renamed or reused: `free` for the free plan, or a paid plan's key.
-            Compare against it and show `name`. On `free`, usage counts the
-            day's lookups answered with every field, its daily trial.
+            Compare against it and show `name`. On `free`, usage counts its
+            trial, the lookups answered with every field.
           example: max
         name:
           type: string
