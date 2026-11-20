@@ -21,6 +21,18 @@ use VPNDetection\VPNDetectionException;
  */
 final class ConformanceTest extends TestCase
 {
+    /** The keys of a lookup case's `expect` that say how to read the rest. */
+    private const EXPECT_KEYS = ['ip', 'isBogon', 'present', 'absent', 'emptyPresent'];
+
+    /** The keys of a lookup case's `expect` that each give one member's whole value. */
+    private const EXPECT_VALUES = [
+        'vpn', 'hosting', 'dcproxy', 'pubproxy', 'location', 'asn', 'carrier', 'satellite', 'ssh',
+        'smtp', 'web', 'dns_resolver', 'bittorrent', 'company', 'abuse', 'hostname',
+    ];
+
+    /** The members `bogonResponse` gives a whole value for. */
+    private const BOGON_VALUES = ['location', 'asn', 'web', 'hostname', 'company', 'abuse'];
+
     /** @var array<string, mixed> */
     private static array $data;
 
@@ -93,16 +105,17 @@ final class ConformanceTest extends TestCase
             self::assertFalse($result->{self::camel($flag)}, "{$flag} must be present and false");
         }
         foreach (self::$data['bogonResponse']['emptyObjects'] as $object) {
-            $detail = $result->{$object};
+            $detail = $result->{self::camel($object)};
             self::assertNotNull($detail, "{$object} must be present");
             self::assertTrue($detail->isEmpty(), "{$object} must be empty");
         }
-        foreach (['location', 'asn'] as $object) {
-            self::assertNotNull($result->{$object}, "{$object} must be present");
+        foreach (self::BOGON_VALUES as $key) {
+            self::assertArrayHasKey($key, self::$data['bogonResponse'], "the corpus's bogon gives {$key}");
+            self::assertNotNull($result->{self::camel($key)}, "{$key} must be present");
             self::assertSame(
-                self::sorted(self::$data['bogonResponse'][$object]),
-                self::sorted(self::asWire($result->{$object})),
-                $object,
+                self::canonical(self::$data['bogonResponse'][$key]),
+                self::canonical(self::asWire($result->{self::camel($key)})),
+                $key,
             );
         }
         self::assertSame([], $stub->calls, 'a bogon must not reach the network');
@@ -132,15 +145,20 @@ final class ConformanceTest extends TestCase
                 );
             }
             foreach ($case['expect']['emptyPresent'] ?? [] as $key) {
-                $detail = $result->{$key};
+                $detail = $result->{self::camel($key)};
                 self::assertNotNull($detail, "{$name}: {$key} must be present");
                 self::assertTrue($detail->isEmpty(), "{$name}: {$key} must be empty");
             }
-            foreach (['vpn', 'hosting', 'dcproxy', 'pubproxy', 'location', 'asn'] as $key) {
-                if (isset($case['expect'][$key])) {
+            // A key this runner does not know would otherwise pass without being read.
+            foreach (array_keys($case['expect']) as $key) {
+                self::assertContains($key, [...self::EXPECT_KEYS, ...self::EXPECT_VALUES], "{$name}: {$key} is not asserted");
+            }
+            foreach (self::EXPECT_VALUES as $key) {
+                if (array_key_exists($key, $case['expect'])) {
+                    self::assertNotNull($result->{self::camel($key)}, "{$name}: {$key} must be present");
                     self::assertSame(
-                        self::sorted($case['expect'][$key]),
-                        self::sorted(self::asWire($result->{$key})),
+                        self::canonical($case['expect'][$key]),
+                        self::canonical(self::asWire($result->{self::camel($key)})),
                         "{$name}: {$key}",
                     );
                 }
@@ -409,32 +427,47 @@ final class ConformanceTest extends TestCase
     }
 
     /**
-     * Renders a detail value object back to its wire form. The corpus is
-     * language-neutral JSON, so its expectations are snake_case with dates as
-     * strings.
-     *
-     * @return array<string, mixed>
+     * Renders a value object back to its wire form, leaving out what it does not
+     * hold. The corpus is language-neutral JSON, so its expectations are
+     * snake_case with dates as strings.
      */
-    private static function asWire(object $detail): array
+    private static function asWire(mixed $value): mixed
     {
+        if (is_array($value)) {
+            return array_map(self::asWire(...), $value);
+        }
+        if ($value instanceof DateTimeImmutable) {
+            return $value->format('Y-m-d');
+        }
+        if (!is_object($value)) {
+            return $value;
+        }
         $out = [];
-        foreach (get_object_vars($detail) as $name => $value) {
-            if ($value === null) {
+        foreach (get_object_vars($value) as $name => $member) {
+            if ($member === null) {
                 continue;
             }
-            $key = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $name));
-            $out[$key] = $value instanceof DateTimeImmutable ? $value->format('Y-m-d') : $value;
+            $out[strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $name))] = self::asWire($member);
         }
         return $out;
     }
 
     /**
-     * @param array<string, mixed> $values
-     * @return array<string, mixed>
+     * JSON with every object's keys sorted, so two values compare by content
+     * alone: a float that holds a whole number encodes as the integer the corpus
+     * writes, and nothing else is loosened.
      */
-    private static function sorted(array $values): array
+    private static function canonical(mixed $value): string
     {
-        ksort($values);
-        return $values;
+        $sort = static function (mixed $v) use (&$sort): mixed {
+            if (!is_array($v)) {
+                return $v;
+            }
+            if (!array_is_list($v)) {
+                ksort($v);
+            }
+            return array_map($sort, $v);
+        };
+        return json_encode($sort($value), JSON_THROW_ON_ERROR);
     }
 }
