@@ -26,7 +26,10 @@ final class Options
         public readonly bool $cache = true,
         /** Maximum number of addresses held. */
         public readonly int $cacheMaxSize = 10_000,
-        /** How long an answer stays fresh, in seconds. */
+        /**
+         * How long an answer stays fresh, in seconds. An answer marked `trialExpired`
+         * or `capReached` stays a minute at most.
+         */
         public readonly float $cacheTtlSeconds = 3600.0,
         /** Concurrent batch requests - chunks of up to 1000 addresses - during a batch. */
         public readonly int $concurrency = 8,

@@ -15,6 +15,9 @@ namespace VPNDetection;
  */
 final class Cache implements AnswerCache
 {
+    /** The longest a spent trial's or a reached cap's answer is held, in seconds. */
+    public const REDUCED_TTL_SECONDS = 60;
+
     /** @var array<string, array{0: Result, 1: float}> */
     private array $entries = [];
 
@@ -53,7 +56,7 @@ final class Cache implements AnswerCache
     public function set(string $ip, Result $value): void
     {
         unset($this->entries[$ip]);
-        $this->entries[$ip] = [$value, microtime(true) + $this->ttlSeconds];
+        $this->entries[$ip] = [$value, microtime(true) + self::lifeOf($value, $this->ttlSeconds)];
         while (count($this->entries) > $this->maxSize) {
             unset($this->entries[array_key_first($this->entries)]);
         }
@@ -64,5 +67,25 @@ final class Cache implements AnswerCache
         foreach ($values as $ip => $value) {
             $this->set((string) $ip, $value);
         }
+    }
+
+    /** When the answer held for `$ip` goes stale, as `microtime(true)` reads, or null. */
+    public function expiry(string $ip): ?float
+    {
+        return isset($this->entries[$ip]) ? $this->entries[$ip][1] : null;
+    }
+
+    /**
+     * How long an answer stays: the TTL, or at most a minute for one marked
+     * `trialExpired` or `capReached`, which the trial's renewal or a raised cap
+     * ends. Still cached, so a busy process does not send every repeat of an
+     * address to the API.
+     */
+    public static function lifeOf(Result $value, float $ttlSeconds): float
+    {
+        if ($value->trialExpired === true || $value->capReached === true) {
+            return min($ttlSeconds, self::REDUCED_TTL_SECONDS);
+        }
+        return $ttlSeconds;
     }
 }

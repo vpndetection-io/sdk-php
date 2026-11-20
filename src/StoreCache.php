@@ -74,12 +74,17 @@ final class StoreCache implements AnswerCache
         if ($values === []) {
             return;
         }
-        $entries = [];
+        // A spent trial's or a reached cap's answer is held a minute at most, so
+        // the store takes the answers in one call per lifetime.
+        $byLife = [];
         foreach ($values as $ip => $result) {
-            $entries[$this->key((string) $ip)] = $result->raw;
+            $life = max(1, (int) ceil(Cache::lifeOf($result, $this->ttlSeconds)));
+            $byLife[$life][$this->key((string) $ip)] = $result->raw;
         }
         try {
-            $this->store->setMultiple($entries, $this->ttlSeconds);
+            foreach ($byLife as $life => $entries) {
+                $this->store->setMultiple($entries, $life);
+            }
         } catch (Throwable) {
         }
     }
