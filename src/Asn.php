@@ -20,6 +20,10 @@ final class Asn
         public readonly string $type = '',
         /** The announced prefix covering the address, the most specific when several do. */
         public readonly string $prefix = '',
+        /** The country the AS's registry assigned it to. Null where the answer leaves it out. */
+        public readonly ?string $country = null,
+        /** The announcement's RPKI status: `valid`, `invalid` or `not_found`. Null where the answer leaves it out. */
+        public readonly ?string $rpkiStatus = null,
     ) {
     }
 
@@ -32,6 +36,8 @@ final class Asn
             domain: $w->getDomain(),
             type: $w->getType(),
             prefix: $w->getPrefix(),
+            country: $w->getCountry(),
+            rpkiStatus: $w->getRpkiStatus(),
         );
     }
 }

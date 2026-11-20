@@ -63,7 +63,8 @@ final class Bogon
     /**
      * The answer a bogon gets, in the full shape the API serves at its widest
      * plan: `isBogon` true and every other flag present and false, every detail
-     * object present and empty, and a location and AS of empty strings and AS 0,
+     * object present and empty, `web` an empty list, an empty hostname, and a
+     * location, AS, company and abuse contact of empty strings, zeros and false,
      * as the API answers a bogon.
      *
      * Note this is deliberately the WIDEST shape regardless of your plan, so do
@@ -93,8 +94,46 @@ final class Bogon
             mobproxy: new ProxyDetail(),
             pubproxy: new PubproxyDetail(),
             raw: [],
-            location: new Location(),
-            asn: new Asn(),
+            location: new Location(
+                region: '',
+                regionCode: '',
+                city: '',
+                postalCode: '',
+                latitude: 0.0,
+                longitude: 0.0,
+                accuracyRadius: 0,
+                geonameId: '',
+                dmaCode: '',
+                lastChanged: '',
+            ),
+            asn: new Asn(country: '', rpkiStatus: ''),
+            isAnycast: false,
+            isCarrier: false,
+            isSatellite: false,
+            isSsh: false,
+            isSmtp: false,
+            isWeb: false,
+            isDnsResolver: false,
+            isBittorrent: false,
+            carrier: new CarrierDetail(),
+            satellite: new SatelliteDetail(),
+            ssh: new SshDetail(),
+            smtp: new SmtpDetail(),
+            web: [],
+            dnsResolver: new DnsResolverDetail(),
+            bittorrent: new BitTorrentDetail(),
+            company: new Company(name: '', domain: '', type: '', country: ''),
+            hostname: '',
+            abuse: new AbuseContact(
+                email: '',
+                name: '',
+                phone: '',
+                address: '',
+                country: '',
+                network: '',
+                validated: false,
+                unvalidatedSince: '',
+            ),
         );
     }
 

@@ -55,33 +55,46 @@ final class ClientTest extends TestCase
         $flags = [
             'is_hosting' => 'isHosting', 'is_relay' => 'isRelay', 'is_tor' => 'isTor',
             'is_cdn' => 'isCdn', 'is_resproxy' => 'isResproxy', 'is_dcproxy' => 'isDcproxy',
-            'is_mobproxy' => 'isMobproxy', 'is_pubproxy' => 'isPubproxy',
+            'is_mobproxy' => 'isMobproxy', 'is_pubproxy' => 'isPubproxy', 'is_anycast' => 'isAnycast',
+            'is_carrier' => 'isCarrier', 'is_satellite' => 'isSatellite', 'is_ssh' => 'isSsh',
+            'is_smtp' => 'isSmtp', 'is_web' => 'isWeb', 'is_dns_resolver' => 'isDnsResolver',
+            'is_bittorrent' => 'isBittorrent',
         ];
-        $details = ['vpn', 'hosting', 'relay', 'tor', 'cdn', 'resproxy', 'dcproxy', 'mobproxy', 'pubproxy'];
+        $details = [
+            'vpn' => 'vpn', 'hosting' => 'hosting', 'relay' => 'relay', 'tor' => 'tor', 'cdn' => 'cdn',
+            'resproxy' => 'resproxy', 'dcproxy' => 'dcproxy', 'mobproxy' => 'mobproxy',
+            'pubproxy' => 'pubproxy', 'carrier' => 'carrier', 'satellite' => 'satellite', 'ssh' => 'ssh',
+            'smtp' => 'smtp', 'dns_resolver' => 'dnsResolver', 'bittorrent' => 'bittorrent',
+        ];
 
         $body = ['ip' => '9.9.9.1', 'is_vpn' => false];
         foreach (array_keys($flags) as $wire) {
             $body[$wire] = false;
         }
-        foreach ($details as $wire) {
+        foreach (array_keys($details) as $wire) {
             // An empty PHP array goes on the wire as `[]`, a list, not `{}`.
             $body[$wire] = new \stdClass();
         }
+        $body['web'] = [];
         $present = self::lookupOnce($body);
         foreach ($flags as $wire => $property) {
             self::assertFalse($present->{$property}, "{$wire} answered false must stay false");
         }
-        foreach ($details as $wire) {
-            self::assertNotNull($present->{$wire}, "{$wire} answered {} must stay present");
-            self::assertTrue($present->{$wire}->isEmpty(), "{$wire} answered {} must be empty");
+        foreach ($details as $wire => $property) {
+            self::assertNotNull($present->{$property}, "{$wire} answered {} must stay present");
+            self::assertTrue($present->{$property}->isEmpty(), "{$wire} answered {} must be empty");
         }
+        self::assertSame([], $present->web, 'web answered [] must stay an empty list');
 
         $absent = self::lookupOnce(['ip' => '9.9.9.1', 'is_vpn' => false]);
         foreach ($flags as $wire => $property) {
             self::assertNull($absent->{$property}, "{$wire} left out must stay null, not false");
         }
-        foreach ($details as $wire) {
-            self::assertNull($absent->{$wire}, "{$wire} left out must stay null, not empty");
+        foreach ($details as $wire => $property) {
+            self::assertNull($absent->{$property}, "{$wire} left out must stay null, not empty");
+        }
+        foreach (['web', 'company', 'hostname', 'abuse'] as $property) {
+            self::assertNull($absent->{$property}, "{$property} left out must stay null");
         }
     }
 

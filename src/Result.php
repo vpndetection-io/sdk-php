@@ -69,6 +69,49 @@ final class Result
          * has Unlimited's. Lookups answered past the cap are not billed.
          */
         public readonly ?bool $capReached = null,
+        /** Whether the address is announced from many places at once. Every plan includes this. */
+        public readonly ?bool $isAnycast = null,
+        /** Whether the address is a mobile carrier's. Paid plans. */
+        public readonly ?bool $isCarrier = null,
+        /** Whether the address is a satellite operator's. Paid plans. */
+        public readonly ?bool $isSatellite = null,
+        /** Whether an SSH server answered on the address. Paid plans. */
+        public readonly ?bool $isSsh = null,
+        /** Whether a mail server answered on the address. Paid plans. */
+        public readonly ?bool $isSmtp = null,
+        /** Whether a web server answered on the address, on port 80 or 443. Paid plans. */
+        public readonly ?bool $isWeb = null,
+        /** Whether an open DNS resolver answered on the address. Paid plans. */
+        public readonly ?bool $isDnsResolver = null,
+        /** Whether a BitTorrent client was seen on the address in the last 90 days. Paid plans. */
+        public readonly ?bool $isBittorrent = null,
+        /** Carrier IP's row, empty when `isCarrier` is false. Paid plans. */
+        public readonly ?CarrierDetail $carrier = null,
+        /** Satellite IP's row, empty when `isSatellite` is false. Paid plans. */
+        public readonly ?SatelliteDetail $satellite = null,
+        /** SSH IP's row, empty when `isSsh` is false. Paid plans. */
+        public readonly ?SshDetail $ssh = null,
+        /** SMTP IP's row, empty when `isSmtp` is false. Paid plans. */
+        public readonly ?SmtpDetail $smtp = null,
+        /**
+         * A row per port that answered, lowest first; `[]` when `isWeb` is false. Paid plans.
+         *
+         * @var list<WebDetail>|null
+         */
+        public readonly ?array $web = null,
+        /** DNS Resolver IP's row, empty when `isDnsResolver` is false. Paid plans. */
+        public readonly ?DnsResolverDetail $dnsResolver = null,
+        /** BitTorrent IP's row, empty when `isBittorrent` is false. Paid plans. */
+        public readonly ?BitTorrentDetail $bittorrent = null,
+        /** Who uses the address. Paid plans. */
+        public readonly ?Company $company = null,
+        /**
+         * The name the address's reverse DNS (PTR) record points to, an empty string
+         * when it has none. Every plan includes this.
+         */
+        public readonly ?string $hostname = null,
+        /** Where to report abuse from the address. Paid plans. */
+        public readonly ?AbuseContact $abuse = null,
     ) {
     }
 
@@ -110,6 +153,28 @@ final class Result
             asn: $w->getAsn() === null ? null : Asn::fromWire($w->getAsn()),
             trialExpired: $w->getTrialExpired(),
             capReached: $w->getCapReached(),
+            isAnycast: $w->getIsAnycast(),
+            isCarrier: $w->getIsCarrier(),
+            isSatellite: $w->getIsSatellite(),
+            isSsh: $w->getIsSsh(),
+            isSmtp: $w->getIsSmtp(),
+            isWeb: $w->getIsWeb(),
+            isDnsResolver: $w->getIsDnsResolver(),
+            isBittorrent: $w->getIsBittorrent(),
+            carrier: $w->getCarrier() === null ? null : CarrierDetail::fromWire($w->getCarrier()),
+            satellite: $w->getSatellite() === null ? null : SatelliteDetail::fromWire($w->getSatellite()),
+            ssh: $w->getSsh() === null ? null : SshDetail::fromWire($w->getSsh()),
+            smtp: $w->getSmtp() === null ? null : SmtpDetail::fromWire($w->getSmtp()),
+            web: $w->getWeb() === null
+                ? null
+                : array_map(WebDetail::fromWire(...), array_values($w->getWeb())),
+            dnsResolver: $w->getDnsResolver() === null
+                ? null
+                : DnsResolverDetail::fromWire($w->getDnsResolver()),
+            bittorrent: $w->getBittorrent() === null ? null : BitTorrentDetail::fromWire($w->getBittorrent()),
+            company: $w->getCompany() === null ? null : Company::fromWire($w->getCompany()),
+            hostname: $w->getHostname(),
+            abuse: $w->getAbuse() === null ? null : AbuseContact::fromWire($w->getAbuse()),
         );
     }
 }

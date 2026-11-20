@@ -9,8 +9,9 @@ use VPNDetection\Internal\Model\Location as WireLocation;
 /**
  * Where the address is, on every answer, with or without a key.
  *
- * Every property is set whenever the object is, an empty string where it is not
- * known.
+ * The country's properties are set whenever the object is, an empty string where
+ * it is not known. The finer ones, from the region down, are a paid plan's: null
+ * on an answer without them, which means not in your plan.
  */
 final class Location
 {
@@ -30,6 +31,26 @@ final class Location
         public readonly string $flagEmoji = '',
         /** The flag's code points, e.g. `U+1F1E6 U+1F1F9`. */
         public readonly string $flagUnicode = '',
+        /** Region (state or province). Paid plans. */
+        public readonly ?string $region = null,
+        /** ISO 3166-2 region code. Paid plans. */
+        public readonly ?string $regionCode = null,
+        /** City. Paid plans. */
+        public readonly ?string $city = null,
+        /** Postal code. Paid plans. */
+        public readonly ?string $postalCode = null,
+        /** Latitude of the city. Paid plans. */
+        public readonly ?float $latitude = null,
+        /** Longitude of the city. Paid plans. */
+        public readonly ?float $longitude = null,
+        /** Radius in km holding the true location with 67% confidence. Paid plans. */
+        public readonly ?int $accuracyRadius = null,
+        /** GeoNames ID of the city. Paid plans. */
+        public readonly ?string $geonameId = null,
+        /** US TV market (DMA) code, empty outside the US. Paid plans. */
+        public readonly ?string $dmaCode = null,
+        /** The day the range's location last changed. Paid plans. */
+        public readonly ?string $lastChanged = null,
     ) {
     }
 
@@ -47,6 +68,16 @@ final class Location
             currencySymbol: $w->getCurrencySymbol(),
             flagEmoji: $w->getFlagEmoji(),
             flagUnicode: $w->getFlagUnicode(),
+            region: $w->getRegion(),
+            regionCode: $w->getRegionCode(),
+            city: $w->getCity(),
+            postalCode: $w->getPostalCode(),
+            latitude: $w->getLatitude(),
+            longitude: $w->getLongitude(),
+            accuracyRadius: $w->getAccuracyRadius(),
+            geonameId: $w->getGeonameId(),
+            dmaCode: $w->getDmaCode(),
+            lastChanged: $w->getLastChanged(),
         );
     }
 }
