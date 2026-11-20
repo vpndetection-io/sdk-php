@@ -17,8 +17,9 @@ final class Options
     public function __construct(
         /**
          * Your API key. Without one a lookup is on Unlimited, the free plan:
-         * `ip`, `is_vpn`, the Tor and relay members, `location` and `asn`, with
-         * no daily or monthly cap. A batch needs a key on a paid plan.
+         * `ip`, `is_vpn`, the Tor and relay members, `is_anycast`, `hostname`,
+         * `location` and `asn`, with no daily or monthly cap. A batch needs a key
+         * on a paid plan.
          */
         public readonly ?string $apiKey = null,
         public readonly string $baseUrl = Client::DEFAULT_BASE_URL,
