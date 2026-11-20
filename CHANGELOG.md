@@ -2,6 +2,18 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.17.0 - 2026-11-20
+
+### Features
+
+- Read the network, service, company and abuse members of an answer ([`cec2a2e`](https://github.com/vpndetection-io/sdk-php/commit/cec2a2e8ac54e9c4805b14edb9d1c178a53935ef))
+- Re-pin the spec to 2026.11.20: network, service, company and abuse members ([`da6fdce`](https://github.com/vpndetection-io/sdk-php/commit/da6fdce3acaaf550f91db29962c0d5a5def7610d))
+
+### Fixes
+
+- Cache a spent trial's or a reached cap's answer for a minute at most ([`9045862`](https://github.com/vpndetection-io/sdk-php/commit/90458621c197038cd03cc218e318cac748e3fd1c))
+- Describe the free trial without a count ([`42541cc`](https://github.com/vpndetection-io/sdk-php/commit/42541cc55d541f159402f39e0a4a60411a9d21dd))
+
 ## 4.16.1 - 2026-11-19
 
 ### Fixes
