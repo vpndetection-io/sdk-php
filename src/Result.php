@@ -111,6 +111,14 @@ final class Result
         public readonly ?string $hostname = null,
         /** Where to report abuse from the address. Paid plans. */
         public readonly ?AbuseContact $abuse = null,
+        /**
+         * Whether an automated client uses the address, such as a search engine's or
+         * an AI company's crawler, an uptime monitor, an internet scanner or a
+         * webhook sender. Every plan includes this.
+         */
+        public readonly ?bool $isBot = null,
+        /** Bot IP's row, empty when `isBot` is false. Paid plans. */
+        public readonly ?BotDetail $bot = null,
     ) {
     }
 
@@ -174,6 +182,8 @@ final class Result
             company: $w->getCompany() === null ? null : Company::fromWire($w->getCompany()),
             hostname: $w->getHostname(),
             abuse: $w->getAbuse() === null ? null : AbuseContact::fromWire($w->getAbuse()),
+            isBot: $w->getIsBot(),
+            bot: $w->getBot() === null ? null : BotDetail::fromWire($w->getBot()),
         );
     }
 }

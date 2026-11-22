@@ -86,6 +86,19 @@ final class AnswerTypesTest extends TestCase
         'rpki_status' => 'valid',
     ];
 
+    private const BOT = [
+        'provider' => 'google',
+        'provider_name' => 'Google',
+        'agents' => ['GoogleOther', 'Googlebot'],
+        'categories' => ['search_engine'],
+        'verified' => true,
+        'identity' => 'verified',
+        'verified_by' => 'list',
+        'confidence' => 'high',
+        'first_seen' => '2026-11-21',
+        'last_seen' => '2026-11-21',
+    ];
+
     /** @return array<string, array{array<string, mixed>}> */
     public static function lookupBodies(): array
     {
@@ -107,6 +120,10 @@ final class AnswerTypesTest extends TestCase
             'asn without rpki_status' => $lookup(['asn' => array_diff_key(self::ASN, ['rpki_status' => 1])]),
             'asn.country null' => $lookup(['asn' => array_replace(self::ASN, ['country' => null])]),
             'asn.rpki_status null' => $lookup(['asn' => array_replace(self::ASN, ['rpki_status' => null])]),
+            'is_bot "true"' => $lookup(['is_bot' => 'true']),
+            'bot.verified "yes"' => $lookup(['bot' => array_replace(self::BOT, ['verified' => 'yes'])]),
+            'bot.agents "Googlebot"' => $lookup(['bot' => array_replace(self::BOT, ['agents' => 'Googlebot'])]),
+            'bot.categories [null]' => $lookup(['bot' => array_replace(self::BOT, ['categories' => [null]])]),
             'vpn.last_seen "x"' => $lookup(['vpn' => ['last_seen' => 'x']]),
             'vpn.last_seen "tomorrow"' => $lookup(['vpn' => ['last_seen' => 'tomorrow']]),
             'vpn.last_seen 30 February' => $lookup(['vpn' => ['last_seen' => '2026-02-30']]),
@@ -212,6 +229,8 @@ final class AnswerTypesTest extends TestCase
                 'pubproxy' => ['protocols' => ['http'], 'num_ports' => 3],
                 'hosting' => new \stdClass(),
                 'asn' => self::ASN,
+                'is_bot' => true,
+                'bot' => self::BOT,
             ]),
             '/api/v1/entitlement' => Stub::ok(self::ENTITLEMENT),
             '/api/v1/database/list' => Stub::ok(['databases' => [array_replace(self::DATABASE, [
@@ -227,6 +246,9 @@ final class AnswerTypesTest extends TestCase
         self::assertSame('2026-10-19', $result->vpn?->lastSeen?->format('Y-m-d'));
         self::assertNotNull($result->hosting, 'a detail served as {} stays present');
         self::assertSame(['US', 'valid'], [$result->asn?->country, $result->asn?->rpkiStatus]);
+        self::assertTrue($result->isBot);
+        self::assertSame(['GoogleOther', 'Googlebot'], $result->bot?->agents);
+        self::assertTrue($result->bot?->verified);
         self::assertSame(580, $client->myEntitlement()->usage->requests);
         self::assertSame('2026-09-04 10:00:00', $client->database->list()[0]->starts?->format('Y-m-d H:i:s'));
         self::assertSame(42, $client->database->metadata('vpn_ip_extended_v1')->entries);

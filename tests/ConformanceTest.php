@@ -27,7 +27,7 @@ final class ConformanceTest extends TestCase
     /** The keys of a lookup case's `expect` that each give one member's whole value. */
     private const EXPECT_VALUES = [
         'vpn', 'hosting', 'dcproxy', 'pubproxy', 'location', 'asn', 'carrier', 'satellite', 'ssh',
-        'smtp', 'web', 'dns_resolver', 'bittorrent', 'company', 'abuse', 'hostname',
+        'smtp', 'web', 'dns_resolver', 'bittorrent', 'company', 'abuse', 'hostname', 'bot',
     ];
 
     /** The members `bogonResponse` gives a whole value for. */

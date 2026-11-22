@@ -58,13 +58,13 @@ final class ClientTest extends TestCase
             'is_mobproxy' => 'isMobproxy', 'is_pubproxy' => 'isPubproxy', 'is_anycast' => 'isAnycast',
             'is_carrier' => 'isCarrier', 'is_satellite' => 'isSatellite', 'is_ssh' => 'isSsh',
             'is_smtp' => 'isSmtp', 'is_web' => 'isWeb', 'is_dns_resolver' => 'isDnsResolver',
-            'is_bittorrent' => 'isBittorrent',
+            'is_bittorrent' => 'isBittorrent', 'is_bot' => 'isBot',
         ];
         $details = [
             'vpn' => 'vpn', 'hosting' => 'hosting', 'relay' => 'relay', 'tor' => 'tor', 'cdn' => 'cdn',
             'resproxy' => 'resproxy', 'dcproxy' => 'dcproxy', 'mobproxy' => 'mobproxy',
             'pubproxy' => 'pubproxy', 'carrier' => 'carrier', 'satellite' => 'satellite', 'ssh' => 'ssh',
-            'smtp' => 'smtp', 'dns_resolver' => 'dnsResolver', 'bittorrent' => 'bittorrent',
+            'smtp' => 'smtp', 'dns_resolver' => 'dnsResolver', 'bittorrent' => 'bittorrent', 'bot' => 'bot',
         ];
 
         $body = ['ip' => '9.9.9.1', 'is_vpn' => false];

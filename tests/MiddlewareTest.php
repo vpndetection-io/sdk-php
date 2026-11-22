@@ -177,6 +177,35 @@ final class MiddlewareTest extends TestCase
         self::assertTrue($closed->evaluate(new Req())?->blocked);
     }
 
+    /** A condition on `isBot`, or on the bot's `verified`, blocks a served bot and passes a human. */
+    public function testABlockConditionOnIsBotBlocksABotFromAPublicPeer(): void
+    {
+        $bot = [
+            'ip' => self::PUBLIC_IP, 'is_vpn' => false, 'is_bot' => true,
+            'bot' => ['provider' => 'google', 'provider_name' => 'Google', 'agents' => ['Googlebot'],
+                'categories' => ['search_engine'], 'verified' => true, 'identity' => 'verified',
+                'verified_by' => 'list', 'confidence' => 'high', 'first_seen' => '2026-11-21',
+                'last_seen' => '2026-11-21'],
+        ];
+        $human = ['ip' => self::PUBLIC_IP, 'is_vpn' => false, 'is_bot' => false, 'bot' => new \stdClass()];
+        foreach ([['isBot' => true], ['bot' => ['verified' => true]]] as $condition) {
+            foreach ([[$bot, true], [$human, false]] as [$body, $blocked]) {
+                $stub = self::serving($body);
+                $core = self::core(new MwOptions(
+                    client: self::client($stub),
+                    ipSelector: fn (Req $r): string => self::PUBLIC_IP,
+                    blockCondition: $condition,
+                ));
+                $lookup = $core->evaluate(new Req());
+                $why = json_encode($condition) . ($blocked ? ' on a bot' : ' on a human');
+                self::assertNotNull($lookup, $why);
+                self::assertNull($lookup->error, $why);
+                self::assertSame($blocked, $lookup->blocked, $why);
+                self::assertSame(['/' . self::PUBLIC_IP], $stub->calls, "{$why}: the peer was looked up");
+            }
+        }
+    }
+
     public function testAPrivateClientAddressWarnsOnceAndNeverReachesTheNetwork(): void
     {
         $stub = self::serving(['ip' => '10.0.0.7', 'is_vpn' => true]);

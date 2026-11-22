@@ -134,6 +134,8 @@ final class Bogon
                 validated: false,
                 unvalidatedSince: '',
             ),
+            isBot: false,
+            bot: new BotDetail(),
         );
     }
 
