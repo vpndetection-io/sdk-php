@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.20
+  version: 2026.11.21
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -68,6 +68,18 @@ paths:
               value: 1.1.1.1
             ipv6:
               value: 2606:4700:4700::1111
+        - in: query
+          name: user_agent
+          required: false
+          schema:
+            type: string
+            maxLength: 1024
+          description: |
+            The `User-Agent` header of the request you are deciding on. With
+            every field, on a paid plan or the trial, the answer then carries
+            `user_agent`: the agent it names, and whether this address bears
+            that out. Never kept, and nothing sent with a lookup feeds our data.
+          example: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
       responses:
         '200':
           description: |
@@ -86,6 +98,7 @@ paths:
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_bot: false
                     is_anycast: false
                     relay: {}
                     tor: {}
@@ -119,6 +132,7 @@ paths:
                     is_relay: false
                     is_tor: false
                     is_cdn: false
+                    is_bot: false
                     is_resproxy: false
                     is_dcproxy: false
                     is_mobproxy: false
@@ -144,6 +158,7 @@ paths:
                     relay: {}
                     tor: {}
                     cdn: {}
+                    bot: {}
                     resproxy: {}
                     dcproxy: {}
                     mobproxy: {}
@@ -208,6 +223,7 @@ paths:
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_bot: false
                     is_anycast: false
                     relay: {}
                     tor: {}
@@ -242,6 +258,7 @@ paths:
                     is_relay: false
                     is_tor: false
                     is_cdn: false
+                    is_bot: false
                     is_resproxy: false
                     is_dcproxy: false
                     is_mobproxy: false
@@ -267,6 +284,7 @@ paths:
                     relay: {}
                     tor: {}
                     cdn: {}
+                    bot: {}
                     resproxy: {}
                     dcproxy: {}
                     mobproxy: {}
@@ -333,6 +351,7 @@ paths:
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_bot: false
                     is_anycast: false
                     relay: {}
                     tor: {}
@@ -367,6 +386,7 @@ paths:
                     is_relay: false
                     is_tor: false
                     is_cdn: false
+                    is_bot: false
                     is_resproxy: false
                     is_dcproxy: false
                     is_mobproxy: false
@@ -384,6 +404,7 @@ paths:
                     relay: {}
                     tor: {}
                     cdn: {}
+                    bot: {}
                     resproxy: {}
                     dcproxy: {}
                     mobproxy: {}
@@ -543,6 +564,19 @@ paths:
         The address is the one our edge observed, so a request through a proxy
         or a VPN reports the exit it left through rather than the machine that
         made it. That is usually the point of asking.
+      parameters:
+        - in: query
+          name: user_agent
+          required: false
+          schema:
+            type: string
+            maxLength: 1024
+          description: |
+            The `User-Agent` header of the request you are deciding on. With
+            every field, on a paid plan or the trial, the answer then carries
+            `user_agent`: the agent it names, and whether this address bears
+            that out. Never kept, and nothing sent with a lookup feeds our data.
+          example: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
       responses:
         '200':
           description: |
@@ -561,6 +595,7 @@ paths:
                     is_vpn: true
                     is_relay: false
                     is_tor: false
+                    is_bot: false
                     is_anycast: false
                     relay: {}
                     tor: {}
@@ -731,6 +766,7 @@ paths:
                         is_relay: false
                         is_tor: false
                         is_cdn: false
+                        is_bot: false
                         is_resproxy: false
                         is_dcproxy: false
                         is_mobproxy: false
@@ -748,6 +784,7 @@ paths:
                         relay: {}
                         tor: {}
                         cdn: {}
+                        bot: {}
                         resproxy: {}
                         dcproxy: {}
                         mobproxy: {}
@@ -820,6 +857,7 @@ paths:
                         is_vpn: true
                         is_relay: false
                         is_tor: false
+                        is_bot: false
                         is_anycast: false
                         relay: {}
                         tor: {}
@@ -1043,9 +1081,9 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           description: >-
-            Your organization holds no license for this database, or its term has ended
-            (`NOT_LICENSED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use
-            `https://`
+            Your organization holds no license for this database (`NOT_LICENSED`), or its license
+            term has ended, so renew it (`LICENSE_EXPIRED`); or the key was sent over plain HTTP
+            (`KEY_OVER_HTTP`), so use `https://`
           content:
             application/json:
               schema:
@@ -1159,9 +1197,9 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           description: >-
-            Your organization holds no license for this database, or its term has ended
-            (`NOT_LICENSED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use
-            `https://`
+            Your organization holds no license for this database (`NOT_LICENSED`), or its license
+            term has ended, so renew it (`LICENSE_EXPIRED`); or the key was sent over plain HTTP
+            (`KEY_OVER_HTTP`), so use `https://`
           content:
             application/json:
               schema:
@@ -1338,9 +1376,10 @@ paths:
 
         `scopes` is what the credential may do now, so a client can check
         before it calls.
+
+        Needs the `account.read` scope.
       security:
-        - bearerAuth:
-            - account.read
+        - bearerAuth: []
       responses:
         '200':
           description: The caller.
@@ -1376,9 +1415,10 @@ paths:
         The organization this credential is scoped to.
 
         A credential belongs to one organization, so this takes no ID.
+
+        Needs the `org.read` scope.
       security:
-        - bearerAuth:
-            - org.read
+        - bearerAuth: []
       responses:
         '200':
           description: The organization.
@@ -1400,9 +1440,10 @@ paths:
         The members of the organization this credential is scoped to.
 
         Read-only. Members are invited by email from the console.
+
+        Needs the `org.read` scope.
       security:
-        - bearerAuth:
-            - org.read
+        - bearerAuth: []
       responses:
         '200':
           description: The members.
@@ -1428,9 +1469,10 @@ paths:
         A key issued before this product stored secrets recoverably was never
         kept, so `reveal` will refuse it permanently; rotating produces one
         that can be read.
+
+        Needs the `apikeys.read` scope.
       security:
-        - bearerAuth:
-            - apikeys.read
+        - bearerAuth: []
       responses:
         '200':
           description: The organization's keys, newest first.
@@ -1452,9 +1494,10 @@ paths:
 
         Store the secret now. Reading it back later takes `reveal` and the
         `apikeys.reveal` scope.
+
+        Needs the `apikeys.manage` scope.
       security:
-        - bearerAuth:
-            - apikeys.manage
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1486,9 +1529,7 @@ paths:
         back in the answer, so this needs `apikeys.reveal` as well as
         `apikeys.manage`.
       security:
-        - bearerAuth:
-            - apikeys.manage
-            - apikeys.reveal
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/ApikeyIdParam'
       responses:
@@ -1514,9 +1555,10 @@ paths:
         Stops the key working. Revocation is soft: the key stays listed with a
         `revoked_at`, because the organization still owns whatever it did while
         it was alive.
+
+        Needs the `apikeys.manage` scope.
       security:
-        - bearerAuth:
-            - apikeys.manage
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/ApikeyIdParam'
       responses:
@@ -1546,9 +1588,10 @@ paths:
 
         Refused with `NOT_RETRIEVABLE` for a key issued before we kept secrets.
         Rotate that key instead.
+
+        Needs the `apikeys.reveal` scope.
       security:
-        - bearerAuth:
-            - apikeys.reveal
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/ApikeyIdParam'
       responses:
@@ -1915,6 +1958,13 @@ components:
         is_cdn:
           type: boolean
           description: Whether the address belongs to a CDN. Paid plans.
+        is_bot:
+          type: boolean
+          description: >-
+            Whether an automated client uses the address, such as a search engine's or an AI
+            company's crawler, an uptime monitor, an internet scanner or a webhook sender. `bot`
+            says whose, what it does and whether its operator vouches for the address. Every answer,
+            with or without a key.
         is_resproxy:
           type: boolean
           description: Whether the address was seen in a residential proxy pool. Paid plans.
@@ -1983,6 +2033,10 @@ components:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
           description: Detail for `is_cdn`. Empty when false. Paid plans.
+        bot:
+          allOf:
+            - $ref: '#/components/schemas/BotDetail'
+          description: Detail for `is_bot`. Empty when false. Paid plans.
         resproxy:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
@@ -2044,6 +2098,12 @@ components:
           example: ''
         abuse:
           $ref: '#/components/schemas/AbuseContact'
+        user_agent:
+          allOf:
+            - $ref: '#/components/schemas/UserAgentVerdict'
+          description: |
+            When the request sent `user_agent`, with every field: the agent it
+            names and whether this address bears it out. Absent otherwise.
         trial_expired:
           type: boolean
           description: |
@@ -2075,6 +2135,17 @@ components:
           example:
             - 1.1.1.1
             - 2606:4700:4700::1111
+        user_agents:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 1024
+          description: |
+            Each address's `User-Agent`, keyed by the string it is sent as in
+            `ips`. With every field, that address's answer then carries
+            `user_agent`, as a single lookup's does. Never kept.
+          example:
+            66.249.66.1: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
     BatchLookupResponse:
       type: object
       required:
@@ -2396,6 +2467,8 @@ components:
         - domain
         - type
         - prefix
+        - country
+        - rpki_status
       properties:
         asn:
           type: integer
@@ -2426,6 +2499,92 @@ components:
           type: string
           description: 'The announcement''s RPKI status: valid, invalid or not_found.'
           example: not_found
+    UserAgentVerdict:
+      type: object
+      required:
+        - agent
+        - kind
+        - verdict
+      properties:
+        agent:
+          type: string
+          description: >-
+            The agent the user agent names, such as `Googlebot` or `Chrome`; `Unknown` where it
+            names none.
+          example: Googlebot
+        kind:
+          type: string
+          description: |
+            `browser`, `inapp`, `automation`, `bot`, `ai-bot`, `http-client` or
+            `unknown`: what kind of client the user agent says it is.
+          example: bot
+        verdict:
+          type: string
+          enum:
+            - verified
+            - spoofed
+            - unverifiable
+            - not_bot
+          description: |
+            `verified`: the agent's operator vouches for this address as it.
+            `spoofed`: the operator of a bot that publishes its addresses, or
+            whose registered space it uses, does not vouch for this one, or this
+            address posed as the bot before. `unverifiable`: a bot no published
+            list or registered space can confirm. `not_bot`: a browser, an app or
+            a script.
+          example: verified
+    BotDetail:
+      type: object
+      description: >-
+        Bot IP's row: whose bot uses the address, the bots it serves or claimed to be, what they do,
+        and how that is known.
+      properties:
+        provider:
+          type: string
+          description: The bot operator's ID, empty where no operator is known.
+        provider_name:
+          type: string
+          description: The operator's name, empty where no operator is known.
+        agents:
+          type: array
+          items:
+            type: string
+          description: >-
+            The bots the address serves, as their user agents name them (`Googlebot`, `GPTBot`); for
+            an address that is not verified, the bots it claimed to be. One address can serve
+            several, and `[]` means none is named.
+        categories:
+          type: array
+          items:
+            type: string
+          description: >-
+            What those bots do: `search_engine`, `ai_training`, `ai_search`, `ai_assistant`,
+            `ai_agent`, `seo`, `ads`, `preview`, `feed`, `monitoring`, `archiver`, `scanner`,
+            `link_security`, `webhook` or `other`; `[]` where unknown.
+        verified:
+          type: boolean
+          description: Whether the operator vouches for the address, so the bots in `agents` really are its.
+        identity:
+          type: string
+          description: >-
+            `verified` (the operator vouches for the address), `declared` (it names itself a bot
+            that cannot be verified), `spoofed` (it claimed a bot whose operator vouches for other
+            addresses) or `undeclared` (it hides as a browser and behaves as automation).
+        verified_by:
+          type: string
+          description: >-
+            How a verified address verified: `list` (the operator publishes it), `rdns` (its reverse
+            DNS name ends in a suffix the operator documents and resolves back) or `owner` (the
+            operator's own space, seen claiming its bot); empty when not verified.
+        confidence:
+          type: string
+          description: '`high`, `medium` or `low`: how sure we are the address is what the row says.'
+        first_seen:
+          type: string
+          description: The first day the address was seen as such.
+        last_seen:
+          type: string
+          description: The last day it was.
     CarrierDetail:
       type: object
       description: |
@@ -2482,6 +2641,7 @@ components:
           example: US
         asn:
           type: integer
+          format: int64
           description: The AS the operator announces it from.
           example: 14593
         confidence:

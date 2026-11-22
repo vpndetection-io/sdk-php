@@ -76,6 +76,16 @@ final class AnswerTypesTest extends TestCase
         'created' => '2026-09-02T10:11:12Z',
     ];
 
+    private const ASN = [
+        'asn' => 13335,
+        'name' => 'Cloudflare, Inc.',
+        'domain' => 'cloudflare.com',
+        'type' => 'hosting',
+        'prefix' => '1.1.1.0/24',
+        'country' => 'US',
+        'rpki_status' => 'valid',
+    ];
+
     /** @return array<string, array{array<string, mixed>}> */
     public static function lookupBodies(): array
     {
@@ -93,6 +103,10 @@ final class AnswerTypesTest extends TestCase
             'pubproxy.protocols "http"' => $lookup(['pubproxy' => ['protocols' => 'http']]),
             'pubproxy.protocols [null]' => $lookup(['pubproxy' => ['protocols' => [null]]]),
             'asn.asn "13335"' => $lookup(['asn' => ['asn' => '13335']]),
+            'asn without country' => $lookup(['asn' => array_diff_key(self::ASN, ['country' => 1])]),
+            'asn without rpki_status' => $lookup(['asn' => array_diff_key(self::ASN, ['rpki_status' => 1])]),
+            'asn.country null' => $lookup(['asn' => array_replace(self::ASN, ['country' => null])]),
+            'asn.rpki_status null' => $lookup(['asn' => array_replace(self::ASN, ['rpki_status' => null])]),
             'vpn.last_seen "x"' => $lookup(['vpn' => ['last_seen' => 'x']]),
             'vpn.last_seen "tomorrow"' => $lookup(['vpn' => ['last_seen' => 'tomorrow']]),
             'vpn.last_seen 30 February' => $lookup(['vpn' => ['last_seen' => '2026-02-30']]),
@@ -197,6 +211,7 @@ final class AnswerTypesTest extends TestCase
                 'vpn' => ['provider' => 'Example VPN', 'last_seen' => '2026-10-19'],
                 'pubproxy' => ['protocols' => ['http'], 'num_ports' => 3],
                 'hosting' => new \stdClass(),
+                'asn' => self::ASN,
             ]),
             '/api/v1/entitlement' => Stub::ok(self::ENTITLEMENT),
             '/api/v1/database/list' => Stub::ok(['databases' => [array_replace(self::DATABASE, [
@@ -211,6 +226,7 @@ final class AnswerTypesTest extends TestCase
         $result = $client->lookup('9.9.9.9');
         self::assertSame('2026-10-19', $result->vpn?->lastSeen?->format('Y-m-d'));
         self::assertNotNull($result->hosting, 'a detail served as {} stays present');
+        self::assertSame(['US', 'valid'], [$result->asn?->country, $result->asn?->rpkiStatus]);
         self::assertSame(580, $client->myEntitlement()->usage->requests);
         self::assertSame('2026-09-04 10:00:00', $client->database->list()[0]->starts?->format('Y-m-d H:i:s'));
         self::assertSame(42, $client->database->metadata('vpn_ip_extended_v1')->entries);

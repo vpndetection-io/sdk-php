@@ -1,11 +1,11 @@
 """Opens the generated models' response enums, so a value the API adds reads as served.
 
 php-nextgen refuses a value outside the pinned spec while it deserializes: an inline enum
-(`tier`, `license_type`, `outcome`) in its setter, and a referenced one (`standing`, a format)
-because it is a native enum, which cannot hold another value. Both fail the whole call. This
-drops the setters' checks and types the referenced members as strings, in the response models
-alone: `Model/DatabaseFormat` stays an enum, and the request side refuses a format outside it
-before the network.
+(`tier`, `license_type`, `outcome`, `verdict`) in its setter, and a referenced one
+(`standing`, a format) because it is a native enum, which cannot hold another value. Both
+fail the whole call. This drops the setters' checks and types the referenced members as
+strings, in the response models alone: `Model/DatabaseFormat` stays an enum, and the request
+side refuses a format outside it before the network.
 
     python3 scripts/open_enums.py src/Internal/Model
 """
@@ -22,7 +22,7 @@ TYPED = {
     "DatabaseVersion.php": ["DatabaseFormat"],
 }
 # The inline enums whose setter refuses a value outside the pinned spec, by file.
-SETTERS = {"Database.php": 1, "Download.php": 1, "EntitlementPlan.php": 1}
+SETTERS = {"Database.php": 1, "Download.php": 1, "EntitlementPlan.php": 1, "UserAgentVerdict.php": 1}
 
 CHECK = re.compile(
     r"\n {8}\$allowedValues = self::get\w+AllowableValues\(\);\n"
