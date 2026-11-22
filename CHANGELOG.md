@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.18.0 - 2026-11-22
+
+### Features
+
+- Read is_bot and bot on every lookup result ([`85e9a48`](https://github.com/vpndetection-io/sdk-php/commit/85e9a4885f047d9a2be49910b4747a9b6f6cf05e))
+
+### Fixes
+
+- Refuse an AS without its country or RPKI status, as the API always sends them ([`9b961d6`](https://github.com/vpndetection-io/sdk-php/commit/9b961d67892bda7982893adf2ee2e644f6cdfa00))
+
 ## 4.17.0 - 2026-11-20
 
 ### Features
