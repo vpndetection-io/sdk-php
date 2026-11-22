@@ -62,6 +62,13 @@ final class Staging
             ],
             'optional' => [],
         ],
+        'bot' => [
+            'required' => [
+                'provider', 'provider_name', 'agents', 'categories', 'verified', 'identity', 'verified_by',
+                'confidence', 'first_seen', 'last_seen',
+            ],
+            'optional' => [],
+        ],
     ];
 
     /** The keys of each row of `web`, a list with a row per port that answered. */
@@ -88,8 +95,8 @@ final class Staging
             ],
         ],
         'asn' => [
-            'required' => ['asn', 'name', 'domain', 'type', 'prefix'],
-            'optional' => ['country', 'rpki_status'],
+            'required' => ['asn', 'name', 'domain', 'type', 'prefix', 'country', 'rpki_status'],
+            'optional' => [],
         ],
         'company' => ['required' => ['name', 'domain'], 'optional' => ['type', 'country']],
         'abuse' => [
