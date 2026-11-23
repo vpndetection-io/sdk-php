@@ -2,6 +2,17 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.19.0 - 2026-11-23
+
+### Features
+
+- Send a user agent with a lookup, and let a verified crawler through the middleware ([`68a0777`](https://github.com/vpndetection-io/sdk-php/commit/68a0777f32cdbd9fd74ea9f8d5944ad804ef27d3))
+
+### Fixes
+
+- Require Guzzle 7.15.2 or 8.0.1 and psr7 2.12.3 at the least ([`af51bdc`](https://github.com/vpndetection-io/sdk-php/commit/af51bdc2f456153583346c0f4b106319e4c6215d))
+- Re-pin the spec to 2026.11.22 and regenerate the wire layer ([`43870da`](https://github.com/vpndetection-io/sdk-php/commit/43870da3878558ebc7c3a9773e6dd84ff884c1d9))
+
 ## 4.18.0 - 2026-11-22
 
 ### Features
