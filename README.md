@@ -95,6 +95,24 @@ There's no limit on how many addresses you pass. How many chunks are in flight a
 $results = $client->lookupBatch($manyIps, ['concurrency' => 4, 'retries' => 4, 'timeout' => 10]);
 ```
 
+### Is that crawler really who it says?
+
+Pass the `User-Agent` of the request you are deciding on, and with every field (a paid plan, or a free account's trial) the answer says whose bot it names and whether this address bears that out: `verified`, `spoofed`, `unverifiable` or `not_bot`. A keyless client's answer never carries it, and `userAgent` is then null. A batch takes one agent per address, keyed as you pass the address:
+
+```php
+$result = $client->lookup('66.249.66.1', ['userAgent' => $_SERVER['HTTP_USER_AGENT'] ?? '']);
+
+if ($result->userAgent?->verdict === 'spoofed') {
+    // Claims to be a crawler its operator does not run from here.
+}
+
+$results = $client->lookupBatch(['66.249.66.1', '45.83.91.1'], [
+    'userAgents' => ['66.249.66.1' => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'],
+]);
+```
+
+An empty agent is none. An answer with an agent is cached apart from the address's plain answer and from another agent's, and a private or reserved address is still answered locally, with an empty `userAgent`.
+
 ### Caching
 
 Answers are cached by default, so repeat lookups of the same address are free:

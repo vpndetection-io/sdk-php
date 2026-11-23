@@ -43,6 +43,19 @@ final class CallOptions
         if (isset($options['concurrency']) && (!is_int($options['concurrency']) || $options['concurrency'] < 1)) {
             throw new InvalidArgumentException('concurrency must be a whole number from 1');
         }
+        if (isset($options['userAgent']) && !is_string($options['userAgent'])) {
+            throw new InvalidArgumentException('userAgent must be a string');
+        }
+        if (isset($options['userAgents'])) {
+            if (!is_array($options['userAgents'])) {
+                throw new InvalidArgumentException('userAgents must be an array of user agents keyed by address');
+            }
+            foreach ($options['userAgents'] as $agent) {
+                if ($agent !== null && !is_string($agent)) {
+                    throw new InvalidArgumentException('userAgents must map each address to a string');
+                }
+            }
+        }
         $timeout = $options['timeout'] ?? null;
         if ($timeout !== null && !is_int($timeout) && !is_float($timeout)) {
             throw new InvalidArgumentException('timeout must be a number of seconds');
@@ -69,6 +82,18 @@ final class CallOptions
         if (is_nan($timeout) || ($timeout > 0 && $timeout < 0.001) || $timeout >= self::TIMEOUT_CEILING) {
             throw new InvalidArgumentException('timeout must be 0, for no bound, or from 0.001 up to 9e15 seconds');
         }
+    }
+
+    /**
+     * The user agent a call sends, or '' for none: the API reads an empty one as
+     * none, so it is never sent. A longer one than the spec's 1024 is sent as it
+     * is, never refused, since the API cuts it there and answers.
+     *
+     * @param array{userAgent?: ?string} $options
+     */
+    public static function userAgent(array $options): string
+    {
+        return $options['userAgent'] ?? '';
     }
 
     /**

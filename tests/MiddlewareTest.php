@@ -287,6 +287,155 @@ final class MiddlewareTest extends TestCase
         self::assertInstanceOf(VPNDetectionException::class, $lookup?->error);
         self::assertStringContainsString('could not resolve a client address', $warnings[0]);
     }
+
+    private const GOOGLEBOT = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
+
+    /** @return array<string, mixed> An answer for the public peer carrying this verdict, or none. */
+    private static function judged(?string $verdict, bool $isVpn = true): array
+    {
+        $body = ['ip' => self::PUBLIC_IP, 'is_vpn' => $isVpn];
+        if ($verdict !== null) {
+            $body['user_agent'] = ['agent' => 'Googlebot', 'kind' => 'bot', 'verdict' => $verdict];
+        }
+        return $body;
+    }
+
+    /** @return array<string, mixed> */
+    private static function sentQuery(Stub $stub): array
+    {
+        parse_str($stub->requests[0]->getUri()->getQuery(), $query);
+        return $query;
+    }
+
+    public function testAllowBotsSendsTheRequestsOwnUserAgent(): void
+    {
+        $stub = self::serving(self::judged('verified'));
+        $request = new Req(['user-agent' => self::GOOGLEBOT]);
+        $lookup = self::core(new MwOptions(client: self::client($stub), allowBots: true))
+            ->evaluate($request, $request->headers['user-agent']);
+
+        self::assertSame(['/' . self::PUBLIC_IP], $stub->calls, 'a public peer, looked up');
+        self::assertSame(['user_agent' => self::GOOGLEBOT], self::sentQuery($stub));
+        self::assertSame('verified', $lookup?->result?->userAgent?->verdict);
+    }
+
+    public function testAllowBotsOffSendsNoUserAgent(): void
+    {
+        $stub = self::serving(self::judged(null));
+        self::core(new MwOptions(client: self::client($stub)))->evaluate(new Req(), self::GOOGLEBOT);
+
+        self::assertSame(['/' . self::PUBLIC_IP], $stub->calls);
+        self::assertSame([], self::sentQuery($stub));
+    }
+
+    public function testAnAbsentOrEmptyUserAgentSendsNoneAndWarnsNothing(): void
+    {
+        foreach ([null, ''] as $agent) {
+            $warnings = [];
+            $stub = self::serving(self::judged(null));
+            self::core(new MwOptions(
+                client: self::client($stub),
+                allowBots: true,
+                onWarn: function (string $m) use (&$warnings): void {
+                    $warnings[] = $m;
+                },
+            ))->evaluate(new Req(), $agent);
+
+            self::assertSame([], self::sentQuery($stub), var_export($agent, true));
+            self::assertSame([], $warnings, var_export($agent, true));
+        }
+    }
+
+    public function testAVerifiedCrawlerPassesAConditionItOtherwiseMeets(): void
+    {
+        foreach ([['verified', false], ['spoofed', true], ['not_bot', true], ['unverifiable', true], [null, true]] as [$verdict, $blocked]) {
+            $stub = self::serving(self::judged($verdict));
+            $lookup = self::core(new MwOptions(
+                client: self::client($stub),
+                blockCondition: ['isVpn' => true],
+                allowBots: true,
+                onMissingField: 'ignore',
+            ))->evaluate(new Req(), self::GOOGLEBOT);
+
+            $why = var_export($verdict, true);
+            self::assertSame($blocked, $lookup?->blocked, $why);
+            self::assertTrue($lookup->result?->isVpn, "{$why}: the answer is still attached");
+        }
+    }
+
+    public function testWithAllowBotsOffAVerifiedAnswerIsStillRefused(): void
+    {
+        $stub = self::serving(self::judged('verified'));
+        $lookup = self::core(new MwOptions(client: self::client($stub), blockCondition: ['isVpn' => true]))
+            ->evaluate(new Req(), self::GOOGLEBOT);
+
+        self::assertTrue($lookup?->blocked);
+    }
+
+    public function testAConditionNamingTheUserAgentWorksWithAllowBots(): void
+    {
+        foreach ([['spoofed', true], ['not_bot', false], ['verified', false]] as [$verdict, $blocked]) {
+            $stub = self::serving(self::judged($verdict, isVpn: false));
+            $lookup = self::core(new MwOptions(
+                client: self::client($stub),
+                blockCondition: ['userAgent' => ['verdict' => 'spoofed']],
+                allowBots: true,
+            ))->evaluate(new Req(), self::GOOGLEBOT);
+
+            self::assertSame($blocked, $lookup?->blocked, $verdict);
+        }
+    }
+
+    public function testAnAnswerWithoutAVerdictWarnsOnceOrThrows(): void
+    {
+        $warnings = [];
+        $stub = self::serving(self::judged(null, isVpn: false));
+        $core = self::core(new MwOptions(
+            client: self::client($stub),
+            allowBots: true,
+            onWarn: function (string $m) use (&$warnings): void {
+                $warnings[] = $m;
+            },
+        ));
+        $core->evaluate(new Req(), self::GOOGLEBOT);
+        $core->evaluate(new Req(), self::GOOGLEBOT);
+        self::assertCount(1, $warnings);
+        self::assertStringContainsString('user_agent', $warnings[0]);
+
+        $quiet = [];
+        self::core(new MwOptions(
+            client: self::client($stub),
+            allowBots: true,
+            onMissingField: 'ignore',
+            onWarn: function (string $m) use (&$quiet): void {
+                $quiet[] = $m;
+            },
+        ))->evaluate(new Req(), self::GOOGLEBOT);
+        self::assertSame([], $quiet);
+
+        $this->expectException(\RuntimeException::class);
+        self::core(new MwOptions(client: self::client($stub), allowBots: true, onMissingField: 'throw'))
+            ->evaluate(new Req(), self::GOOGLEBOT);
+    }
+
+    public function testABogonPeerIsAnsweredLocallyAndLetsNothingThrough(): void
+    {
+        $warnings = [];
+        $stub = self::serving(self::judged('verified'));
+        $lookup = self::core(new MwOptions(
+            client: self::client($stub),
+            ipSelector: fn (Req $r): string => '10.0.0.1',
+            blockCondition: ['isBogon' => true],
+            allowBots: true,
+            onWarn: function (string $m) use (&$warnings): void {
+                $warnings[] = $m;
+            },
+        ))->evaluate(new Req(), self::GOOGLEBOT);
+
+        self::assertSame([], $stub->calls);
+        self::assertTrue($lookup?->blocked);
+        self::assertCount(1, $warnings, 'the private-address warning alone');
+    }
 }
 
 /** The least a framework can offer, so the core is exercised without one. */

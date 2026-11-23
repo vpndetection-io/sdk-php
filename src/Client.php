@@ -11,6 +11,7 @@ use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\Each;
 use GuzzleHttp\Promise\PromiseInterface;
 use OutOfBoundsException;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TypeError;
 use ValueError;
@@ -103,12 +104,17 @@ final class Client
      * A bogon is answered locally and never reaches the network. Everything else
      * is served, then cached for this instance.
      *
-     * @param array{retries?: int, timeout?: float} $options Per-call overrides.
+     * `userAgent` is the `User-Agent` of the request you are deciding on: with
+     * every field the answer then carries `userAgent`, whose bot it names and
+     * whether this address bears that out. An empty one is none. The answer is
+     * cached apart from the address's plain answer and from another agent's.
+     *
+     * @param array{retries?: int, timeout?: float, userAgent?: ?string} $options Per-call overrides.
      * @throws VPNDetectionException
      */
     public function lookup(string $ip, array $options = []): Result
     {
-        CallOptions::assert($options, ['retries', 'timeout']);
+        CallOptions::assert($options, ['retries', 'timeout', 'userAgent']);
         return $this->lookupAsync($ip, $options)->wait();
     }
 
@@ -124,13 +130,14 @@ final class Client
      * this is IS the question: a machine that moves between networks would
      * otherwise be told where it used to be.
      *
-     * @param array{retries?: int, timeout?: float} $options Per-call overrides.
+     * @param array{retries?: int, timeout?: float, userAgent?: ?string} $options Per-call overrides;
+     *     `userAgent` as `lookup` takes it.
      * @throws VPNDetectionException
      */
     public function myIp(array $options = []): Result
     {
-        CallOptions::assert($options, ['retries', 'timeout']);
-        $request = $this->lookupApi->lookupMyIpRequest();
+        CallOptions::assert($options, ['retries', 'timeout', 'userAgent']);
+        $request = self::withUserAgent($this->lookupApi->lookupMyIpRequest(), CallOptions::userAgent($options));
         return $this->transport->sendAsync(
             $request, $options['retries'] ?? null, CallOptions::timeout($options),
             read: self::result(...),
@@ -188,59 +195,78 @@ final class Client
      * of two or more a `BadRequest` (HTTP 402). A request of one address is
      * answered as its lookup would be.
      *
+     * `userAgents` maps an address, as you pass it in `$ips`, to the `User-Agent`
+     * of the request you are deciding on, as `lookup` takes one; an address
+     * without one, or with an empty one, is looked up plainly.
+     *
      * @param iterable<string> $ips
-     * @param array{retries?: int, concurrency?: int, timeout?: float} $options Per-call overrides.
+     * @param array{retries?: int, concurrency?: int, timeout?: float, userAgents?: array<string, ?string>} $options
+     *     Per-call overrides.
      * @return array<string, Result|VPNDetectionException> Keyed by address, in input order.
      */
     public function lookupBatch(iterable $ips, array $options = []): array
     {
-        CallOptions::assert($options, ['retries', 'concurrency', 'timeout']);
+        CallOptions::assert($options, ['retries', 'concurrency', 'timeout', 'userAgents']);
         $concurrency = $options['concurrency'] ?? $this->concurrency;
+        $agents = $options['userAgents'] ?? [];
 
         $seen = [];
         foreach ($ips as $ip) {
             $seen[$ip] = true;
         }
-        // An IPv4-mapped address is looked up as the IPv4 address it carries, once,
-        // and its answer keyed as the caller passed it.
+        // An IPv4-mapped address is looked up as the IPv4 address it carries, and its
+        // answer keyed as the caller passed it. Each pair of address and user agent
+        // is asked once: an answer with an agent is not the address's plain one.
         $asked = array_map(strval(...), array_keys($seen));
-        $wire = array_map(Bogon::unmapped(...), $asked);
-        $unique = array_values(array_unique($wire));
+        $keys = [];
+        $pairs = [];
+        foreach ($asked as $i => $ip) {
+            $wire = Bogon::unmapped($ip);
+            $agent = $agents[$ip] ?? '';
+            $keys[$i] = self::cacheKey($wire, $agent);
+            $pairs[$keys[$i]] ??= [$wire, $agent];
+        }
 
         $answers = [];
         $routable = [];
-        foreach ($unique as $ip) {
-            if (Bogon::isBogon($ip)) {
-                $answers[$ip] = Bogon::result($ip);
+        foreach ($pairs as $key => [$wire, $agent]) {
+            if (Bogon::isBogon($wire)) {
+                $answers[$key] = Bogon::result($wire);
                 continue;
             }
-            $routable[] = $ip;
+            $routable[(string) $key] = [$wire, $agent];
         }
         // One read for the whole batch, which a store across the network needs.
-        $hits = $this->cache?->getMany($routable) ?? [];
-        $pending = [];
-        foreach ($routable as $ip) {
-            if (isset($hits[$ip])) {
-                $answers[$ip] = $hits[$ip];
+        $hits = $this->cache?->getMany(array_map(strval(...), array_keys($routable))) ?? [];
+        // A request names an address once, so one asked with two user agents
+        // goes in a second round of chunks.
+        $rounds = [];
+        $asks = [];
+        foreach ($routable as $key => [$wire, $agent]) {
+            if (isset($hits[$key])) {
+                $answers[$key] = $hits[$key];
                 continue;
             }
-            $pending[] = $ip;
+            $asks[$wire] = ($asks[$wire] ?? -1) + 1;
+            $rounds[$asks[$wire]][] = [$wire, $agent];
         }
 
         // A generator, so only `concurrency` chunks are in flight at once: creating
         // a promise starts its transfer, and an eagerly built list would put every
         // chunk in flight regardless of the limit.
-        $chunks = (function () use ($pending, $options): iterable {
-            foreach (array_chunk($pending, self::BATCH_MAX) as $chunk) {
-                yield $this->lookupChunkAsync($chunk, $options);
+        $chunks = (function () use ($rounds, $options): iterable {
+            foreach ($rounds as $pending) {
+                foreach (array_chunk($pending, self::BATCH_MAX) as $chunk) {
+                    yield $this->lookupChunkAsync($chunk, $options);
+                }
             }
         })();
         Each::ofLimit(
             $chunks,
             $concurrency,
             function (array $value) use (&$answers): void {
-                foreach ($value as $ip => $answer) {
-                    $answers[$ip] = $answer;
+                foreach ($value as $key => $answer) {
+                    $answers[$key] = $answer;
                 }
             },
         )->wait();
@@ -249,7 +275,7 @@ final class Client
         // a caller iterating the result should see what they passed in.
         $ordered = [];
         foreach ($asked as $i => $ip) {
-            $ordered[$ip] = $answers[$wire[$i]];
+            $ordered[$ip] = $answers[$keys[$i]];
         }
         return $ordered;
     }
@@ -261,16 +287,33 @@ final class Client
      * exactly as it would have been had each been looked up alone. Never
      * rejects: the failure is the value.
      *
-     * @param list<string> $chunk
+     * `user_agents` is sent only when an address of this chunk carries one, keyed
+     * by the address exactly as `ips` sends it: the API matches it by string.
+     *
+     * @param list<array{0: string, 1: string}> $chunk Each address with its user agent, '' for none.
      * @param array{retries?: int, concurrency?: int, timeout?: float} $options
-     * @return PromiseInterface Resolving to array<string, Result|VPNDetectionException>.
+     * @return PromiseInterface Resolving to array<string, Result|VPNDetectionException>, keyed by `cacheKey`.
      */
     private function lookupChunkAsync(array $chunk, array $options): PromiseInterface
     {
-        $request = $this->lookupApi->lookupBatchRequest(new BatchLookupRequest(['ips' => $chunk]));
+        $ips = array_column($chunk, 0);
+        $body = ['ips' => $ips];
+        foreach ($chunk as [$ip, $agent]) {
+            if ($agent !== '') {
+                $body['user_agents'][$ip] = $agent;
+            }
+        }
+        $request = $this->lookupApi->lookupBatchRequest(new BatchLookupRequest($body));
         return $this->transport->sendAsync(
             $request, $options['retries'] ?? null, CallOptions::timeout($options),
-            read: static fn (ResponseInterface $r): array => self::chunkAnswers($r, $chunk),
+            read: static function (ResponseInterface $r) use ($chunk, $ips): array {
+                $byAddress = self::chunkAnswers($r, $ips);
+                $answers = [];
+                foreach ($chunk as [$ip, $agent]) {
+                    $answers[self::cacheKey($ip, $agent)] = $byAddress[$ip];
+                }
+                return $answers;
+            },
         )->then(
             function (array $answers): array {
                 $this->cache?->setMany(array_filter(
@@ -282,15 +325,15 @@ final class Client
             function (mixed $reason) use ($chunk): array {
                 $error = Errors::coerce($reason);
                 $answers = [];
-                foreach ($chunk as $ip) {
-                    $answers[$ip] = $error;
+                foreach ($chunk as [$ip, $agent]) {
+                    $answers[self::cacheKey($ip, $agent)] = $error;
                 }
                 return $answers;
             },
         );
     }
 
-    /** @param array{retries?: int, timeout?: float} $options */
+    /** @param array{retries?: int, timeout?: float, userAgent?: ?string} $options */
     private function lookupAsync(string $ip, array $options): PromiseInterface
     {
         // Judged, sent and cached as the IPv4 address an IPv4-mapped one carries.
@@ -298,20 +341,48 @@ final class Client
         if (Bogon::isBogon($ip)) {
             return Create::promiseFor(Bogon::result($ip));
         }
-        $hit = $this->cache?->get($ip);
+        $agent = CallOptions::userAgent($options);
+        $key = self::cacheKey($ip, $agent);
+        $hit = $this->cache?->get($key);
         if ($hit !== null) {
             return Create::promiseFor($hit);
         }
-        $request = $this->lookupApi->lookupIpRequest($ip);
+        $request = self::withUserAgent($this->lookupApi->lookupIpRequest($ip), $agent);
         return $this->transport->sendAsync(
             $request, $options['retries'] ?? null, CallOptions::timeout($options),
             read: self::result(...),
         )->then(
-            function (Result $result) use ($ip): Result {
-                $this->cache?->set($ip, $result);
+            function (Result $result) use ($key): Result {
+                $this->cache?->set($key, $result);
                 return $result;
             },
         );
+    }
+
+    /**
+     * Where an answer is cached: the address alone for a plain lookup, and the
+     * address with the user agent for one that sent an agent, whose answer
+     * carries a verdict the plain one lacks.
+     */
+    private static function cacheKey(string $ip, string $agent): string
+    {
+        return $agent === '' ? $ip : "{$ip}\0{$agent}";
+    }
+
+    /**
+     * The query parameter added here rather than through the generated builder,
+     * which refuses an agent past the spec's 1024 characters: the API cuts a
+     * longer one and answers, so it is sent. Percent-encoded whole, so a `+` in an
+     * agent (`+http://www.google.com/bot.html`) is not read back as a space.
+     */
+    private static function withUserAgent(RequestInterface $request, string $agent): RequestInterface
+    {
+        if ($agent === '') {
+            return $request;
+        }
+        $uri = $request->getUri();
+        $param = 'user_agent=' . rawurlencode($agent);
+        return $request->withUri($uri->withQuery($uri->getQuery() === '' ? $param : "{$uri->getQuery()}&{$param}"));
     }
 
     private static function result(ResponseInterface $response): Result

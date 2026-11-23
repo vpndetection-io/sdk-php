@@ -7,8 +7,9 @@ namespace VPNDetection;
 /**
  * @internal
  *
- * Where a client keeps its answers, by address: its own memory, or a PSR-16
- * store that outlives it.
+ * Where a client keeps its answers: its own memory, or a PSR-16 store that
+ * outlives it. Keyed by the address, or by the address and the user agent a
+ * lookup sent, which the client joins into one string.
  */
 interface AnswerCache
 {

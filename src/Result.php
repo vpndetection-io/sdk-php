@@ -119,6 +119,11 @@ final class Result
         public readonly ?bool $isBot = null,
         /** Bot IP's row, empty when `isBot` is false. Paid plans. */
         public readonly ?BotDetail $bot = null,
+        /**
+         * The verdict on the user agent the lookup sent: null when it sent none or
+         * the plan does not include it, empty for a bogon. Paid plans.
+         */
+        public readonly ?UserAgentVerdict $userAgent = null,
     ) {
     }
 
@@ -184,6 +189,7 @@ final class Result
             abuse: $w->getAbuse() === null ? null : AbuseContact::fromWire($w->getAbuse()),
             isBot: $w->getIsBot(),
             bot: $w->getBot() === null ? null : BotDetail::fromWire($w->getBot()),
+            userAgent: $w->getUserAgent() === null ? null : UserAgentVerdict::fromWire($w->getUserAgent()),
         );
     }
 }

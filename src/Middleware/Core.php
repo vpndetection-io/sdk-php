@@ -55,8 +55,11 @@ final class Core
      * A failed LOOKUP is not thrown: it lands on `Lookup::$error` and the request is
      * let through. What CAN throw is a misconfiguration - a condition naming a member
      * the plan does not serve, with `onMissingField` set to throw.
+     *
+     * @param ?string $userAgent The request's own `User-Agent` header, sent with the
+     *     lookup when `allowBots` is on; null or empty sends none.
      */
-    public function evaluate(mixed $request): ?Lookup
+    public function evaluate(mixed $request, ?string $userAgent = null): ?Lookup
     {
         if ($this->options->skip !== null && ($this->options->skip)($request) === true) {
             return null;
@@ -85,10 +88,14 @@ final class Core
             );
         }
 
+        $agent = $this->options->allowBots ? ($userAgent ?? '') : '';
         try {
-            $result = $this->client->lookup($ip);
+            $result = $this->client->lookup($ip, $agent === '' ? [] : ['userAgent' => $agent]);
         } catch (VPNDetectionException $error) {
             return new Lookup(blocked: $this->options->failClosed, ip: $ip, error: $error);
+        }
+        if ($agent !== '' && $result->userAgent === null) {
+            $this->reportUnjudged();
         }
         return $this->decide($ip, $result);
     }
@@ -100,10 +107,23 @@ final class Core
             return new Lookup(blocked: false, ip: $ip, result: $result);
         }
         $this->reportMissing($condition, $result);
+        // A crawler its operator vouches for is let through whatever else matched.
+        $verified = $this->options->allowBots && $result->userAgent?->verdict === 'verified';
         return new Lookup(
-            blocked: Condition::matches($condition, $result),
+            blocked: !$verified && Condition::matches($condition, $result),
             ip: $ip,
             result: $result,
+        );
+    }
+
+    // A served answer without `user_agent` judged nothing, so allowBots can let no
+    // crawler through: only an answer with every field carries the verdict.
+    private function reportUnjudged(): void
+    {
+        $this->reportGap(
+            'allowBots sent the request\'s User-Agent, but the answer carried no user_agent '
+            . 'verdict, which your plan does not include, so no verified crawler is let through. '
+            . 'Only an answer with every field, on a paid plan or the trial, carries it.'
         );
     }
 
@@ -120,6 +140,18 @@ final class Core
         $message = 'blockCondition names ' . implode(', ', $missing) . ', which your plan does '
             . 'not include, so those terms can never match. An absent member means "not in your '
             . 'plan", not "checked, and no".';
+        if (in_array('userAgent', $missing, true) && !$this->options->allowBots) {
+            $message .= ' userAgent is answered only when allowBots sends the request\'s User-Agent.';
+        }
+        $this->reportGap($message);
+    }
+
+    /** Warns, throws or keeps quiet about a member the answer lacks, as `onMissingField` says. */
+    private function reportGap(string $message): void
+    {
+        if ($this->options->onMissingField === 'ignore') {
+            return;
+        }
         if ($this->options->onMissingField === 'throw') {
             throw new \RuntimeException("vpndetection: {$message}");
         }

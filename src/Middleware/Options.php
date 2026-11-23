@@ -57,6 +57,15 @@ final class Options
          * request, and its own cache with it. Ignored when `client` is given.
          */
         public readonly ?CacheInterface $cacheStore = null,
+        /**
+         * Send the request's own `User-Agent` with its lookup, and never refuse a
+         * request whose answer's `userAgent->verdict` is `verified`, whatever the
+         * condition matches; the answer is still attached. Only an answer with
+         * every field carries a verdict, so a keyless client never lets anything
+         * through by it. Off by default: on, the cache holds an answer per address
+         * and user agent rather than per address.
+         */
+        public readonly bool $allowBots = false,
     ) {
     }
 }

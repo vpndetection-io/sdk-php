@@ -136,6 +136,7 @@ final class Bogon
             ),
             isBot: false,
             bot: new BotDetail(),
+            userAgent: new UserAgentVerdict(),
         );
     }
 
