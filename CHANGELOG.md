@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.19.1 - 2026-11-24
+
+### Fixes
+
+- Refuse a first_seen or last_seen that is not a day on six detail objects ([`52f798b`](https://github.com/vpndetection-io/sdk-php/commit/52f798b5b51b424191ac9f3a7d5e38970b0d946b))
+
 ## 4.19.0 - 2026-11-23
 
 ### Features
