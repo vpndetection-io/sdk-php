@@ -45,8 +45,8 @@ final class DnsResolverDetail
             recursionAvailable: $w->getRecursionAvailable(),
             rcode: $w->getRcode(),
             answerCorrect: $w->getAnswerCorrect(),
-            firstSeen: $w->getFirstSeen(),
-            lastSeen: $w->getLastSeen(),
+            firstSeen: Dates::day($w->getFirstSeen()),
+            lastSeen: Dates::day($w->getLastSeen()),
         );
     }
 }

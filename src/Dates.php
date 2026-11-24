@@ -25,4 +25,13 @@ final class Dates
     {
         return DateTimeImmutable::createFromInterface($value);
     }
+
+    /**
+     * A `format: date` member the public layer keeps as a `YYYY-MM-DD` string. The
+     * response reader has refused any other form, so this is the day as served.
+     */
+    public static function day(?DateTimeInterface $value): ?string
+    {
+        return $value?->format('Y-m-d');
+    }
 }

@@ -59,8 +59,8 @@ final class WebDetail
             certIssuerDn: $w->getCertIssuerDn(),
             certBrowserTrusted: $w->getCertBrowserTrusted(),
             tlsVersion: $w->getTlsVersion(),
-            firstSeen: $w->getFirstSeen(),
-            lastSeen: $w->getLastSeen(),
+            firstSeen: Dates::day($w->getFirstSeen()),
+            lastSeen: Dates::day($w->getLastSeen()),
         );
     }
 }

@@ -45,8 +45,8 @@ final class SshDetail
             banner: $w->getBanner(),
             hostKeyFp: $w->getHostKeyFp(),
             sessionOk: $w->getSessionOk(),
-            firstSeen: $w->getFirstSeen(),
-            lastSeen: $w->getLastSeen(),
+            firstSeen: Dates::day($w->getFirstSeen()),
+            lastSeen: Dates::day($w->getLastSeen()),
         );
     }
 }

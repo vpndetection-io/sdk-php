@@ -57,8 +57,8 @@ final class BitTorrentDetail
         return new self(
             verified: $w->getVerified(),
             idMatchesIp: $w->getIdMatchesIp(),
-            firstSeen: $w->getFirstSeen(),
-            lastSeen: $w->getLastSeen(),
+            firstSeen: Dates::day($w->getFirstSeen()),
+            lastSeen: Dates::day($w->getLastSeen()),
             lastReachable: $w->getLastReachable(),
             daysSeen: $w->getDaysSeen(),
             numPorts: $w->getNumPorts(),

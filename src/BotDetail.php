@@ -86,8 +86,8 @@ final class BotDetail
             identity: $w->getIdentity(),
             verifiedBy: $w->getVerifiedBy(),
             confidence: $w->getConfidence(),
-            firstSeen: $w->getFirstSeen(),
-            lastSeen: $w->getLastSeen(),
+            firstSeen: Dates::day($w->getFirstSeen()),
+            lastSeen: Dates::day($w->getLastSeen()),
         );
     }
 }

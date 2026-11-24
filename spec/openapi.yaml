@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.22
+  version: 2026.11.23
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -2583,9 +2583,11 @@ components:
           description: '`high`, `medium` or `low`: how sure we are the address is what the row says.'
         first_seen:
           type: string
+          format: date
           description: The first day the address was seen as such.
         last_seen:
           type: string
+          format: date
           description: The last day it was.
     CarrierDetail:
       type: object
@@ -2675,10 +2677,12 @@ components:
           example: true
         first_seen:
           type: string
+          format: date
           description: The first day it answered.
           example: '2026-08-04'
         last_seen:
           type: string
+          format: date
           description: The last day it did.
           example: '2026-11-15'
     SmtpDetail:
@@ -2702,10 +2706,12 @@ components:
           example: true
         first_seen:
           type: string
+          format: date
           description: The first day it answered.
           example: '2026-08-04'
         last_seen:
           type: string
+          format: date
           description: The last day it did.
           example: '2026-11-15'
     WebDetail:
@@ -2777,10 +2783,12 @@ components:
           example: TLS 1.3
         first_seen:
           type: string
+          format: date
           description: The first day the port was open.
           example: '2026-08-04'
         last_seen:
           type: string
+          format: date
           description: The last day it was.
           example: '2026-11-15'
     DnsResolverDetail:
@@ -2808,10 +2816,12 @@ components:
           example: true
         first_seen:
           type: string
+          format: date
           description: The first day it answered.
           example: '2026-08-04'
         last_seen:
           type: string
+          format: date
           description: The last day it did.
           example: '2026-11-15'
     BitTorrentDetail:
@@ -2831,10 +2841,12 @@ components:
           example: false
         first_seen:
           type: string
+          format: date
           description: The first day a client was seen here.
           example: '2026-08-21'
         last_seen:
           type: string
+          format: date
           description: The last day.
           example: '2026-11-15'
         last_reachable:
