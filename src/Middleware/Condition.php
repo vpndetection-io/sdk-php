@@ -158,6 +158,16 @@ final class Condition
      */
     private static function matchesValue(mixed $want, mixed $got): bool
     {
+        // A member the answer holds as a list matches when any one element does, so an
+        // object term must match a single element whole and an empty list matches nothing.
+        if (is_array($got) && array_is_list($got)) {
+            foreach ($got as $element) {
+                if (self::matchesValue($want, $element)) {
+                    return true;
+                }
+            }
+            return false;
+        }
         if (is_array($want)) {
             if (self::isBound($want)) {
                 return self::matchesBound($want, $got);
