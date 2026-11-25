@@ -70,46 +70,46 @@ final class Result
         public readonly ?bool $capReached = null,
         /** Whether the address is announced from many places at once. Every plan includes this. */
         public readonly ?bool $isAnycast = null,
-        /** Whether the address is a mobile carrier's. Paid plans. */
+        /** Whether the address is a mobile carrier's. On a paid plan. */
         public readonly ?bool $isCarrier = null,
-        /** Whether the address is a satellite operator's. Paid plans. */
+        /** Whether the address is a satellite operator's. On a paid plan. */
         public readonly ?bool $isSatellite = null,
-        /** Whether an SSH server answered on the address. Paid plans. */
+        /** Whether an SSH server answered on the address. On a paid plan. */
         public readonly ?bool $isSsh = null,
-        /** Whether a mail server answered on the address. Paid plans. */
+        /** Whether a mail server answered on the address. On a paid plan. */
         public readonly ?bool $isSmtp = null,
-        /** Whether a web server answered on the address, on port 80 or 443. Paid plans. */
+        /** Whether a web server answered on the address, on port 80 or 443. On a paid plan. */
         public readonly ?bool $isWeb = null,
-        /** Whether an open DNS resolver answered on the address. Paid plans. */
+        /** Whether an open DNS resolver answered on the address. On a paid plan. */
         public readonly ?bool $isDnsResolver = null,
-        /** Whether a BitTorrent client was seen on the address in the last 90 days. Paid plans. */
+        /** Whether a BitTorrent client was seen on the address in the last 90 days. On a paid plan. */
         public readonly ?bool $isBittorrent = null,
-        /** Carrier IP's row, empty when `isCarrier` is false. Paid plans. */
+        /** Carrier IP's row, empty when `isCarrier` is false. On a paid plan. */
         public readonly ?CarrierDetail $carrier = null,
-        /** Satellite IP's row, empty when `isSatellite` is false. Paid plans. */
+        /** Satellite IP's row, empty when `isSatellite` is false. On a paid plan. */
         public readonly ?SatelliteDetail $satellite = null,
-        /** SSH IP's row, empty when `isSsh` is false. Paid plans. */
+        /** SSH IP's row, empty when `isSsh` is false. On a paid plan. */
         public readonly ?SshDetail $ssh = null,
-        /** SMTP IP's row, empty when `isSmtp` is false. Paid plans. */
+        /** SMTP IP's row, empty when `isSmtp` is false. On a paid plan. */
         public readonly ?SmtpDetail $smtp = null,
         /**
-         * A row per port that answered, lowest first; `[]` when `isWeb` is false. Paid plans.
+         * A row per port that answered, lowest first; `[]` when `isWeb` is false. On a paid plan.
          *
          * @var list<WebDetail>|null
          */
         public readonly ?array $web = null,
-        /** DNS Resolver IP's row, empty when `isDnsResolver` is false. Paid plans. */
+        /** DNS Resolver IP's row, empty when `isDnsResolver` is false. On a paid plan. */
         public readonly ?DnsResolverDetail $dnsResolver = null,
-        /** BitTorrent IP's row, empty when `isBittorrent` is false. Paid plans. */
+        /** BitTorrent IP's row, empty when `isBittorrent` is false. On a paid plan. */
         public readonly ?BitTorrentDetail $bittorrent = null,
-        /** Who uses the address. Paid plans. */
+        /** Who uses the address. On a paid plan. */
         public readonly ?Company $company = null,
         /**
          * The name the address's reverse DNS (PTR) record points to, an empty string
          * when it has none. Every plan includes this.
          */
         public readonly ?string $hostname = null,
-        /** Where to report abuse from the address. Paid plans. */
+        /** Where to report abuse from the address. On a paid plan. */
         public readonly ?AbuseContact $abuse = null,
         /**
          * Whether an automated client uses the address, such as a search engine's or
@@ -117,11 +117,11 @@ final class Result
          * webhook sender. Every plan includes this.
          */
         public readonly ?bool $isBot = null,
-        /** Bot IP's row, empty when `isBot` is false. Paid plans. */
+        /** Bot IP's row, empty when `isBot` is false. On a paid plan. */
         public readonly ?BotDetail $bot = null,
         /**
          * The verdict on the user agent the lookup sent: null when it sent none or
-         * the plan does not include it, empty for a bogon. Paid plans.
+         * the plan does not include it, empty for a bogon. On a paid plan.
          */
         public readonly ?UserAgentVerdict $userAgent = null,
     ) {

@@ -31,25 +31,25 @@ final class Location
         public readonly string $flagEmoji = '',
         /** The flag's code points, e.g. `U+1F1E6 U+1F1F9`. */
         public readonly string $flagUnicode = '',
-        /** Region (state or province). Paid plans. */
+        /** Region (state or province). On a paid plan. */
         public readonly ?string $region = null,
-        /** ISO 3166-2 region code. Paid plans. */
+        /** ISO 3166-2 region code. On a paid plan. */
         public readonly ?string $regionCode = null,
-        /** City. Paid plans. */
+        /** City. On a paid plan. */
         public readonly ?string $city = null,
-        /** Postal code. Paid plans. */
+        /** Postal code. On a paid plan. */
         public readonly ?string $postalCode = null,
-        /** Latitude of the city. Paid plans. */
+        /** Latitude of the city. On a paid plan. */
         public readonly ?float $latitude = null,
-        /** Longitude of the city. Paid plans. */
+        /** Longitude of the city. On a paid plan. */
         public readonly ?float $longitude = null,
-        /** Radius in km holding the true location with 67% confidence. Paid plans. */
+        /** Radius in km holding the true location with 67% confidence. On a paid plan. */
         public readonly ?int $accuracyRadius = null,
-        /** GeoNames ID of the city. Paid plans. */
+        /** GeoNames ID of the city. On a paid plan. */
         public readonly ?string $geonameId = null,
-        /** US TV market (DMA) code, empty outside the US. Paid plans. */
+        /** US TV market (DMA) code, empty outside the US. On a paid plan. */
         public readonly ?string $dmaCode = null,
-        /** The day the range's location last changed. Paid plans. */
+        /** The day the range's location last changed. On a paid plan. */
         public readonly ?string $lastChanged = null,
     ) {
     }
