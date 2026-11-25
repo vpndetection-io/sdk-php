@@ -32,7 +32,7 @@ echo $result->asn->name;              // who runs the announcing network
 
 ### With an API key
 
-Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, the `bot` detail (whose bot, what it does and whether its operator vouches for the address), and the provider (its ID and its name), confidence and last-seen detail behind each flag. The plans differ only in how many lookups they include, and a free account tries every field. Create a key in the [console](https://app.vpndetection.io), then pass it in:
+A paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, the `bot` detail (whose bot, what it does and whether its operator vouches for the address), and the provider (its ID and its name), confidence and last-seen detail behind each flag. Its quotas differ only in how many lookups they include, and a free account tries every field. Create a key in the [console](https://app.vpndetection.io), then pass it in:
 
 ```php
 use VPNDetection\Client;
@@ -59,8 +59,8 @@ Same answer `lookup` would give for that address, and the same cost against your
 
 ```php
 $acct = $client->myEntitlement();
-echo $acct->plan->name;         // Max
-echo $acct->plan->key;          // max
+echo $acct->plan->name;         // Data
+echo $acct->plan->key;          // data_4
 echo $acct->usage->requests;    // 580
 echo $acct->usage->windowEnd->format(DATE_ATOM); // when the allowance resets
 ```
