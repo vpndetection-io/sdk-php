@@ -2,6 +2,15 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.20.1 - 2026-11-25
+
+### Fixes
+
+- README: one paid plan, Data; the entitlement example names it ([`4293691`](https://github.com/vpndetection-io/sdk-php/commit/4293691689f33b58abc27607b5c3ecfd9db50ec3))
+- Docblocks: a field on a paid plan, as the spec says it now ([`42979f2`](https://github.com/vpndetection-io/sdk-php/commit/42979f2299a746d5a70af8fcb619d1955558c327))
+- Docblock: a plan's key is free or the Data plan's, not a retired plan's ([`d32c1b1`](https://github.com/vpndetection-io/sdk-php/commit/d32c1b1cb785cdf19d6dac409e27c67bb69e6131))
+- Spec 2026.11.25: doc comments name a paid plan, the entitlement example the Data plan ([`cf5fd4e`](https://github.com/vpndetection-io/sdk-php/commit/cf5fd4ed99ab4d704c4f2ce90bd0d9d4634b464b))
+
 ## 4.20.0 - 2026-11-24
 
 ### Fixes
