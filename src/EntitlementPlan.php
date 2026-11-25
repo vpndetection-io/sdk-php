@@ -10,7 +10,10 @@ use VPNDetection\Internal\Model\EntitlementPlan as WireEntitlementPlan;
 final class EntitlementPlan
 {
     public function __construct(
-        /** The plan the organization is on, e.g. `max`. */
+        /**
+         * The plan the organization is on, as a key never renamed or reused:
+         * `free`, or the Data plan's, one per quota from `data_1` to `data_7`.
+         */
         public readonly string $key,
         /**
          * The field tier, which decides how much of a lookup answer comes back:
