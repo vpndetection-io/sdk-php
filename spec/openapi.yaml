@@ -6,7 +6,7 @@ info:
     behind the answers.
 
     Lookups need no API key: Unlimited, the free plan, answers any address with
-    no daily or monthly cap, with a key or without one. Every paid plan answers
+    no daily or monthly cap, with a key or without one. The Data plan answers
     every field, and a free account tries them. Unlimited's answers may be used
     commercially, but not redistributed or used in a competing service
     (https://vpndetection.io/terms#no-key).
@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.23
+  version: 2026.11.25
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -249,7 +249,7 @@ paths:
                     hostname: ''
                     trial_expired: true
                 paid:
-                  summary: A key on any paid plan, address found in the VPN dataset
+                  summary: A key on a paid plan, address found in the VPN dataset
                   value:
                     ip: 146.70.116.130
                     is_bogon: false
@@ -1278,21 +1278,21 @@ paths:
                       expires: null
                       allowed_cidrs: []
                     plan:
-                      key: max
-                      name: Max
+                      key: data_4
+                      name: Data
                       tier: max
                     usage:
                       requests: 580
-                      quota: 5000000
+                      quota: 1000000
                       hard_limit: null
                       window_start: '2026-09-04T07:00:00Z'
                       window_end: '2026-10-04T07:00:00Z'
                 free:
                   summary: >-
                     A key of an organization on the free plan, Unlimited: its usage is its trial,
-                    the lookups answered with every field, out of the quota the trial has. Nothing
-                    stops it past them, its lookups answering with Unlimited's fields, so there is
-                    no hard limit
+                    the lookups answered with every field while it lasts, against the trial's limit.
+                    Nothing stops it past the trial, its lookups answering with Unlimited's fields,
+                    so there is no hard limit
                   value:
                     org_id: f32191d0-ef02-450e-a505-eb5814c35cab
                     apikey:
@@ -1305,10 +1305,10 @@ paths:
                       tier: free
                     usage:
                       requests: 37
-                      quota: 100
+                      quota: 250000
                       hard_limit: null
-                      window_start: '2026-11-01T00:00:00Z'
-                      window_end: '2026-12-01T00:00:00Z'
+                      window_start: '2026-11-24T10:15:00Z'
+                      window_end: '2026-12-08T10:15:00Z'
         '401':
           description: No key was presented, or it is unknown, revoked or expired.
           content:
@@ -1946,7 +1946,7 @@ components:
             `true`.
         is_hosting:
           type: boolean
-          description: Whether the address belongs to a hosting or cloud provider. Paid plans.
+          description: Whether the address belongs to a hosting or cloud provider. On a paid plan.
         is_relay:
           type: boolean
           description: >-
@@ -1957,7 +1957,7 @@ components:
           description: Whether the address is a Tor node. Every answer, with or without a key.
         is_cdn:
           type: boolean
-          description: Whether the address belongs to a CDN. Paid plans.
+          description: Whether the address belongs to a CDN. On a paid plan.
         is_bot:
           type: boolean
           description: >-
@@ -1967,20 +1967,20 @@ components:
             with or without a key.
         is_resproxy:
           type: boolean
-          description: Whether the address was seen in a residential proxy pool. Paid plans.
+          description: Whether the address was seen in a residential proxy pool. On a paid plan.
         is_dcproxy:
           type: boolean
           description: >-
             Whether the address is one a datacenter proxy service sells or runs on, a proxy
-            company's own ranges included. Paid plans.
+            company's own ranges included. On a paid plan.
         is_mobproxy:
           type: boolean
-          description: Whether the address was seen in a mobile proxy pool. Paid plans.
+          description: Whether the address was seen in a mobile proxy pool. On a paid plan.
         is_pubproxy:
           type: boolean
           description: >-
             Whether a public proxy, one anyone can connect through, listens on the address or sends
-            its traffic out from it. Paid plans.
+            its traffic out from it. On a paid plan.
         is_anycast:
           type: boolean
           description: >-
@@ -1989,35 +1989,35 @@ components:
         is_carrier:
           type: boolean
           description: >-
-            Whether the address is a mobile carrier's, where many phones can share one address. Paid
-            plans.
+            Whether the address is a mobile carrier's, where many phones can share one address. On a
+            paid plan.
         is_satellite:
           type: boolean
-          description: Whether the address is a satellite operator's. Paid plans.
+          description: Whether the address is a satellite operator's. On a paid plan.
         is_ssh:
           type: boolean
-          description: Whether an SSH server answered on the address. Paid plans.
+          description: Whether an SSH server answered on the address. On a paid plan.
         is_smtp:
           type: boolean
-          description: Whether a mail server answered on the address. Paid plans.
+          description: Whether a mail server answered on the address. On a paid plan.
         is_web:
           type: boolean
-          description: Whether a web server answered on the address, on port 80 or 443. Paid plans.
+          description: Whether a web server answered on the address, on port 80 or 443. On a paid plan.
         is_dns_resolver:
           type: boolean
-          description: Whether an open DNS resolver answered on the address. Paid plans.
+          description: Whether an open DNS resolver answered on the address. On a paid plan.
         is_bittorrent:
           type: boolean
-          description: Whether a BitTorrent client was seen on the address in the last 90 days. Paid plans.
+          description: Whether a BitTorrent client was seen on the address in the last 90 days. On a paid plan.
         vpn:
           allOf:
             - $ref: '#/components/schemas/VpnDetail'
           description: |
-            Detail for `is_vpn`. Empty when `is_vpn` is false. Paid plans.
+            Detail for `is_vpn`. Empty when `is_vpn` is false. On a paid plan.
         hosting:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
-          description: Detail for `is_hosting`. Empty when false. Paid plans.
+          description: Detail for `is_hosting`. Empty when false. On a paid plan.
         relay:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
@@ -2032,58 +2032,58 @@ components:
         cdn:
           allOf:
             - $ref: '#/components/schemas/ClassDetail'
-          description: Detail for `is_cdn`. Empty when false. Paid plans.
+          description: Detail for `is_cdn`. Empty when false. On a paid plan.
         bot:
           allOf:
             - $ref: '#/components/schemas/BotDetail'
-          description: Detail for `is_bot`. Empty when false. Paid plans.
+          description: Detail for `is_bot`. Empty when false. On a paid plan.
         resproxy:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
-          description: Detail for `is_resproxy`. Empty when false. Paid plans.
+          description: Detail for `is_resproxy`. Empty when false. On a paid plan.
         dcproxy:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
-          description: Detail for `is_dcproxy`. Empty when false. Paid plans.
+          description: Detail for `is_dcproxy`. Empty when false. On a paid plan.
         mobproxy:
           allOf:
             - $ref: '#/components/schemas/ProxyDetail'
-          description: Detail for `is_mobproxy`. Empty when false. Paid plans.
+          description: Detail for `is_mobproxy`. Empty when false. On a paid plan.
         pubproxy:
           allOf:
             - $ref: '#/components/schemas/PubproxyDetail'
-          description: Detail for `is_pubproxy`. Empty when false. Paid plans.
+          description: Detail for `is_pubproxy`. Empty when false. On a paid plan.
         carrier:
           allOf:
             - $ref: '#/components/schemas/CarrierDetail'
-          description: Detail for `is_carrier`. Empty when false. Paid plans.
+          description: Detail for `is_carrier`. Empty when false. On a paid plan.
         satellite:
           allOf:
             - $ref: '#/components/schemas/SatelliteDetail'
-          description: Detail for `is_satellite`. Empty when false. Paid plans.
+          description: Detail for `is_satellite`. Empty when false. On a paid plan.
         ssh:
           allOf:
             - $ref: '#/components/schemas/SshDetail'
-          description: Detail for `is_ssh`. Empty when false. Paid plans.
+          description: Detail for `is_ssh`. Empty when false. On a paid plan.
         smtp:
           allOf:
             - $ref: '#/components/schemas/SmtpDetail'
-          description: Detail for `is_smtp`. Empty when false. Paid plans.
+          description: Detail for `is_smtp`. Empty when false. On a paid plan.
         web:
           type: array
           items:
             $ref: '#/components/schemas/WebDetail'
           description: >-
-            Detail for `is_web`: a row per port that answered, lowest first, and `[]` when false.
-            Paid plans.
+            Detail for `is_web`: a row per port that answered, lowest first, and `[]` when false. On
+            a paid plan.
         dns_resolver:
           allOf:
             - $ref: '#/components/schemas/DnsResolverDetail'
-          description: Detail for `is_dns_resolver`. Empty when false. Paid plans.
+          description: Detail for `is_dns_resolver`. Empty when false. On a paid plan.
         bittorrent:
           allOf:
             - $ref: '#/components/schemas/BitTorrentDetail'
-          description: Detail for `is_bittorrent`. Empty when false. Paid plans.
+          description: Detail for `is_bittorrent`. Empty when false. On a paid plan.
         location:
           $ref: '#/components/schemas/Location'
         asn:
@@ -2414,45 +2414,45 @@ components:
           example: U+1F1E6 U+1F1F9
         region:
           type: string
-          description: Region (state or province). Paid plans.
+          description: Region (state or province). On a paid plan.
           example: Vienna
         region_code:
           type: string
-          description: ISO 3166-2 region code. Paid plans.
+          description: ISO 3166-2 region code. On a paid plan.
           example: AT-9
         city:
           type: string
-          description: City. Paid plans.
+          description: City. On a paid plan.
           example: Vienna
         postal_code:
           type: string
-          description: Postal code. Paid plans.
+          description: Postal code. On a paid plan.
           example: '1230'
         latitude:
           type: number
-          description: Latitude of the city. Paid plans.
+          description: Latitude of the city. On a paid plan.
           example: 48.20849
         longitude:
           type: number
-          description: Longitude of the city. Paid plans.
+          description: Longitude of the city. On a paid plan.
           example: 16.37208
         accuracy_radius:
           type: integer
           description: >-
             Radius in km holding the true location with 67% confidence; 20000 for an address
-            announced everywhere, as an anycast one is. Paid plans.
+            announced everywhere, as an anycast one is. On a paid plan.
           example: 10
         geoname_id:
           type: string
-          description: GeoNames ID of the city. Paid plans.
+          description: GeoNames ID of the city. On a paid plan.
           example: '2761369'
         dma_code:
           type: string
-          description: US TV market (DMA) code, empty outside the US. Paid plans.
+          description: US TV market (DMA) code, empty outside the US. On a paid plan.
           example: ''
         last_changed:
           type: string
-          description: The day the range's location last changed. Paid plans.
+          description: The day the range's location last changed. On a paid plan.
           example: '2026-10-06'
     Asn:
       type: object
@@ -2880,7 +2880,7 @@ components:
     Company:
       type: object
       description: |
-        Who uses the address, from our IP Company database. Paid plans. Every
+        Who uses the address, from our IP Company database. On a paid plan. Every
         key is present whenever the object is: empty strings where no record
         covers the address.
       required:
@@ -2907,7 +2907,7 @@ components:
       type: object
       description: |
         Where to report abuse from the address, from our IP Abuse Contact
-        database. Paid plans. Every key is present whenever the object is: empty
+        database. On a paid plan. Every key is present whenever the object is: empty
         strings where no record covers the address.
       required:
         - email
@@ -3303,15 +3303,16 @@ components:
             The plan the organization is on, as an identifier that is never
             renamed or reused: `free` for the free plan, or a paid plan's key.
             Compare against it and show `name`. On `free`, usage counts its
-            trial, the lookups answered with every field.
-          example: max
+            trial, the lookups answered with every field. The Data plan is a key
+            per quota, `data_1` to `data_7`, each named Data.
+          example: data_4
         name:
           type: string
           description: |
             The plan's name, as the site and console show it: `Unlimited` for
             the free plan. Show this rather than a name built from `key`: a
             plan's name can change, and its key never does.
-          example: Max
+          example: Data
         tier:
           type: string
           enum:
@@ -3358,11 +3359,15 @@ components:
         window_start:
           type: string
           format: date-time
-          description: When the current allowance period began.
+          description: |
+            When the current allowance period began. On the free plan, when
+            its trial began, or now before a first lookup starts it.
         window_end:
           type: string
           format: date-time
-          description: When the allowance next resets.
+          description: |
+            When the allowance next resets. On the free plan, when its trial
+            ends, which it does once.
     EntitlementError:
       type: object
       required:
