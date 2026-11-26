@@ -58,12 +58,17 @@ final class Options
          */
         public readonly ?CacheInterface $cacheStore = null,
         /**
-         * Send the request's own `User-Agent` with its lookup, and never refuse a
-         * request whose answer's `userAgent->verdict` is `verified`, whatever the
-         * condition matches; the answer is still attached. Only an answer with
-         * every field carries a verdict, so a keyless client never lets anything
-         * through by it. Off by default: on, the cache holds an answer per address
-         * and user agent rather than per address.
+         * Send the request's own `User-Agent` with its lookup when it names a
+         * crawler, and never refuse a request whose answer's `userAgent->verdict`
+         * is `verified`, whatever the condition matches; the answer is still
+         * attached. Any other agent, or none, is not sent, since its verdict could
+         * only be `not_bot`. One address is looked up with at most
+         * `Core::MAX_AGENTS_PER_ADDRESS` crawler agents an hour: past those its
+         * lookup sends none, and a request passes as a crawler only where the
+         * answer's `bot->verified` is true. Only an answer with every field
+         * carries a verdict, so a keyless client never lets anything through by
+         * it. Off by default: on, the cache holds an answer per address and
+         * crawler agent rather than per address.
          */
         public readonly bool $allowBots = false,
     ) {

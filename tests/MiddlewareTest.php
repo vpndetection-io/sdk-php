@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace VPNDetection\Tests;
 
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface;
 use VPNDetection\Client;
 use VPNDetection\Middleware\Condition;
 use VPNDetection\Middleware\Core;
+use VPNDetection\Middleware\Lookup;
 use VPNDetection\Middleware\Options as MwOptions;
 use VPNDetection\Middleware\RequestView;
 use VPNDetection\Middleware\Selectors;
@@ -416,6 +422,130 @@ final class MiddlewareTest extends TestCase
         $this->expectException(\RuntimeException::class);
         self::core(new MwOptions(client: self::client($stub), allowBots: true, onMissingField: 'throw'))
             ->evaluate(new Req(), self::GOOGLEBOT);
+    }
+
+    private const PEER = '66.249.66.1';
+    private const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
+
+    private static function crawler(int $n): string
+    {
+        return "Mozilla/5.0 (compatible; Examplebot/{$n}.0)";
+    }
+
+    /** @return array<string, mixed> */
+    private static function crawlerCorpus(): array
+    {
+        /** @var array<string, mixed> $data */
+        $data = json_decode(
+            (string) file_get_contents(__DIR__ . '/../testdata/testdata.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+        return $data['crawlerAgents'];
+    }
+
+    /**
+     * A bot's address, answering `verified` to any agent that arrives, with `$extra` members
+     * on every answer, and recording the agent each lookup carried (null for none).
+     *
+     * @param list<?string> $agents
+     * @param array<string, mixed> $extra
+     */
+    private static function botsAddress(array &$agents, array $extra = []): Client
+    {
+        $handler = function (RequestInterface $request) use (&$agents, $extra) {
+            parse_str($request->getUri()->getQuery(), $query);
+            $agent = $query['user_agent'] ?? null;
+            $agents[] = $agent;
+            $body = ['ip' => ltrim($request->getUri()->getPath(), '/'), 'is_vpn' => false, 'is_bot' => true] + $extra;
+            if ($agent !== null) {
+                $body['user_agent'] = ['agent' => 'Googlebot', 'kind' => 'bot', 'verdict' => 'verified'];
+            }
+            return Create::promiseFor(new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                json_encode($body, JSON_THROW_ON_ERROR),
+            ));
+        };
+        return new Client(new Options(
+            cache: false,
+            retries: 0,
+            httpClient: new GuzzleClient(['handler' => HandlerStack::create($handler)]),
+        ));
+    }
+
+    public function testOnlyAnAgentNamingACrawlerIsSentAsTheCorpusSays(): void
+    {
+        $corpus = self::crawlerCorpus();
+        self::assertNotEmpty($corpus['crawlers']);
+        self::assertNotEmpty($corpus['others']);
+        foreach ($corpus['crawlers'] as $agent) {
+            self::assertTrue(Core::namesCrawler($agent), $agent);
+        }
+        foreach ($corpus['others'] as $agent) {
+            self::assertFalse(Core::namesCrawler($agent), $agent);
+        }
+        foreach ($corpus['terms'] as $term) {
+            self::assertTrue(Core::namesCrawler('x ' . strtoupper($term) . ' y'), $term);
+        }
+
+        $agents = [];
+        $lookup = self::core(new MwOptions(
+            client: self::botsAddress($agents),
+            blockCondition: ['isBot' => true],
+            allowBots: true,
+            onMissingField: 'ignore',
+        ))->evaluate(new Req(ip: self::PEER), self::CHROME);
+        self::assertSame([null], $agents, 'a browser\'s agent stays off the lookup');
+        self::assertTrue($lookup?->blocked);
+    }
+
+    public function testOneAddressIsLookedUpWithAtMostFourCrawlerAgentsAndNonePassesPastThem(): void
+    {
+        self::assertSame(4, Core::MAX_AGENTS_PER_ADDRESS);
+        $agents = [];
+        $core = self::core(new MwOptions(
+            client: self::botsAddress($agents),
+            blockCondition: ['isBot' => true],
+            allowBots: true,
+            onMissingField: 'ignore',
+        ));
+        $eval = fn (int $n, string $ip = self::PEER): ?Lookup => $core->evaluate(new Req(ip: $ip), self::crawler($n));
+
+        for ($n = 1; $n <= 4; $n++) {
+            self::assertFalse($eval($n)?->blocked, "agent {$n}");
+        }
+        $past = $eval(5);
+        self::assertTrue($past?->blocked, 'an agent past the bound is never let through as verified');
+        self::assertNull($past->result?->userAgent);
+        self::assertFalse($eval(1)?->blocked, 'a known agent is still sent');
+        self::assertSame(
+            [self::crawler(1), self::crawler(2), self::crawler(3), self::crawler(4), null, self::crawler(1)],
+            $agents,
+        );
+
+        self::assertFalse($eval(5, '66.249.66.2')?->blocked, 'each address has its own bound');
+        self::assertSame(self::crawler(5), $agents[array_key_last($agents)]);
+    }
+
+    public function testPastTheBoundAnAddressItsOperatorVouchesForStillPasses(): void
+    {
+        $agents = [];
+        $core = self::core(new MwOptions(
+            client: self::botsAddress($agents, ['bot' => ['verified' => true]]),
+            blockCondition: ['isBot' => true],
+            allowBots: true,
+            onMissingField: 'ignore',
+        ));
+        for ($n = 1; $n <= 5; $n++) {
+            self::assertFalse($core->evaluate(new Req(ip: self::PEER), self::crawler($n))?->blocked, "agent {$n}");
+        }
+        self::assertNull($agents[array_key_last($agents)]);
+        self::assertTrue(
+            $core->evaluate(new Req(ip: self::PEER), self::CHROME)?->blocked,
+            'a browser on that address is judged as the condition says',
+        );
     }
 
     public function testABogonPeerIsAnsweredLocallyAndLetsNothingThrough(): void

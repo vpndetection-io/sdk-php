@@ -1,0 +1,77 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated. Do not edit: a regeneration overwrites it.
+// Lowercase substrings, one of which a crawler's ASCII-lowercased User-Agent contains.
+
+namespace VPNDetection\Middleware;
+
+final class Crawlers
+{
+    public const TERMS = [
+        '+http',
+        'ahrefssiteaudit',
+        'amzn-user',
+        'anthropic-ai',
+        'barkrowler',
+        'better stack',
+        'betterstack',
+        'bingpreview',
+        'bot',
+        'censysinspect',
+        'chatgpt-user',
+        'claude-user',
+        'claude-web',
+        'cohere-ai',
+        'crawl',
+        'datadogsynthetics',
+        'embedly',
+        'expanse',
+        'facebookcatalog',
+        'facebookexternalhit',
+        'flipboardproxy',
+        'flipboardrss',
+        'github-hookshot/',
+        'google-agent',
+        'google-extended',
+        'google-inspectiontool',
+        'google-read-aloud',
+        'google-site-verification',
+        'googleother',
+        'iframely',
+        'internetmeasurement',
+        'keenable-user',
+        'lumar',
+        'masscan',
+        'mediapartners-google',
+        'meta-externalagent',
+        'meta-externalfetcher',
+        'meta-webindexer',
+        'mistralai-user',
+        'nmap',
+        'notebooklm',
+        'nuclei',
+        'paloaltonetworks.com',
+        'parse.ly',
+        'parsely.com',
+        'perplexity-user',
+        'pingdom',
+        'pinterest',
+        'rssapi/',
+        'screaming frog',
+        'site24x7',
+        'skypeuripreview',
+        'slack-imgproxy',
+        'slurp',
+        'sogou',
+        'spider',
+        'statuscake',
+        'stripe/1.0',
+        'ttd-content',
+        'whatsapp',
+        'yandex',
+        'yeti/',
+        'zgrab',
+    ];
+}
