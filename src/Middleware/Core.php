@@ -142,7 +142,8 @@ final class Core
         if ($condition === null) {
             return new Lookup(blocked: false, ip: $ip, result: $result);
         }
-        $this->reportMissing($condition, $result);
+        // A request that sent no agent has no verdict to lack, whatever the plan serves.
+        $this->reportMissing($condition, $result, $this->options->allowBots && ($claim ?? '') === '');
         // A crawler its operator vouches for is let through whatever else matched.
         // Past the bound no agent was sent, so only the operator's own vouching counts.
         $verified = $claim !== null && ($claim === ''
@@ -220,13 +221,19 @@ final class Core
         );
     }
 
-    /** @param array<mixed> $condition */
-    private function reportMissing(array $condition, Result $result): void
+    /**
+     * @param array<mixed> $condition
+     * @param bool $unsent Whether this request sent no agent, so its answer cannot carry `userAgent`.
+     */
+    private function reportMissing(array $condition, Result $result, bool $unsent): void
     {
         if ($this->options->onMissingField === 'ignore') {
             return;
         }
         $missing = Condition::missingMembers($condition, $result);
+        if ($unsent) {
+            $missing = array_values(array_diff($missing, ['userAgent']));
+        }
         if ($missing === []) {
             return;
         }

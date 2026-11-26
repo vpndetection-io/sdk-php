@@ -451,16 +451,17 @@ final class MiddlewareTest extends TestCase
      *
      * @param list<?string> $agents
      * @param array<string, mixed> $extra
+     * @param string $verdict What an agent that arrives is judged
      */
-    private static function botsAddress(array &$agents, array $extra = []): Client
+    private static function botsAddress(array &$agents, array $extra = [], string $verdict = 'verified'): Client
     {
-        $handler = function (RequestInterface $request) use (&$agents, $extra) {
+        $handler = function (RequestInterface $request) use (&$agents, $extra, $verdict) {
             parse_str($request->getUri()->getQuery(), $query);
             $agent = $query['user_agent'] ?? null;
             $agents[] = $agent;
             $body = ['ip' => ltrim($request->getUri()->getPath(), '/'), 'is_vpn' => false, 'is_bot' => true] + $extra;
             if ($agent !== null) {
-                $body['user_agent'] = ['agent' => 'Googlebot', 'kind' => 'bot', 'verdict' => 'verified'];
+                $body['user_agent'] = ['agent' => 'Googlebot', 'kind' => 'bot', 'verdict' => $verdict];
             }
             return Create::promiseFor(new Response(
                 200,
@@ -546,6 +547,53 @@ final class MiddlewareTest extends TestCase
             $core->evaluate(new Req(ip: self::PEER), self::CHROME)?->blocked,
             'a browser on that address is judged as the condition says',
         );
+    }
+
+    public function testAConditionOnTheVerdictIsNoPlanGapForARequestThatSentNoAgent(): void
+    {
+        $forged = ['userAgent' => ['verdict' => 'spoofed']];
+        foreach ([self::CHROME, null] as $header) {
+            $warnings = [];
+            $agents = [];
+            $lookup = self::core(new MwOptions(
+                client: self::botsAddress($agents, verdict: 'spoofed'),
+                blockCondition: $forged,
+                allowBots: true,
+                onMissingField: 'throw',
+                onWarn: function (string $m) use (&$warnings): void {
+                    $warnings[] = $m;
+                },
+            ))->evaluate(new Req(ip: self::PEER), $header);
+            self::assertFalse($lookup?->blocked, var_export($header, true));
+            self::assertSame([null], $agents);
+            self::assertSame([], $warnings);
+        }
+
+        $agents = [];
+        $core = self::core(new MwOptions(
+            client: self::botsAddress($agents, verdict: 'spoofed'),
+            blockCondition: $forged,
+            allowBots: true,
+            onMissingField: 'throw',
+        ));
+        for ($n = 1; $n <= 4; $n++) {
+            $core->evaluate(new Req(ip: self::PEER), self::crawler($n));
+        }
+        self::assertFalse(
+            $core->evaluate(new Req(ip: self::PEER), self::crawler(5))?->blocked,
+            'past the bound, no gap either',
+        );
+
+        $warned = [];
+        $stub = [];
+        self::core(new MwOptions(
+            client: self::botsAddress($stub, verdict: 'spoofed'),
+            blockCondition: $forged,
+            onWarn: function (string $m) use (&$warned): void {
+                $warned[] = $m;
+            },
+        ))->evaluate(new Req(ip: self::PEER));
+        self::assertCount(1, $warned, 'off, a condition on the verdict can never match, and says so');
     }
 
     public function testABogonPeerIsAnsweredLocallyAndLetsNothingThrough(): void
