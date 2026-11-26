@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.21.1 - 2026-11-26
+
+### Fixes
+
+- Middleware: a condition on the verdict is no plan gap for a request that sent no agent ([`63d5f5f`](https://github.com/vpndetection-io/sdk-php/commit/63d5f5fcaad720de9457fddff8c72564fb07211a))
+
 ## 4.21.0 - 2026-11-26
 
 ### Features
