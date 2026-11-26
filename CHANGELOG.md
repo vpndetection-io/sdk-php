@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.21.0 - 2026-11-26
+
+### Features
+
+- Middleware: allowBots sends only a crawler's User-Agent, at most four an address ([`33a0332`](https://github.com/vpndetection-io/sdk-php/commit/33a0332e805f43ab51eb2425494cae4c67854a15))
+
 ## 4.20.1 - 2026-11-25
 
 ### Fixes
