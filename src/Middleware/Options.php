@@ -65,7 +65,10 @@ final class Options
          * only be `not_bot`. One address is looked up with at most
          * `Core::MAX_AGENTS_PER_ADDRESS` crawler agents an hour: past those its
          * lookup sends none, and a request passes as a crawler only where the
-         * answer's `bot->verified` is true. Only an answer with every field
+         * answer's `bot->verified` is true. The agents an address was looked up
+         * with are remembered in the client's PSR-16 store where it has one
+         * (`cacheStore`), since under PHP-FPM this core lives for one request,
+         * and in the core otherwise. Only an answer with every field
          * carries a verdict, so a keyless client never lets anything through by
          * it. Off by default: on, the cache holds an answer per address and
          * crawler agent rather than per address.

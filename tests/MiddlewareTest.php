@@ -10,6 +10,7 @@ use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
+use Psr\SimpleCache\CacheInterface;
 use VPNDetection\Client;
 use VPNDetection\Middleware\Condition;
 use VPNDetection\Middleware\Core;
@@ -510,9 +511,14 @@ final class MiddlewareTest extends TestCase
      * @param list<?string> $agents
      * @param array<string, mixed> $extra
      * @param string $verdict What an agent that arrives is judged
+     * @param ?CacheInterface $store The client's PSR-16 store, when it keeps its answers in one
      */
-    private static function botsAddress(array &$agents, array $extra = [], string $verdict = 'verified'): Client
-    {
+    private static function botsAddress(
+        array &$agents,
+        array $extra = [],
+        string $verdict = 'verified',
+        ?CacheInterface $store = null,
+    ): Client {
         $handler = function (RequestInterface $request) use (&$agents, $extra, $verdict) {
             parse_str($request->getUri()->getQuery(), $query);
             $agent = $query['user_agent'] ?? null;
@@ -527,11 +533,10 @@ final class MiddlewareTest extends TestCase
                 json_encode($body, JSON_THROW_ON_ERROR),
             ));
         };
-        return new Client(new Options(
-            cache: false,
-            retries: 0,
-            httpClient: new GuzzleClient(['handler' => HandlerStack::create($handler)]),
-        ));
+        $http = new GuzzleClient(['handler' => HandlerStack::create($handler)]);
+        return new Client($store === null
+            ? new Options(cache: false, retries: 0, httpClient: $http)
+            : new Options(retries: 0, cacheStore: $store, httpClient: $http));
     }
 
     public function testOnlyAnAgentNamingACrawlerIsSentAsTheCorpusSays(): void
@@ -586,6 +591,82 @@ final class MiddlewareTest extends TestCase
 
         self::assertFalse($eval(5, '66.249.66.2')?->blocked, 'each address has its own bound');
         self::assertSame(self::crawler(5), $agents[array_key_last($agents)]);
+    }
+
+    /**
+     * Under PHP-FPM every request builds its own core, so the record of an address's agents lives in
+     * the client's PSR-16 store: one key per address, digests rather than agents, the hour counted
+     * from the first.
+     */
+    public function testAnAddressesCrawlerAgentsOutliveTheCoreInTheClientsStore(): void
+    {
+        $store = new ArrayStore();
+        $agents = [];
+        $fresh = static function () use (&$agents, $store): Core {
+            return self::core(new MwOptions(
+                client: self::botsAddress($agents, store: $store),
+                blockCondition: ['isBot' => true],
+                allowBots: true,
+                onMissingField: 'ignore',
+            ));
+        };
+        $eval = static fn (int $n, string $ip = self::PEER): ?Lookup => $fresh()->evaluate(new Req(ip: $ip), self::crawler($n));
+        $keys = static fn (): array => array_values(array_filter(
+            array_keys($store->values),
+            static fn (string $k): bool => str_starts_with($k, 'vpndetection.agents.'),
+        ));
+
+        $until = 0;
+        for ($n = 1; $n <= 4; $n++) {
+            self::assertFalse($eval($n)?->blocked, "agent {$n}, from a core of its own");
+            self::assertCount(1, $keys(), 'one key for the address');
+            if ($n === 1) {
+                self::assertEqualsWithDelta(time() + 3600, $store->values[$keys()[0]]['until'], 5, 'an hour from the first');
+                // Half the hour has gone: the agents that follow must not start it over.
+                $store->values[$keys()[0]]['until'] = $until = time() + 1800;
+            }
+        }
+        self::assertSame($until, $store->values[$keys()[0]]['until'], 'an agent added leaves the hour as it was');
+        $record = $store->values[$keys()[0]];
+        self::assertCount(4, $record['agents']);
+        foreach ($record['agents'] as $n => $digest) {
+            self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $digest);
+            self::assertStringNotContainsString(self::crawler($n + 1), json_encode($record, JSON_THROW_ON_ERROR));
+        }
+
+        $past = $eval(5);
+        self::assertTrue($past?->blocked, 'a fifth agent, from a core that never saw the others, is past the bound');
+        self::assertNull($past->result?->userAgent);
+        self::assertNull($agents[array_key_last($agents)], 'and none was sent');
+        self::assertFalse($eval(1)?->blocked, 'a known agent is sent again');
+        self::assertSame($record, $store->values[$keys()[0]], 'neither touched the record');
+
+        self::assertFalse($eval(5, '66.249.66.2')?->blocked, 'each address has its own record');
+        self::assertCount(2, $keys());
+        self::assertSame(self::crawler(5), $agents[array_key_last($agents)]);
+
+        $store->values[$keys()[0]]['until'] = time() - 1;
+        self::assertFalse($eval(5)?->blocked, 'a lapsed record remembers nothing');
+        self::assertSame(self::crawler(5), $agents[array_key_last($agents)]);
+        self::assertCount(1, $store->values[$keys()[0]]['agents']);
+    }
+
+    public function testAStoreThatFailsLeavesTheBoundToTheCore(): void
+    {
+        $store = new ArrayStore();
+        $store->failing = true;
+        $agents = [];
+        $core = self::core(new MwOptions(
+            client: self::botsAddress($agents, store: $store),
+            blockCondition: ['isBot' => true],
+            allowBots: true,
+            onMissingField: 'ignore',
+        ));
+        for ($n = 1; $n <= 4; $n++) {
+            self::assertFalse($core->evaluate(new Req(ip: self::PEER), self::crawler($n))?->blocked, "agent {$n}");
+        }
+        self::assertTrue($core->evaluate(new Req(ip: self::PEER), self::crawler(5))?->blocked, 'past the bound');
+        self::assertNull($agents[array_key_last($agents)]);
     }
 
     public function testPastTheBoundAnAddressItsOperatorVouchesForStillPasses(): void

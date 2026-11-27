@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection\Middleware;
 
+use Psr\SimpleCache\CacheInterface;
 use VPNDetection\Bogon;
 use VPNDetection\Client;
 use VPNDetection\ErrorKind;
@@ -26,6 +27,8 @@ final class Core
 
     /** How long an address's crawler agents are remembered, from its first: the client's default cache TTL. */
     private const AGENTS_TTL_SECONDS = 3600;
+    /** The key prefix of an address's record in the client's PSR-16 store; a key holds at most 64 characters. */
+    private const AGENTS_KEY = 'vpndetection.agents.';
     private const AGENTS_MAX_ADDRESSES = 10_000;
     private const AGENTS_MAX_BYTES = 4_000_000;
 
@@ -35,7 +38,9 @@ final class Core
     /** @var array<string, true> */
     private array $warned = [];
     /**
-     * The crawler agents each address was looked up with, least recently used first.
+     * The crawler agents each address was looked up with, least recently used first. Kept here
+     * only where the client has no PSR-16 store, or the store failed: under PHP-FPM, mod_php and
+     * the built-in server this instance lives for one request, so the store holds the record.
      *
      * @var array<string, array{0: float, 1: list<string>}> Address => [expiry, agents]
      */
@@ -165,6 +170,14 @@ final class Core
         if ($header === null || $header === '' || !self::namesCrawler($header)) {
             return null;
         }
+        $store = $this->client->cacheStore();
+        if ($store !== null) {
+            try {
+                return self::claimInStore($store, $ip, $header);
+            } catch (\Throwable) {
+                // A store that fails is no reason to fail the request: this instance's record stands in.
+            }
+        }
         $now = microtime(true);
         $expires = $now + self::AGENTS_TTL_SECONDS;
         $known = [];
@@ -186,6 +199,40 @@ final class Core
         }
         $this->remember($ip, $expires, $known);
         return $claim;
+    }
+
+    /**
+     * The same claim, with the address's record in the client's PSR-16 store: one key per address
+     * holding the digests of its agents and the time they lapse, an hour after the first. An agent
+     * added keeps that time, so the key is written with what is left of the hour. PSR-16 has no
+     * compare-and-set, so two requests racing for the last place can both take it.
+     *
+     * @throws \Throwable When the store fails.
+     */
+    private static function claimInStore(CacheInterface $store, string $ip, string $header): string
+    {
+        $key = self::AGENTS_KEY . substr(hash('sha256', $ip), 0, 40);
+        $digest = substr(hash('sha256', $header), 0, 32);
+        $now = time();
+        $until = $now + self::AGENTS_TTL_SECONDS;
+        $known = [];
+        $record = $store->get($key);
+        if (is_array($record) && is_int($record['until'] ?? null) && $record['until'] > $now
+            && is_array($record['agents'] ?? null)) {
+            $until = $record['until'];
+            $known = array_values(array_filter($record['agents'], 'is_string'));
+        }
+        if (in_array($digest, $known, true)) {
+            return $header;
+        }
+        if (count($known) >= self::MAX_AGENTS_PER_ADDRESS) {
+            return '';
+        }
+        $known[] = $digest;
+        if (!$store->set($key, ['until' => $until, 'agents' => $known], $until - $now)) {
+            throw new \RuntimeException('the store did not keep the record');
+        }
+        return $header;
     }
 
     /** @param list<string> $agents */
