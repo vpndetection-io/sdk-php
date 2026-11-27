@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VPNDetection\Middleware;
 
+use VPNDetection\HeldMembers;
 use VPNDetection\Result;
 
 /**
@@ -37,7 +38,7 @@ final class Condition
     public static function matches(array $condition, Result $result): bool
     {
         foreach (self::asList($condition) as $one) {
-            if (self::matchesObject($one, $result)) {
+            if (self::matchesObject($one, $result, $result, '')) {
                 return true;
             }
         }
@@ -51,7 +52,8 @@ final class Condition
      * naming one can never match and the block would silently never fire. Gating is
      * per top-level member, which is why only the first path segment is checked: a
      * detail object present but empty is a real answer meaning the flag is false, not
-     * a plan gap.
+     * a plan gap. The AS's `type`, held at `''`, is judged by the wire answer and
+     * reported by its path (`asn.type`), since Unlimited leaves it out though it reads `''`.
      *
      * A locally answered bogon needs no special case: it is synthesized in the widest
      * shape, so every member is present and nothing reads as missing.
@@ -69,6 +71,16 @@ final class Condition
                 }
                 if (!property_exists($result, (string) $member) || $result->{$member} === null) {
                     $missing[] = (string) $member;
+                    continue;
+                }
+                if (
+                    $member === 'asn'
+                    && is_array($want)
+                    && self::constraintCount($want[HeldMembers::ASN] ?? null) > 0
+                    && HeldMembers::unserved($result, 'asn.' . HeldMembers::ASN)
+                    && !in_array('asn.' . HeldMembers::ASN, $missing, true)
+                ) {
+                    $missing[] = 'asn.' . HeldMembers::ASN;
                 }
             }
         }
@@ -134,15 +146,23 @@ final class Condition
         return [$condition];
     }
 
-    /** @param array<string, mixed> $condition */
-    private static function matchesObject(array $condition, object $value): bool
+    /**
+     * @param array<string, mixed> $condition
+     * @param string $prefix The path of `$value` in the result, `asn.` for the AS.
+     */
+    private static function matchesObject(array $condition, object $value, Result $root, string $prefix): bool
     {
         foreach ($condition as $member => $want) {
             if (self::constraintCount($want) === 0) {
                 continue;
             }
-            $got = property_exists($value, (string) $member) ? $value->{$member} : null;
-            if (!self::matchesValue($want, $got)) {
+            $path = $prefix . $member;
+            // A member held at its plain type reads '' when the answer left it out, which no
+            // term may match: it is judged by the wire answer, as absent.
+            $got = property_exists($value, (string) $member) && !HeldMembers::unserved($root, $path)
+                ? $value->{$member}
+                : null;
+            if (!self::matchesValue($want, $got, $root, $path)) {
                 return false;
             }
         }
@@ -156,13 +176,13 @@ final class Condition
      * looks like. Every branch below must therefore reject it, which is what makes an
      * unserved member fail a match rather than pass it.
      */
-    private static function matchesValue(mixed $want, mixed $got): bool
+    private static function matchesValue(mixed $want, mixed $got, Result $root, string $path): bool
     {
         // A member the answer holds as a list matches when any one element does, so an
         // object term must match a single element whole and an empty list matches nothing.
         if (is_array($got) && array_is_list($got)) {
             foreach ($got as $element) {
-                if (self::matchesValue($want, $element)) {
+                if (self::matchesValue($want, $element, $root, $path)) {
                     return true;
                 }
             }
@@ -174,14 +194,14 @@ final class Condition
             }
             if (array_is_list($want)) {
                 foreach ($want as $entry) {
-                    if (self::matchesValue($entry, $got)) {
+                    if (self::matchesValue($entry, $got, $root, $path)) {
                         return true;
                     }
                 }
                 return false;
             }
             /** @var array<string, mixed> $want */
-            return is_object($got) && self::matchesObject($want, $got);
+            return is_object($got) && self::matchesObject($want, $got, $root, "{$path}.");
         }
         if (is_string($want)) {
             // Providers are lowercase slugs on the wire and a caller should not have

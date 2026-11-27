@@ -6,7 +6,7 @@
     "require": {
         "php": ">=8.2",
         "guzzlehttp/guzzle": "^7.5 || ^8.0",
-        "vpndetection/vpndetection": "^4.18"
+        "vpndetection/vpndetection": "^4.22"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5 || ^11.0 || ^12.0 || ^13.0"

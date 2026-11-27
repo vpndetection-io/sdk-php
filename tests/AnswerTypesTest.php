@@ -120,6 +120,9 @@ final class AnswerTypesTest extends TestCase
             'asn without rpki_status' => $lookup(['asn' => array_diff_key(self::ASN, ['rpki_status' => 1])]),
             'asn.country null' => $lookup(['asn' => array_replace(self::ASN, ['country' => null])]),
             'asn.rpki_status null' => $lookup(['asn' => array_replace(self::ASN, ['rpki_status' => null])]),
+            'asn.type null' => $lookup(['asn' => array_replace(self::ASN, ['type' => null])]),
+            'asn.type 1' => $lookup(['asn' => array_replace(self::ASN, ['type' => 1])]),
+            'asn.type ["hosting"]' => $lookup(['asn' => array_replace(self::ASN, ['type' => ['hosting']])]),
             'is_bot "true"' => $lookup(['is_bot' => 'true']),
             'bot.verified "yes"' => $lookup(['bot' => array_replace(self::BOT, ['verified' => 'yes'])]),
             'bot.agents "Googlebot"' => $lookup(['bot' => array_replace(self::BOT, ['agents' => 'Googlebot'])]),
@@ -280,6 +283,52 @@ final class AnswerTypesTest extends TestCase
             self::assertSame($want, $utc($client->database->downloads()[0]->created), $value);
             self::assertCount(3, $stub->calls, "{$value}: each read at once");
         }
+    }
+
+    /**
+     * Unlimited's answer leaves out the AS's `type`: it reads `''`, the plain string the public type
+     * keeps until the next major, and the answer's own `raw` shows it absent, a stored copy's too.
+     */
+    public function testAnAnswerWithoutTheAsnTypeReadsItEmptyAndShowsItAbsent(): void
+    {
+        $withoutType = array_diff_key(self::ASN, ['type' => 1]);
+        $answer = static fn (string $ip, array $asn): array => ['ip' => $ip, 'is_vpn' => false, 'asn' => $asn];
+        $stub = new Stub([
+            '/9.9.9.1' => Stub::ok($answer('9.9.9.1', $withoutType)),
+            '/9.9.9.2' => Stub::ok($answer('9.9.9.2', self::ASN)),
+            '/9.9.9.3' => Stub::ok($answer('9.9.9.3', array_replace(self::ASN, ['type' => '']))),
+            '/batch' => Stub::ok([
+                'results' => [
+                    '9.9.9.4' => $answer('9.9.9.4', $withoutType),
+                    '9.9.9.5' => $answer('9.9.9.5', self::ASN),
+                ],
+                'errors' => new \stdClass(),
+            ]),
+        ]);
+        $store = new ArrayStore();
+        $client = new Client(new Options(cacheStore: $store, httpClient: $stub->client));
+
+        $batch = $client->lookupBatch(['9.9.9.4', '9.9.9.5']);
+        foreach ([$client->lookup('9.9.9.1'), $batch['9.9.9.4']] as $i => $result) {
+            self::assertInstanceOf(Result::class, $result, "answer {$i}");
+            self::assertSame('', $result->asn?->type, "answer {$i}: type reads ''");
+            self::assertSame('Cloudflare, Inc.', $result->asn->name, "answer {$i}");
+            self::assertArrayNotHasKey('type', $result->raw['asn'], "answer {$i}");
+        }
+        foreach ([$client->lookup('9.9.9.2'), $batch['9.9.9.5']] as $i => $result) {
+            self::assertInstanceOf(Result::class, $result, "served {$i}");
+            self::assertSame('hosting', $result->asn?->type, "served {$i}: type reads as served");
+            self::assertSame('hosting', $result->raw['asn']['type'], "served {$i}");
+        }
+        $blank = $client->lookup('9.9.9.3');
+        self::assertSame('', $blank->asn?->type);
+        self::assertArrayHasKey('type', $blank->raw['asn'], "a type served as '' is present");
+        self::assertCount(4, $stub->calls, 'each read at once, never retried');
+
+        $again = new Client(new Options(cacheStore: $store, httpClient: (new Stub())->client));
+        $cached = $again->lookup('9.9.9.1');
+        self::assertSame('', $cached->asn?->type, 'a stored answer reads the same');
+        self::assertArrayNotHasKey('type', $cached->raw['asn'], 'and still shows the type absent');
     }
 
     public function testABatchEntryOfTheWrongTypeFailsThatAddressAlone(): void

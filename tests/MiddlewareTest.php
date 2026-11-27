@@ -212,6 +212,64 @@ final class MiddlewareTest extends TestCase
         }
     }
 
+    /**
+     * Unlimited leaves out the AS's `type`, which `Asn` holds at `''`, and `isBot`: a condition on
+     * either is a plan gap, reported by its path, and never matches, a stored answer's included.
+     * The same condition on an answer that serves them blocks.
+     */
+    public function testAMemberTheAnswerLeavesOutIsReportedAsAPlanGapAndNeverMatches(): void
+    {
+        $asn = [
+            'asn' => 9009, 'name' => 'M247 Europe SRL', 'domain' => 'm247global.com',
+            'prefix' => '146.70.116.0/24', 'country' => 'US', 'rpki_status' => 'valid',
+        ];
+        $unlimited = ['ip' => self::PUBLIC_IP, 'is_vpn' => false, 'asn' => $asn];
+        $paid = ['ip' => self::PUBLIC_IP, 'is_vpn' => false, 'is_bot' => true, 'asn' => [...$asn, 'type' => 'hosting']];
+        $cases = [
+            'asn.type' => [['asn' => ['type' => ['hosting', 'business']]], 'blockCondition names asn.type,'],
+            "asn.type ''" => [['asn' => ['type' => ['', 'hosting']]], 'blockCondition names asn.type,'],
+            'isBot' => [['isBot' => true], 'blockCondition names isBot,'],
+        ];
+        $store = new ArrayStore();
+        foreach ($cases as $name => [$condition, $message]) {
+            foreach ([false, true] as $stored) {
+                $warnings = [];
+                $core = self::core(new MwOptions(
+                    client: new Client(new Options(
+                        cacheStore: $store,
+                        retries: 0,
+                        httpClient: ($stored ? new Stub() : self::serving($unlimited))->client,
+                    )),
+                    ipSelector: fn (Req $r): string => self::PUBLIC_IP,
+                    blockCondition: $condition,
+                    onWarn: function (string $m) use (&$warnings): void {
+                        $warnings[] = $m;
+                    },
+                ));
+                $why = $name . ($stored ? ' on a stored answer' : '');
+                $lookup = $core->evaluate(new Req());
+                self::assertNull($lookup?->error, $why);
+                self::assertFalse($lookup->blocked, $why);
+                self::assertCount(1, $warnings, $why);
+                self::assertStringContainsString($message, $warnings[0], $why);
+            }
+            $store->clear();
+
+            $warnings = [];
+            $core = self::core(new MwOptions(
+                client: self::client(self::serving($paid)),
+                ipSelector: fn (Req $r): string => self::PUBLIC_IP,
+                blockCondition: $condition,
+                onWarn: function (string $m) use (&$warnings): void {
+                    $warnings[] = $m;
+                },
+            ));
+            self::assertTrue($core->evaluate(new Req())?->blocked, "{$name} on an answer that serves it");
+            self::assertSame([], $warnings, "{$name} on an answer that serves it");
+        }
+        self::assertSame('', (self::client(self::serving($unlimited))->lookup(self::PUBLIC_IP))->asn?->type);
+    }
+
     public function testAPrivateClientAddressWarnsOnceAndNeverReachesTheNetwork(): void
     {
         $stub = self::serving(['ip' => '10.0.0.7', 'is_vpn' => true]);

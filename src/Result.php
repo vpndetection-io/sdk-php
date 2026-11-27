@@ -55,7 +55,7 @@ final class Result
         public readonly array $raw = [],
         /** Where the address is. Every answer carries it, with or without a key. */
         public readonly ?Location $location = null,
-        /** The AS announcing the address. Every answer carries it, with or without a key. */
+        /** The AS announcing the address. Every answer carries it, with or without a key; its `type` is a paid plan's. */
         public readonly ?Asn $asn = null,
         /**
          * On answers to a key on the free plan only: false while its organization's
@@ -114,7 +114,7 @@ final class Result
         /**
          * Whether an automated client uses the address, such as a search engine's or
          * an AI company's crawler, an uptime monitor, an internet scanner or a
-         * webhook sender. Every plan includes this.
+         * webhook sender. On a paid plan.
          */
         public readonly ?bool $isBot = null,
         /** Bot IP's row, empty when `isBot` is false. On a paid plan. */

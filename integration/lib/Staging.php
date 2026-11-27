@@ -94,9 +94,11 @@ final class Staging
                 'geoname_id', 'dma_code', 'last_changed',
             ],
         ],
+        // `type` is a paid plan's: Unlimited's answer carries it until the API stops serving it, so a
+        // keyless run accepts it present or absent.
         'asn' => [
-            'required' => ['asn', 'name', 'domain', 'type', 'prefix', 'country', 'rpki_status'],
-            'optional' => [],
+            'required' => ['asn', 'name', 'domain', 'prefix', 'country', 'rpki_status'],
+            'optional' => ['type'],
         ],
         'company' => ['required' => ['name', 'domain'], 'optional' => ['type', 'country']],
         'abuse' => [
@@ -288,6 +290,10 @@ final class Staging
                 Assert::assertNotNull($r->$name, "{$name} is served, so the client must map it");
                 self::assertKeys($r->raw[$name], $name, $spec);
             }
+        }
+        if (array_key_exists('asn', $r->raw)) {
+            // The AS's type reads as served, or '' where the answer leaves it out.
+            Assert::assertSame($r->raw['asn']['type'] ?? '', $r->asn->type, 'asn.type reads as served, or empty');
         }
     }
 

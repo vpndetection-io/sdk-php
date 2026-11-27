@@ -156,9 +156,16 @@ final class ConformanceTest extends TestCase
             foreach (self::EXPECT_VALUES as $key) {
                 if (array_key_exists($key, $case['expect'])) {
                     self::assertNotNull($result->{self::camel($key)}, "{$name}: {$key} must be present");
+                    $wire = self::asWire($result->{self::camel($key)});
+                    // The AS's `type` is held at a plain string, so an answer that leaves it out
+                    // reads '' and the answer's own `asn` shows it absent: leave it out of the view.
+                    if ($key === 'asn' && !array_key_exists('type', $result->raw['asn'])) {
+                        self::assertSame('', $wire['type'], "{$name}: an absent asn.type reads ''");
+                        unset($wire['type']);
+                    }
                     self::assertSame(
                         self::canonical($case['expect'][$key]),
-                        self::canonical(self::asWire($result->{self::camel($key)})),
+                        self::canonical($wire),
                         "{$name}: {$key}",
                     );
                 }

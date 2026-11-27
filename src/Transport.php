@@ -14,6 +14,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TypeError;
 use ValueError;
+use VPNDetection\Internal\Model\LookupResponse;
 use VPNDetection\Internal\Model\ModelInterface;
 use VPNDetection\Internal\ObjectSerializer;
 
@@ -192,7 +193,7 @@ final class Transport
         if (!$model instanceof $class) {
             throw Errors::malformed(sprintf('expected %s', $class), $status);
         }
-        $unmet = self::unmet($model, $class, '');
+        $unmet = self::unmet($model, $class, '') ?? self::nullHeldMember($decoded, $class);
         if ($unmet !== null) {
             throw Errors::malformed(sprintf('the API answered %s', $unmet), $status);
         }
@@ -345,6 +346,23 @@ final class Transport
             if ($wrong !== null) {
                 return $wrong;
             }
+        }
+        return null;
+    }
+
+    /**
+     * The AS's `type` the answer serves as null, as an unmet requirement: the generated model
+     * reads a null member as absent, which it refused while the spec required `type`, and the
+     * spec lets an answer leave it out.
+     */
+    private static function nullHeldMember(mixed $decoded, string $class): ?string
+    {
+        if ($class !== LookupResponse::class || !$decoded instanceof \stdClass) {
+            return null;
+        }
+        $asn = $decoded->asn ?? null;
+        if ($asn instanceof \stdClass && property_exists($asn, HeldMembers::ASN) && $asn->{HeldMembers::ASN} === null) {
+            return sprintf("asn that breaks the spec ('%s' can't be null)", HeldMembers::ASN);
         }
         return null;
     }
