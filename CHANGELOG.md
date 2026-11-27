@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 4.3.2 are described by their release commits.
 
+## 4.22.0 - 2026-11-27
+
+### Features
+
+- Read a keyless answer without the AS's type ([`2242893`](https://github.com/vpndetection-io/sdk-php/commit/2242893b9e5344c13d15c49461d11c900dd56ffb))
+
+### Fixes
+
+- Middleware: remember an address's crawler agents across requests ([`3f36978`](https://github.com/vpndetection-io/sdk-php/commit/3f36978d435285a983cc98d9d88f10abc1e87244))
+
 ## 4.21.1 - 2026-11-26
 
 ### Fixes
