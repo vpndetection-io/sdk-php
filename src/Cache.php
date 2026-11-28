@@ -77,9 +77,9 @@ final class Cache implements AnswerCache
 
     /**
      * How long an answer stays: the TTL, or at most a minute for one marked
-     * `trialExpired` or `capReached`, which a change to the organization's plan
-     * or a raised cap ends. Still cached, so a busy process does not send every
-     * repeat of an address to the API.
+     * `trialExpired` or `capReached`, which can change as soon as the
+     * organization's trial, plan or cap does. Still cached, so a busy process
+     * does not send every repeat of an address to the API.
      */
     public static function lifeOf(Result $value, float $ttlSeconds): float
     {

@@ -134,7 +134,7 @@ $client = new Client(new Options(cacheMaxSize: 50_000, cacheTtlSeconds: 6 * 60 *
 $clientNoCache = new Client(new Options(cache: false));
 ```
 
-An answer with `trialExpired` or `capReached` true is cached for a minute at most, in memory and in a `cacheStore`, so a renewed trial or a raised cap reaches you within a minute.
+An answer with `trialExpired` or `capReached` true is cached for a minute at most, in memory and in a `cacheStore`, so a change to your trial, plan or cap reaches you within a minute.
 
 The cache lives on the client instance, so how much it buys you depends on how long that instance lives. A worker, a queue consumer or a long-running server gets the full benefit. Under PHP-FPM or mod_php the client is built for every request, so give it a PSR-16 cache that outlives the request, such as your framework's:
 
