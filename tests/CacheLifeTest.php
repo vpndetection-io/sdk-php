@@ -12,9 +12,9 @@ use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 
 /**
- * A spent trial's or a reached cap's answer ends with the trial's renewal or a
- * raised cap, so it is cached for a minute at most, in memory and in a store,
- * rather than for the client's TTL.
+ * A spent trial's or a reached cap's answer ends when the organization's plan
+ * changes or its cap is raised, so it is cached for a minute at most, in memory
+ * and in a store, rather than for the client's TTL.
  */
 final class CacheLifeTest extends TestCase
 {
