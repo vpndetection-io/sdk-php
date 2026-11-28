@@ -172,8 +172,8 @@ final class Client
      *
      * Usage counts against the ALLOWANCE WINDOW - on a paid plan the
      * anniversary of the subscription, not the calendar month and not the
-     * billing period, and on the free plan the UTC day - and it is the same
-     * number a lookup is gated on. It can lag by a few seconds, because
+     * billing period, and on the free plan its trial's window - and it is the
+     * same number a lookup is gated on. It can lag by a few seconds, because
      * requests are counted in memory and flushed in aggregate.
      *
      * Deliberately NOT cached: the whole point is what has been spent, and a

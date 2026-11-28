@@ -18,7 +18,7 @@ info:
     email: support@vpndetection.io
     url: https://vpndetection.io
   termsOfService: https://vpndetection.io/terms
-  version: 2026.11.26
+  version: 2026.11.27
 servers:
   - url: https://api.vpndetection.io
     description: Production
@@ -1253,7 +1253,12 @@ paths:
         been spent against that plan's allowance in the current window.
       responses:
         '200':
-          description: The key's entitlements and consumption.
+          description: |
+            The key's entitlements and consumption. On the free plan, Unlimited,
+            usage is its trial: the lookups answered with every field while it
+            lasts, against its limit, and no hard limit, since nothing stops a
+            lookup past it. The trial's length and limit are on the pricing
+            page, never fixed here.
           content:
             application/json:
               schema:
@@ -1277,28 +1282,6 @@ paths:
                       hard_limit: null
                       window_start: '2026-09-04T07:00:00Z'
                       window_end: '2026-10-04T07:00:00Z'
-                free:
-                  summary: >-
-                    A key of an organization on the free plan, Unlimited: its usage is its trial,
-                    the lookups answered with every field while it lasts, against the trial's limit.
-                    Nothing stops it past the trial, its lookups answering with Unlimited's fields,
-                    so there is no hard limit
-                  value:
-                    org_id: f32191d0-ef02-450e-a505-eb5814c35cab
-                    apikey:
-                      id: 10c2b437-3aa2-4a63-bd17-8e7c8c7f0def
-                      expires: null
-                      allowed_cidrs: []
-                    plan:
-                      key: free
-                      name: Unlimited
-                      tier: free
-                    usage:
-                      requests: 37
-                      quota: 250000
-                      hard_limit: null
-                      window_start: '2026-11-24T10:15:00Z'
-                      window_end: '2026-12-08T10:15:00Z'
         '401':
           description: No key was presented, or it is unknown, revoked or expired.
           content:
@@ -3295,7 +3278,7 @@ components:
             renamed or reused: `free` for the free plan, or a paid plan's key.
             Compare against it and show `name`. On `free`, usage counts its
             trial, the lookups answered with every field. The Data plan is a key
-            per quota, `data_1` to `data_7`, each named Data.
+            per quota (`data_1`, `data_2` and on), each named Data.
           example: data_4
         name:
           type: string
