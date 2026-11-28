@@ -753,6 +753,44 @@ final class MiddlewareTest extends TestCase
         self::assertTrue($lookup?->blocked);
         self::assertCount(1, $warnings, 'the private-address warning alone');
     }
+
+    /**
+     * A bogon peer, local development behind no proxy, is answered locally in the widest
+     * shape and carries no verdict, and that is no plan gap: onMissingField set to throw
+     * answered a crawler's request there with an error.
+     */
+    public function testABogonPeerWithACrawlerAgentIsNoPlanGap(): void
+    {
+        $forged = ['userAgent' => ['verdict' => 'spoofed']];
+        foreach (['127.0.0.1', '10.0.0.1', '::1'] as $peer) {
+            foreach (['throw', 'warn'] as $action) {
+                $why = "{$peer}, {$action}";
+                $agents = [];
+                $warnings = [];
+                $core = self::core(new MwOptions(
+                    client: self::botsAddress($agents, verdict: 'spoofed'),
+                    blockCondition: $forged,
+                    allowBots: true,
+                    onMissingField: $action,
+                    onWarn: function (string $m) use (&$warnings): void {
+                        $warnings[] = $m;
+                    },
+                ));
+                try {
+                    $lookup = $core->evaluate(new Req(ip: $peer), self::GOOGLEBOT);
+                } catch (\RuntimeException $error) {
+                    self::fail("{$why}: reported a plan gap for a bogon: {$error->getMessage()}");
+                }
+                self::assertFalse($lookup?->blocked, $why);
+                self::assertTrue($lookup->result?->isBogon, "{$why}: the bogon's own answer");
+                self::assertSame([], $agents, "{$why}: a bogon reached the origin");
+                self::assertSame([], Condition::missingMembers($forged, $lookup->result), $why);
+                foreach ($warnings as $warning) {
+                    self::assertStringNotContainsString('does not include', $warning, $why);
+                }
+            }
+        }
+    }
 }
 
 /** The least a framework can offer, so the core is exercised without one. */
